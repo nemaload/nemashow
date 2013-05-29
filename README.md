@@ -14,22 +14,22 @@ One of NEMALOAD's goals is to generate public interest in science through openne
 HDFView is a work that will continue to grow as the project does. While the first release of the software will only support viewing raw microscope images and videos, features which will be added in later releases include support for GLSL shaders for raytracing, as well as 3D visualizations of tomographic data. This will allow unprecedented public access to the data.
 
 ##Design Overview
+
 All data is backed up and stored for internal distribution on S3. From there, the web server keeps in sync via the _s3cmd sync_ tool. The webserver consists of three parts:
 
-	*The file daemon retrieves file information, performs necessary file conversions, updates the database, and
-	pulls new files from S3 when necessary.
+* The file daemon retrieves file information, performs necessary file conversions, updates the database, and pulls new files from S3 when necessary.
 	
-	*The web server program provides resource information stored in the database via a RESTful API. 
+* The web server program provides resource information stored in the database via a RESTful API. 
 	
-	*A fast reverse proxy, such as nginx, provides access to the PNGs stored on the server.
+* A fast reverse proxy, such as nginx, provides access to the PNGs stored on the server.
 	
 The client software is written in Javascript and WebGL. It consists of:
 	
-	* An UI in which the user can browse files, see file details, and proceed with visualization.
+* An UI in which the user can browse files, see file details, and proceed with visualization.
 	
-	* HTML5 Cache in which the large images are stored.
+* HTML5 Cache in which the large images are stored.
 	
-	* WebGL shaders written in GLSL which process the data and provide interactivity.
+* WebGL shaders written in GLSL which process the data and provide interactivity.
 
 
 ![HDFWeb Design Draft](http://i.imgur.com/YKpCdZk.png)
@@ -210,11 +210,9 @@ Datasets are multidimensional arrays containing grayscale image data. These corr
 	* Deletes a dataset
 
 
-### Implementation
-As I mentioned before, all resources must have a unique ID for this system to work. This can be accomplished by assigning a unique hash as the identifier of each resource in the database.
+## Implementation Notes
 
-The frontend of the app will be MVCesque, implemented in a framework such as Backbone.
+For the client side, Backbone.js will be utilized for large portions of the UI. While the server will be eventually written in OpenResty for speed, due to lack of experience with that web framework portions of the infrastructure will be written in server-side Javascript and then ported to OpenResty to save time and confusion. The server-daemon will be written in a fast scripting language, probably Go, due to the amount of related utility code NEMALOAD has written.
 
-)
 
 
