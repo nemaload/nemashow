@@ -1,8 +1,9 @@
-#HDFWeb API Specificaiton
+#HDFWeb API Specification
 This document specifies the API of HDFWeb, a system designed to allow remote viewing of images stored in the HDF5 file format in-browser. 
 
 This software is being developed for NEMALOAD's visualizations, however after it's initial release it will probably be generalized so that it can be reused for other scientific visualizations.
 
+This software is pre-alpha, so all of this is subject to change quite often.
 ## Resources
 (NOTE: *ALL* IDs must be unique)
 
