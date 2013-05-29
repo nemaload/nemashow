@@ -3,9 +3,7 @@
 #HDFWeb Specification
 This document describes HDFWeb, a system designed to allow remote viewing of raster images stored in the HDF5 file format in-browser. 
 
-This software is being developed for NEMALOAD's visualizations, however in later releases a goal is more generality.
-
-This software is pre-alpha, so all of this is subject to change quite often.
+This software is pre-alpha, so this document is subject to change.
 
 ##Purpose
 
@@ -36,9 +34,12 @@ The client software is written in Javascript and WebGL. It consists of:
 
 ##API
 
+### Notes
+
+The only verb that the client will utilize is GET. POST, PUT, and DELETE will be used by the server file daemon to maintain the database, and as such, access should be restricted.
+
 ### Resources
 
-Note, only GET is meant to be used by the web app and end user(for now). The others are for scripts which maintain the app by interacting with the files at a lower level.
 
 #### Collections
 Collections consist of one or more HDF5 files.
