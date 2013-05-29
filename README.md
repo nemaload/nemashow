@@ -1,11 +1,23 @@
 ![HDFWeb Logo](http://i.imgur.com/6mlZGk6.jpg)
 #HDFWeb Specification
-This document specifies the API of HDFWeb, a system designed to allow remote viewing of images stored in the HDF5 file format in-browser. 
+This document describes HDFWeb, a system designed to allow remote viewing of raster images stored in the HDF5 file format in-browser. 
 
-This software is being developed for NEMALOAD's visualizations, however after it's initial release it will probably be generalized so that it can be reused for other scientific visualizations.
+This software is being developed for NEMALOAD's visualizations, however in later releases a goal is more generality.
 
 This software is pre-alpha, so all of this is subject to change quite often.
-##API 
+
+##Purpose
+
+One of NEMALOAD's goals is to generate public interest in science through openness. There are a number of factors which make it very difficult for the general public to view the processed data we generate at the moment, such as prohibitive size, uncommon data formats, and custom software which is difficult to build. To facilitate delivering visualizations to the public, we are writing HDFView.
+
+HDFView is a work that will continue to grow as the project does. While the first release of the software will only support viewing raw microscope images and videos, features which will be added in later releases include support for GLSL shaders for raytracing, as well as 3D visualizations of tomographic data. This will allow unprecedented public access to the data.
+
+##Design Overview
+See the diagram below for some details.
+![HDFWeb Design Draft](http://i.imgur.com/HCI4eRS.png)
+
+##API
+
 ### Resources
 
 Note, only GET is meant to be used by the web app and end user(for now). The others are for scripts which maintain the app by interacting with the files at a lower level.
