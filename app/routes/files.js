@@ -1,3 +1,6 @@
+var mongo = require('mongodb');
+BSON = mongo.BSONPure;
+
 exports.findById = function(req, res) {
     var id = req.params.id;
     console.log('Retrieving file: ' + id);

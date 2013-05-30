@@ -83,7 +83,7 @@ func RemoveInvalidFiles(pathList []string) []string {
 	return pathList
 }
 func InsertImageIntoDatabase(path string, session *mgo.Session) {
-	c := session.DB("test").C("images")
+	c := session.DB("test").C("files")
 	//gather image data into object here
 	newImage := HDF5Image{}
 	newImage.Path = path
