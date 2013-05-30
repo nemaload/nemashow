@@ -2,8 +2,7 @@ package main
 
 import "fmt"
 import "labix.org/v2/mgo"
-
-//import "labix.org/v2/mgo/bson"
+import "labix.org/v2/mgo/bson"
 import "nemaload/hdfwebdaemon"
 
 func main() {
@@ -12,14 +11,10 @@ func main() {
 		panic(err)
 	}
 	defer session.Close()
+
 	fileList := hdfwebdaemon.RemoveInvalidFiles(hdfwebdaemon.GetHDFFileList("/mnt/"))
-	fmt.Println("Computed file list...")
 	for _, path := range fileList {
-		hdfwebdaemon.InsertImageIntoDatabase(path, session)
+		hdfwebdaemon.insertImageIntoDatabase(path, session)
 	}
-	fmt.Println("Finished inserting images...")
-	for _, path := range fileList {
-		hdfwebdaemon.ConvertHDF5ToPNG(path, "/var/www/images/", session)
-	}
-	fmt.Println("Finished script")
+
 }

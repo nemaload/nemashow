@@ -1,0 +1,332 @@
+<html>
+<head>
+
+<script src="http://code.jquery.com/jquery-1.10.0.min.js"></script>
+<script type="text/javascript" src="http://greggman.github.io/webgl-fundamentals/webgl/resources/webgl-utils.js"></script> 
+<script>
+
+window.onload = main;
+function main() {
+  var image = new Image();
+  image.src = "rawimage.png";  // MUST BE SAME DOMAIN!!!
+  image.onload = function() {
+    render(image);
+  }
+}
+
+function newmain(imagepath) {
+	var image = new Image();
+	image.src = imagepath;
+	image.onload = function() {
+		render(image);
+	}
+}
+
+// Get A WebGL context
+function render(image) {
+	//grabs the canvas element
+	var canvas = document.getElementById("canvas");
+    //gets the WebGL context
+    var gl = getWebGLContext(canvas);
+    //checks if system is WebGL compatible
+    if (!gl) {
+        return;
+    }
+    //creates the vertex shader
+    vertexShader = createShaderFromScriptElement(gl, "2d-vertex-shader");
+    fragmentShader = createShaderFromScriptElement(gl, "2d-fragment-shader");
+    program = createProgram(gl, [vertexShader, fragmentShader]);
+    gl.useProgram(program);
+    var positionLocation = gl.getAttribLocation(program, "a_position");
+    var texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
+    var texCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(texCoordLocation);
+    gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+    var resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+    gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
+    var buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.enableVertexAttribArray(positionLocation);
+    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+    setRectangle(gl, 0, 0, image.width/2, image.height/2);
+    gl.drawArrays(gl.TRIANGLES, 0, 6);
+}
+
+function setRectangle(gl, x, y, width, height) {
+        var x1 = x;
+        var x2 = x + width;
+        var y1 = y;
+        var y2 = y + height;
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([x1, y1, x2, y1, x1, y2, x1, y2, x2, y1, x2, y2]), gl.STATIC_DRAW);
+}
+
+	
+</script>
+
+<script id="lfdisplay-vertex-shader" type="x-shader/x-vertex">
+void main() {
+	gl_TexCoord[0] = gl_MultiTexCoord0;
+	gl_Position = ftransform();
+	gl_FrontColor = gl_Color;
+	gl_BackColor = gl_color;
+}
+
+</script>
+
+<script id="lfdisplay-display-fragment-shader" type="x-shader/x-fragment">
+uniform sampler2D tex;
+uniform vec4 gain;
+uniform vec4 offset;
+uniform vec4 gamma;
+
+void main(void) {
+  gl_FragColor = texture2D(tex, gl_TexCoord[0].st);
+  gl_FragColor = (gain*gl_FragColor+offset+vec4(gl_Color.rgb,1.0))*gl_Color.a;
+  gl_FragColor = pow(gl_FragColor, gamma);
+}
+</script>
+
+<script id="lfdisplay-lightfield-pinhole-fragment-shader" type="x-shader/x-fragment">
+uniform sampler2D tex;
+uniform vec4 gain;
+uniform vec4 offset;
+uniform vec4 gamma;
+uniform mat2 rectLinear;
+uniform vec2 rectOffset;
+uniform vec4 normalDim;
+uniform mat4 RTM;
+
+void main(void) {
+  vec2 coord, coord0, coord1, coord2, coord3, coord4;
+  vec4 fracts;
+  vec4 xyuv;
+  vec4 color;
+  xyuv = RTM*gl_TexCoord[0];
+  if(all(bvec4(lessThanEqual(abs(xyuv.pq),vec2(0.5,0.5)),lessThanEqual(abs(xyuv.st),vec2(0.5,0.5))))) {
+    coord = xyuv.st * normalDim.st;
+    coord0 = floor(coord) + xyuv.pq;
+    coord1 = rectLinear*coord0+rectOffset;
+    coord2 = rectLinear*(coord0 + vec2(0.0,1.0))+rectOffset;
+    coord3 = rectLinear*(coord0 + vec2(1.0,1.0))+rectOffset;
+    coord4 = rectLinear*(coord0 + vec2(1.0,0.0))+rectOffset;
+    fracts = vec4(coord-floor(coord),floor(coord)+vec2(1.0,1.0)-coord);
+    color = fracts.z*(fracts.w*texture2D(tex, coord1)+
+                      fracts.y*texture2D(tex, coord2)) +
+      fracts.x*(fracts.y*texture2D(tex, coord3)+
+                fracts.w*texture2D(tex, coord4));
+  }
+  gl_FragColor = pow(vec4(gain.rgb*color.rgb+gl_Color.rgb+offset.rgb,gl_Color.a*gain.a*color.a),gamma);
+}
+</script>
+
+
+<script id="lfdisplay-lightfield-finite-aperture-fragment-shader" type="x-shader/x-fragment">
+//NOTE the %d's in this function I have replaced with the APWIDTH =16 constant in the source code.
+// I think every 16 in this source might be replaceable by APWIDTH.
+//Examine this further.
+uniform sampler2D tex;
+uniform vec4 gain;
+uniform vec4 offset;
+uniform vec4 gamma;
+uniform mat2 rectLinear;
+uniform vec2 rectOffset;
+uniform vec4 normalDim;
+uniform mat4 RTM;
+uniform sampler2D aptex; // aperture texture
+uniform vec2 apertureScale; // how much scaling to multiply for aperture
+
+void main(void) {
+  vec2 coord, coord0, coord1, coord2, coord3, coord4;
+  vec2 uv;
+  vec4 fracts;
+  vec4 xyuv;
+  vec4 aperture;
+  int x, y;
+  vec4 color;
+
+  color = vec4(0.0,0.0,0.0,1.0);
+
+  for(y = 0 ; y < 16 ; y += 1) {
+    for(x = 0 ; x < 16 ; x += 1) {
+      aperture = texture2D(aptex,vec2((float(x)+0.5)/%d.0,(float(y)+0.5)/16.0));
+      // comment: multiplying by 4th channel in aperture to obtain proper scaling and ignoring aperture component in input coordinate for abbe sine condition reasons
+      xyuv = RTM*vec4(gl_TexCoord[0].xy, apertureScale*aperture.w*(aperture.xy-vec2(0.5,0.5)));
+      if(aperture.z == 0.0) break;
+      if(all(bvec4(lessThan(abs(xyuv.pq),vec2(0.5,0.5)),lessThan(abs(xyuv.st),vec2(0.5,0.5))))) {
+        coord = xyuv.st * normalDim.st;
+        // assume that we have no perspective effect, so use the
+        // aperture value from the aperture texture instead of the
+        // returned result (xyuv.pq)
+        coord0 = floor(coord) + aperture.xy-vec2(0.5,0.5);
+        coord1 = rectLinear*coord0+rectOffset;
+        coord2 = rectLinear*(coord0 + vec2(0.0,1.0))+rectOffset;
+        coord3 = rectLinear*(coord0 + vec2(1.0,1.0))+rectOffset;
+        coord4 = rectLinear*(coord0 + vec2(1.0,0.0))+rectOffset;
+        fracts = vec4(coord-floor(coord),floor(coord)+vec2(1.0,1.0)-coord);
+        color += aperture.z*
+          (fracts.z*(fracts.w*texture2D(tex, coord1)+
+                     fracts.y*texture2D(tex, coord2)) +
+           fracts.x*(fracts.y*texture2D(tex, coord3)+
+                     fracts.w*texture2D(tex, coord4)));
+      }
+    }
+    if(aperture.z == 0.0) break;
+  }
+  gl_FragColor = pow(vec4(  1.0  *gain.rgb*color.rgb+gl_Color.rgb+offset.rgb,gl_Color.a*gain.a*color.a),gamma);
+}
+
+</script>
+
+<script id="2d-vertex-shader" type="x-shader/x-vertex">
+attribute vec2 a_position;
+attribute vec2 a_texCoord;
+
+uniform vec2 u_resolution;
+
+varying vec2 v_texCoord;
+
+void main() {
+   // convert the rectangle from pixels to 0.0 to 1.0
+   vec2 zeroToOne = a_position / u_resolution;
+
+   // convert from 0->1 to 0->2
+   vec2 zeroToTwo = zeroToOne * 2.0;
+
+   // convert from 0->2 to -1->+1 (clipspace)
+   vec2 clipSpace = zeroToTwo - 1.0;
+
+   gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+
+   // pass the texCoord to the fragment shader
+   // The GPU will interpolate this value between points.
+   v_texCoord = a_texCoord;
+}
+</script>
+
+<script id="2d-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+// our texture
+uniform sampler2D u_image;
+
+// the texCoords passed in from the vertex shader.
+varying vec2 v_texCoord;
+
+void main() {
+   gl_FragColor = texture2D(u_image, v_texCoord);
+}
+</script>
+
+
+</head>
+	<body>
+<center> <img src="http://nemaload.davidad.org/png/nemaload.png">
+<h1> WebGL Shader Demonstration </h1>
+The image below is being rendered using WebGL shaders on an HTML5 Canvas element. <br />
+Porting the raytracing pipeline to the browser is a work in progress. <br />
+Please select an image to view.
+<!-- These are generated with a Python script for now due to cross-domain limitations I violated while half-awake -->
+<select id="imageselect">
+	<option value="/images/lensgrid.hdf5.png">lensgrid</option>
+	<option value="/images/beads_w_lenses.hdf5.png">beads_w_lenses</option>
+	<option value="/images/beads_w_lenses2.hdf5.png">beads_w_lenses2</option>
+	<option value="/images/beads_w_lenses3.hdf5.png">beads_w_lenses3</option>
+	<option value="/images/beads_wo_lenses.hdf5.png">beads_wo_lenses</option>
+	<option value="/images/beads_wo_lenses2.hdf5.png">beads_wo_lenses2</option>
+	<option value="/images/beads_wo_lenses3.hdf5.png">beads_wo_lenses3</option>
+	<option value="/images/beads_w_lenses.hdf5.png">beads_w_lenses</option>
+	<option value="/images/beads_w_lenses2.hdf5.png">beads_w_lenses2</option>
+	<option value="/images/2D_beads_w_lenses.hdf5.png">2D_beads_w_lenses</option>
+	<option value="/images/MT21063_1.hdf5.png">MT21063_1</option>
+	<option value="/images/MT21063_video1.hdf5.png">MT21063_video1</option>
+	<option value="/images/MT21063_video10.hdf5.png">MT21063_video10</option>
+	<option value="/images/MT21063_video11.hdf5.png">MT21063_video11</option>
+	<option value="/images/Epi_63xZeiss_1.4_3beads_w_lenses1.hdf5.png">Epi_63xZeiss_1.4_3beads_w_lenses1</option>
+	<option value="/images/Epi_63xZeiss_1.4_3beads_w_lenses2.hdf5.png">Epi_63xZeiss_1.4_3beads_w_lenses2</option>
+	<option value="/images/Epi_63xZeiss_1.4_3beads_wo_lenses.hdf5.png">Epi_63xZeiss_1.4_3beads_wo_lenses</option>
+	<option value="/images/Epi_63xZeiss_1.4_pollen_w_lenses.hdf5.png">Epi_63xZeiss_1.4_pollen_w_lenses</option>
+	<option value="/images/Epi_63xZeiss_1.4_pollen_wo_lenses.hdf5.png">Epi_63xZeiss_1.4_pollen_wo_lenses</option>
+	<option value="/images/Kohler_63xZeiss_1.4_pollen_w_lenses.hdf5.png">Kohler_63xZeiss_1.4_pollen_w_lenses</option>
+	<option value="/images/Kohler_63xZeiss_1.4_pollen_wo_lenses.hdf5.png">Kohler_63xZeiss_1.4_pollen_wo_lenses</option>
+	<option value="/images/Drosophila_brain_w_lenses.hdf5.png">Drosophila_brain_w_lenses</option>
+	<option value="/images/Drosophila_brain_w_lenses2.hdf5.png">Drosophila_brain_w_lenses2</option>
+	<option value="/images/Drosophila_brain_w_lenses.hdf5.png">Drosophila_brain_w_lenses</option>
+	<option value="/images/Drosophila_brain_w_lenses2.hdf5.png">Drosophila_brain_w_lenses2</option>
+	<option value="/images/Drosophila_brain_wo_lenses.hdf5.png">Drosophila_brain_wo_lenses</option>
+	<option value="/images/Drosophila_brain_wo_lenses2.hdf5.png">Drosophila_brain_wo_lenses2</option>
+	<option value="/images/Olympus_60x_1.45_beads_w_lenses.hdf5.png">Olympus_60x_1.45_beads_w_lenses</option>
+	<option value="/images/Olympus_60x_1.45_beads_wo_lenses.hdf5.png">Olympus_60x_1.45_beads_wo_lenses</option>
+	<option value="/images/beads_wo_lenses.hdf5.png">beads_wo_lenses</option>
+	<option value="/images/beads_wo_lenses2.hdf5.png">beads_wo_lenses2</option>
+	<option value="/images/larger_beads_w_lenses.hdf5.png">larger_beads_w_lenses</option>
+	<option value="/images/larger_beads_w_lenses2.hdf5.png">larger_beads_w_lenses2</option>
+	<option value="/images/larger_beads_w_lenses2_180rot.hdf5.png">larger_beads_w_lenses2_180rot</option>
+	<option value="/images/larger_beads_wo_lenses.hdf5.png">larger_beads_wo_lenses</option>
+	<option value="/images/larger_beads_wo_lenses2.hdf5.png">larger_beads_wo_lenses2</option>
+	<option value="/images/2D_beads_w_lenses_diff_z1.hdf5.png">2D_beads_w_lenses_diff_z1</option>
+	<option value="/images/2D_beads_w_lenses_diff_z2.hdf5.png">2D_beads_w_lenses_diff_z2</option>
+	<option value="/images/2D_beads_w_lenses_diff_z3.hdf5.png">2D_beads_w_lenses_diff_z3</option>
+	<option value="/images/2D_beads_wo_lenses.hdf5.png">2D_beads_wo_lenses</option>
+	<option value="/images/beads_3D_w_lenses.hdf5.png">beads_3D_w_lenses</option>
+	<option value="/images/beads_3D_w_lenses_diff_z1.hdf5.png">beads_3D_w_lenses_diff_z1</option>
+	<option value="/images/beads_3D_w_lenses_diff_z2.hdf5.png">beads_3D_w_lenses_diff_z2</option>
+	<option value="/images/beads_3D_w_lenses_diff_z3.hdf5.png">beads_3D_w_lenses_diff_z3</option>
+	<option value="/images/beads_3D_w_lenses_diff_z4.hdf5.png">beads_3D_w_lenses_diff_z4</option>
+	<option value="/images/beads_3D_w_lenses_diff_z5.hdf5.png">beads_3D_w_lenses_diff_z5</option>
+	<option value="/images/beads_3D_w_lenses_diff_z6.hdf5.png">beads_3D_w_lenses_diff_z6</option>
+	<option value="/images/beads_3D_wo_lenses.hdf5.png">beads_3D_wo_lenses</option>
+	<option value="/images/dense_2D_beads_w_lenses.hdf5.png">dense_2D_beads_w_lenses</option>
+	<option value="/images/dense_2D_beads_w_lenses_diff_z1.hdf5.png">dense_2D_beads_w_lenses_diff_z1</option>
+	<option value="/images/dense_2D_beads_w_lenses_diff_z2.hdf5.png">dense_2D_beads_w_lenses_diff_z2</option>
+	<option value="/images/dense_2D_beads_w_lenses_diff_z3.hdf5.png">dense_2D_beads_w_lenses_diff_z3</option>
+	<option value="/images/dense_2D_beads_wo_lenses.hdf5.png">dense_2D_beads_wo_lenses</option>
+	<option value="/images/MT21063_video12.hdf5.png">MT21063_video12</option>
+	<option value="/images/MT21063_video13.hdf5.png">MT21063_video13</option>
+	<option value="/images/MT21063_video14.hdf5.png">MT21063_video14</option>
+	<option value="/images/MT21063_video2.hdf5.png">MT21063_video2</option>
+	<option value="/images/MT21063_video3.hdf5.png">MT21063_video3</option>
+	<option value="/images/MT21063_video4.hdf5.png">MT21063_video4</option>
+	<option value="/images/MT21063_video15.hdf5.png">MT21063_video15</option>
+	<option value="/images/MT21063_video16_rolling.hdf5.png">MT21063_video16_rolling</option>
+	<option value="/images/MT21063_video17_rolling.hdf5.png">MT21063_video17_rolling</option>
+	<option value="/images/MT21063_video18_rolling_dz_ml.hdf5.png">MT21063_video18_rolling_dz_ml</option>
+	<option value="/images/cell_layer_pawel_blue.hdf5.png">cell_layer_pawel_blue</option>
+	<option value="/images/cell_layer_pawel_blue_2.hdf5.png">cell_layer_pawel_blue_2</option>
+	<option value="/images/cell_layer_pawel_green.hdf5.png">cell_layer_pawel_green</option>
+	<option value="/images/cell_layer_pawel_green_2.hdf5.png">cell_layer_pawel_green_2</option>
+	<option value="/images/cell_layer_pawel_red.hdf5.png">cell_layer_pawel_red</option>
+	<option value="/images/cells2_pawel_blue.hdf5.png">cells2_pawel_blue</option>
+	<option value="/images/cells2_pawel_blue_2.5x.hdf5.png">cells2_pawel_blue_2.5x</option>
+	<option value="/images/cells2_pawel_green.hdf5.png">cells2_pawel_green</option>
+	<option value="/images/cells2_pawel_green_2.5x.hdf5.png">cells2_pawel_green_2.5x</option>
+	<option value="/images/cells2_pawel_red.hdf5.png">cells2_pawel_red</option>
+	<option value="/images/cells2_pawel_red_2.5x.hdf5.png">cells2_pawel_red_2.5x</option>
+	<option value="/images/pflp18gCAMP5_mCherry_video20_global_dz_ml.hdf5.png">pflp18gCAMP5_mCherry_video20_global_dz_ml</option>
+	<option value="/images/pflp18gCAMP5_mCherry_video21_global.hdf5.png">pflp18gCAMP5_mCherry_video21_global</option>
+	<option value="/images/punc31_gCAMP5_td_snapshot_1.6x_gfpfilter.hdf5.png">punc31_gCAMP5_td_snapshot_1.6x_gfpfilter</option>
+	<option value="/images/punc31_gCAMP5_td_snapshot_1.6x_gfpfilter_2.hdf5.png">punc31_gCAMP5_td_snapshot_1.6x_gfpfilter_2</option>
+	<option value="/images/punc31_gCAMP5_td_snapshot_1.6x_gfpfilter_4.hdf5.png">punc31_gCAMP5_td_snapshot_1.6x_gfpfilter_4</option>
+	<option value="/images/punc31_gCAMP5_td_video22_global.hdf5.png">punc31_gCAMP5_td_video22_global</option>
+	<option value="/images/punc31_gCAMP5_td_video23_global_gfpfilter.hdf5.png">punc31_gCAMP5_td_video23_global_gfpfilter</option>
+	<option value="/images/punc31_gCAMP5_td_video24_global_gfpfilter_tail.hdf5.png">punc31_gCAMP5_td_video24_global_gfpfilter_tail</option>
+	<option value="/images/punc31_gCAMP5_td_video25_global_gfpfilter.hdf5.png">punc31_gCAMP5_td_video25_global_gfpfilter</option>
+</select>
+</center>
+<canvas id="canvas" width="1280" height="1080"></canvas>
+<script>
+$('#imageselect').change(function () {
+	console.log("Changed")
+	newmain($(this).val());
+});
+</script>
+	</body>
+</html>

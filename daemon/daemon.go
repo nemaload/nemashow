@@ -17,11 +17,12 @@ import (
 type HDF5Image struct {
 	Id           bson.ObjectId "_id"
 	Path         string        //path to file
-	Name         string        //basename
-	FileSize     int64         // length in bytes
-	NumFrames    uint16        // number of image frames
-	CreatedAt    string        //when the image was creatd
-	OriginalName string        //the original name of the image
+	PNGPath      string
+	Name         string //basename
+	FileSize     int64  // length in bytes
+	NumFrames    uint16 // number of image frames
+	CreatedAt    string //when the image was creatd
+	OriginalName string //the original name of the image
 	Pitch        float64
 	Flen         float64
 	Mag          float64
@@ -109,6 +110,38 @@ func InsertImageIntoDatabase(path string, session *mgo.Session) {
 	}
 	//TODO: In future, add uniqueness checks
 
+}
+func ConvertHDF5ToPNG(inputPath string, newRootDirectory string, session *mgo.Session) {
+
+	newPath := strings.Join([]string{inputPath, ":/images/0"}, "")
+	fmt.Println("Saving to", newPath)
+	_, err := exec.Command("h5topng", "-r", newPath).Output()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Just converted", newPath)
+	basePath := filepath.Base(inputPath)
+	basePath = strings.Join([]string{basePath, ".png"}, "")
+	basePath = strings.Join([]string{newRootDirectory, basePath}, "")
+
+	pngPath := strings.Join([]string{inputPath, ".png"}, "")
+	fmt.Println("Copying from", pngPath, "to", newRootDirectory)
+	_, err = exec.Command("cp", pngPath, newRootDirectory).Output()
+	if err != nil {
+		panic(err)
+	}
+
+	//find path here
+	//result := HDF5Image{}
+	c := session.DB("test").C("files")
+
+	colQuerier := bson.M{"path": inputPath}
+	change := bson.M{"$set": bson.M{"pngpath": basePath}}
+	fmt.Println("Set PNG path to", basePath)
+	newErr := c.Update(colQuerier, change)
+	if newErr != nil {
+		panic(newErr)
+	}
 }
 
 /*func TestDB() {
