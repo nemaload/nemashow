@@ -6,6 +6,11 @@ var express = require('express'),
  
 var app = express();
 
+app.configure(function () {
+	app.use(express.logger('default'));
+	app.use(express.bodyParser());
+});
+
 //Database related stuff
 var mongo = require('mongodb');
 
@@ -14,8 +19,8 @@ var Server = mongo.Server,
 	BSON = mongo.BSONPure;
 
 var server = new Server('localhost', 27017, {auto_reconnect: true});
-db = new Db('HDFWeb', server);
-
+db = new Db('test', server);
+//change this later
 db.open(function (err, db) {
 	if(!err) {
 		console.log("Successfully connected to database");
@@ -50,21 +55,21 @@ app.get('/collections', collections.findAll);
 app.get('/collections/:id', collections.findById);
 app.post('/collections', collections.addCollection);
 app.put('/collections/:id', collections.updateCollection);
-app.delete('/collections/:id', collections.removeCollection); //only removes from app, NOT SYSTEM
+app.delete('/collections/:id', collections.deleteCollection); //only removes from app, NOT SYSTEM
 
 //File related stuff
 app.get('/files', files.findAll);
 app.get('/files/:id', files.findById);
 app.post('/files', files.addFile);
 app.put('/files/:id', files.updateFile);
-app.delete('/files/:id', files.removeFile);
+app.delete('/files/:id', files.deleteFile);
 
 //Group related stuff
 app.get('/groups', groups.findAll);
 app.get('/groups/:id', groups.findById);
 app.post('/groups', groups.addGroup);
 app.put('/groups/:id', groups.updateGroup);
-app.delete('/groups/:id', groups.removeGroup);
+app.delete('/groups/:id', groups.deleteGroup);
 
 //Dataset related stuff
 //Add metadata/data separation
@@ -73,7 +78,7 @@ app.get('/datasets/metadata/:id', datasets.metaFindById);
 app.get('/datasets/data/:id', datasets.dataFindById);
 app.post('/datasets', datasets.addDataset);
 app.put('/datasets/:id', datasets.updateDataset);
-app.delete('/datasets/:id', datasets.removeDataset);
+app.delete('/datasets/:id', datasets.deleteDataset);
 
 
 

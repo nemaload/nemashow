@@ -1,4 +1,14 @@
-exports.findById = function(req, res) {
+exports.metaFindById = function(req, res) {
+    var id = req.params.id;
+    console.log('Retrieving dataset: ' + id);
+    db.collection('datasets', function(err, collection) {
+        collection.findOne({'_id':new BSON.ObjectID(id)}, function(err, item) {
+            res.send(item);
+        });
+    });
+};
+
+exports.dataFindById = function(req, res) {
     var id = req.params.id;
     console.log('Retrieving dataset: ' + id);
     db.collection('datasets', function(err, collection) {
@@ -11,7 +21,7 @@ exports.findById = function(req, res) {
 
 
 
-exports.findAll = function(req, res) {
+exports.metaFindAll = function(req, res) {
     db.collection('datasets', function(err, collection) {
         collection.find().toArray(function(err, items) {
             res.send(items);
@@ -21,7 +31,7 @@ exports.findAll = function(req, res) {
 
 
  
-exports.addCollection = function(req, res) {
+exports.addDataset = function(req, res) {
     var dataset = req.body;
     console.log('Adding dataset: ' + JSON.stringify(collectionObject));
     db.collection('datasets', function(err, collection) {
@@ -37,7 +47,7 @@ exports.addCollection = function(req, res) {
 }
 
  
-exports.updateCollection = function(req, res) {
+exports.updateDataset = function(req, res) {
     var id = req.params.id;
     var dataset = req.body;
     console.log('Updating dataset: ' + id);
@@ -55,7 +65,7 @@ exports.updateCollection = function(req, res) {
     });
 }
  
-exports.deleteWine = function(req, res) {
+exports.deleteDataset = function(req, res) {
     var id = req.params.id;
     console.log('Deleting dataset: ' + id);
     db.collection('datasets', function(err, collection) {

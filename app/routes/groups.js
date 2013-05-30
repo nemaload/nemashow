@@ -21,7 +21,7 @@ exports.findAll = function(req, res) {
 
 
  
-exports.addCollection = function(req, res) {
+exports.addGroup = function(req, res) {
     var group = req.body;
     console.log('Adding group: ' + JSON.stringify(collectionObject));
     db.collection('groups', function(err, collection) {
@@ -37,7 +37,7 @@ exports.addCollection = function(req, res) {
 }
 
  
-exports.updateCollection = function(req, res) {
+exports.updateGroup = function(req, res) {
     var id = req.params.id;
     var group = req.body;
     console.log('Updating group: ' + id);
@@ -55,7 +55,7 @@ exports.updateCollection = function(req, res) {
     });
 }
  
-exports.deleteWine = function(req, res) {
+exports.deleteGroup = function(req, res) {
     var id = req.params.id;
     console.log('Deleting group: ' + id);
     db.collection('groups', function(err, collection) {

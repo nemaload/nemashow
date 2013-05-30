@@ -55,7 +55,7 @@ exports.updateCollection = function(req, res) {
     });
 }
  
-exports.deleteWine = function(req, res) {
+exports.deleteCollection = function(req, res) {
     var id = req.params.id;
     console.log('Deleting collection: ' + id);
     db.collection('collections', function(err, collection) {

@@ -21,7 +21,7 @@ exports.findAll = function(req, res) {
 
 
  
-exports.addCollection = function(req, res) {
+exports.addFile = function(req, res) {
     var file = req.body;
     console.log('Adding file: ' + JSON.stringify(collectionObject));
     db.collection('files', function(err, collection) {
@@ -37,7 +37,7 @@ exports.addCollection = function(req, res) {
 }
 
  
-exports.updateCollection = function(req, res) {
+exports.updateFile = function(req, res) {
     var id = req.params.id;
     var file = req.body;
     console.log('Updating file: ' + id);
@@ -55,7 +55,7 @@ exports.updateCollection = function(req, res) {
     });
 }
  
-exports.deleteWine = function(req, res) {
+exports.deleteFile = function(req, res) {
     var id = req.params.id;
     console.log('Deleting file: ' + id);
     db.collection('files', function(err, collection) {
