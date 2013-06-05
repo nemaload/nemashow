@@ -127,25 +127,8 @@ void main() {
 }
 </script>
 
-
-<script id="lfdisplay-display-fragment-shader" type="x-shader/x-fragment">
-uniform sampler2D tex;
-uniform vec4 gain;
-uniform vec4 offset;
-uniform vec4 gamma;
-
-void main(void) {
-	gl_FragColor = texture2D(tex, gl_TexCoord[0].st);
-	gl_FragColor = (gain*gl_FragColor+offset+vec4(gl_Color.rgb,1.0))*gl_Color.a;
-	gl_FragColor = pow(gl_FragColor, gamma);
-}
-</script>
-
 <script id="lfdisplay-lightfield-pinhole-fragment-shader" type="x-shader/x-fragment">
 uniform sampler2D tex;
-uniform vec4 gain;
-uniform vec4 offset;
-uniform vec4 gamma;
 uniform mat2 rectLinear;
 uniform vec2 rectOffset;
 uniform vec4 normalDim;
@@ -170,7 +153,7 @@ void main(void) {
 		fracts.x*(fracts.y*texture2D(tex, coord3)+
 		fracts.w*texture2D(tex, coord4));
 	}
-	gl_FragColor = pow(vec4(gain.rgb*color.rgb+gl_Color.rgb+offset.rgb,gl_Color.a*gain.a*color.a),gamma);
+	gl_FragColor = vec4(color.rgb+gl_Color.rgb,gl_Color.a*color.a);
 }
 </script>
 
