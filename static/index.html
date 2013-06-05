@@ -92,19 +92,48 @@ function setRectangle(gl, x, y, width, height) {
 		x2, y1,
 		x2, y2]), gl.STATIC_DRAW);
 }
-
-	
 </script>
 
-<script id="lfdisplay-vertex-shader" type="x-shader/x-vertex">
+<script id="2d-vertex-shader" type="x-shader/x-vertex">
+attribute vec2 a_position;
+attribute vec2 a_texCoord;
+
+uniform vec2 u_resolution;
+
+varying vec2 v_texCoord;
+
 void main() {
-	gl_TexCoord[0] = gl_MultiTexCoord0;
-	gl_Position = ftransform();
-	gl_FrontColor = gl_Color;
-	gl_BackColor = gl_color;
-}
+	// convert the rectangle from pixels to 0.0 to 1.0
+	vec2 zeroToOne = a_position / u_resolution;
 
+	// convert from 0->1 to 0->2
+	vec2 zeroToTwo = zeroToOne * 2.0;
+
+	// convert from 0->2 to -1->+1 (clipspace)
+	vec2 clipSpace = zeroToTwo - 1.0;
+
+	gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+
+	// pass the texCoord to the fragment shader
+	// The GPU will interpolate this value between points.
+	v_texCoord = a_texCoord;
+}
 </script>
+
+<script id="2d-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+// our texture
+uniform sampler2D u_image;
+
+// the texCoords passed in from the vertex shader.
+varying vec2 v_texCoord;
+
+void main() {
+	gl_FragColor = texture2D(u_image, v_texCoord);
+}
+</script>
+
 
 <script id="lfdisplay-display-fragment-shader" type="x-shader/x-fragment">
 uniform sampler2D tex;
@@ -208,46 +237,6 @@ void main(void) {
 	gl_FragColor = pow(vec4(  1.0  *gain.rgb*color.rgb+gl_Color.rgb+offset.rgb,gl_Color.a*gain.a*color.a),gamma);
 }
 
-</script>
-
-<script id="2d-vertex-shader" type="x-shader/x-vertex">
-attribute vec2 a_position;
-attribute vec2 a_texCoord;
-
-uniform vec2 u_resolution;
-
-varying vec2 v_texCoord;
-
-void main() {
-	// convert the rectangle from pixels to 0.0 to 1.0
-	vec2 zeroToOne = a_position / u_resolution;
-
-	// convert from 0->1 to 0->2
-	vec2 zeroToTwo = zeroToOne * 2.0;
-
-	// convert from 0->2 to -1->+1 (clipspace)
-	vec2 clipSpace = zeroToTwo - 1.0;
-
-	gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-
-	// pass the texCoord to the fragment shader
-	// The GPU will interpolate this value between points.
-	v_texCoord = a_texCoord;
-}
-</script>
-
-<script id="2d-fragment-shader" type="x-shader/x-fragment">
-precision mediump float;
-
-// our texture
-uniform sampler2D u_image;
-
-// the texCoords passed in from the vertex shader.
-varying vec2 v_texCoord;
-
-void main() {
-	gl_FragColor = texture2D(u_image, v_texCoord);
-}
 </script>
 
 
