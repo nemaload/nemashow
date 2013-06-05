@@ -41,7 +41,7 @@ function render(image) {
 
 	// set(up) parameters
 	var resolutionLocation = gl.getUniformLocation(program, "u_resolution");
-	gl.uniform2f(resolutionLocation, image.width, image.height);
+	gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
 
 	var texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
