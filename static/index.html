@@ -7,11 +7,11 @@
 
 window.onload = main;
 function main() {
-  var image = new Image();
-  image.src = "rawimage.png";  // MUST BE SAME DOMAIN!!!
-  image.onload = function() {
-    render(image);
-  }
+	var image = new Image();
+	image.src = "rawimage.png";  // MUST BE SAME DOMAIN!!!
+	image.onload = function() {
+		render(image);
+	}
 }
 
 function newmain(imagepath) {
@@ -26,39 +26,39 @@ function newmain(imagepath) {
 function render(image) {
 	//grabs the canvas element
 	var canvas = document.getElementById("canvas");
-    //gets the WebGL context
-    var gl = getWebGLContext(canvas);
-    //checks if system is WebGL compatible
-    if (!gl) {
-        return;
-    }
-    //creates the vertex shader
-    vertexShader = createShaderFromScriptElement(gl, "2d-vertex-shader");
-    fragmentShader = createShaderFromScriptElement(gl, "2d-fragment-shader");
-    program = createProgram(gl, [vertexShader, fragmentShader]);
-    gl.useProgram(program);
-    var positionLocation = gl.getAttribLocation(program, "a_position");
-    var texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
-    var texCoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(texCoordLocation);
-    gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
-    var texture = gl.createTexture();
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
-    var resolutionLocation = gl.getUniformLocation(program, "u_resolution");
-    gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
-    var buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.enableVertexAttribArray(positionLocation);
-    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-    setRectangle(gl, 0, 0, image.width/2, image.height/2);
-    gl.drawArrays(gl.TRIANGLES, 0, 6);
+	//gets the WebGL context
+	var gl = getWebGLContext(canvas);
+	//checks if system is WebGL compatible
+	if (!gl) {
+		return;
+	}
+	//creates the vertex shader
+	vertexShader = createShaderFromScriptElement(gl, "2d-vertex-shader");
+	fragmentShader = createShaderFromScriptElement(gl, "2d-fragment-shader");
+	program = createProgram(gl, [vertexShader, fragmentShader]);
+	gl.useProgram(program);
+	var positionLocation = gl.getAttribLocation(program, "a_position");
+	var texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
+	var texCoordBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 1.0]), gl.STATIC_DRAW);
+	gl.enableVertexAttribArray(texCoordLocation);
+	gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+	var texture = gl.createTexture();
+	gl.bindTexture(gl.TEXTURE_2D, texture);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+	var resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+	gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
+	var buffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+	gl.enableVertexAttribArray(positionLocation);
+	gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+	setRectangle(gl, 0, 0, image.width/2, image.height/2);
+	gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 
 function setRectangle(gl, x, y, width, height) {
@@ -89,9 +89,9 @@ uniform vec4 offset;
 uniform vec4 gamma;
 
 void main(void) {
-  gl_FragColor = texture2D(tex, gl_TexCoord[0].st);
-  gl_FragColor = (gain*gl_FragColor+offset+vec4(gl_Color.rgb,1.0))*gl_Color.a;
-  gl_FragColor = pow(gl_FragColor, gamma);
+	gl_FragColor = texture2D(tex, gl_TexCoord[0].st);
+	gl_FragColor = (gain*gl_FragColor+offset+vec4(gl_Color.rgb,1.0))*gl_Color.a;
+	gl_FragColor = pow(gl_FragColor, gamma);
 }
 </script>
 
@@ -106,25 +106,25 @@ uniform vec4 normalDim;
 uniform mat4 RTM;
 
 void main(void) {
-  vec2 coord, coord0, coord1, coord2, coord3, coord4;
-  vec4 fracts;
-  vec4 xyuv;
-  vec4 color;
-  xyuv = RTM*gl_TexCoord[0];
-  if(all(bvec4(lessThanEqual(abs(xyuv.pq),vec2(0.5,0.5)),lessThanEqual(abs(xyuv.st),vec2(0.5,0.5))))) {
-    coord = xyuv.st * normalDim.st;
-    coord0 = floor(coord) + xyuv.pq;
-    coord1 = rectLinear*coord0+rectOffset;
-    coord2 = rectLinear*(coord0 + vec2(0.0,1.0))+rectOffset;
-    coord3 = rectLinear*(coord0 + vec2(1.0,1.0))+rectOffset;
-    coord4 = rectLinear*(coord0 + vec2(1.0,0.0))+rectOffset;
-    fracts = vec4(coord-floor(coord),floor(coord)+vec2(1.0,1.0)-coord);
-    color = fracts.z*(fracts.w*texture2D(tex, coord1)+
-                      fracts.y*texture2D(tex, coord2)) +
-      fracts.x*(fracts.y*texture2D(tex, coord3)+
-                fracts.w*texture2D(tex, coord4));
-  }
-  gl_FragColor = pow(vec4(gain.rgb*color.rgb+gl_Color.rgb+offset.rgb,gl_Color.a*gain.a*color.a),gamma);
+	vec2 coord, coord0, coord1, coord2, coord3, coord4;
+	vec4 fracts;
+	vec4 xyuv;
+	vec4 color;
+	xyuv = RTM*gl_TexCoord[0];
+	if(all(bvec4(lessThanEqual(abs(xyuv.pq),vec2(0.5,0.5)),lessThanEqual(abs(xyuv.st),vec2(0.5,0.5))))) {
+		coord = xyuv.st * normalDim.st;
+		coord0 = floor(coord) + xyuv.pq;
+		coord1 = rectLinear*coord0+rectOffset;
+		coord2 = rectLinear*(coord0 + vec2(0.0,1.0))+rectOffset;
+		coord3 = rectLinear*(coord0 + vec2(1.0,1.0))+rectOffset;
+		coord4 = rectLinear*(coord0 + vec2(1.0,0.0))+rectOffset;
+		fracts = vec4(coord-floor(coord),floor(coord)+vec2(1.0,1.0)-coord);
+		color = fracts.z*(fracts.w*texture2D(tex, coord1)+
+		fracts.y*texture2D(tex, coord2)) +
+		fracts.x*(fracts.y*texture2D(tex, coord3)+
+		fracts.w*texture2D(tex, coord4));
+	}
+	gl_FragColor = pow(vec4(gain.rgb*color.rgb+gl_Color.rgb+offset.rgb,gl_Color.a*gain.a*color.a),gamma);
 }
 </script>
 
@@ -145,43 +145,43 @@ uniform sampler2D aptex; // aperture texture
 uniform vec2 apertureScale; // how much scaling to multiply for aperture
 
 void main(void) {
-  vec2 coord, coord0, coord1, coord2, coord3, coord4;
-  vec2 uv;
-  vec4 fracts;
-  vec4 xyuv;
-  vec4 aperture;
-  int x, y;
-  vec4 color;
+	vec2 coord, coord0, coord1, coord2, coord3, coord4;
+	vec2 uv;
+	vec4 fracts;
+	vec4 xyuv;
+	vec4 aperture;
+	int x, y;
+	vec4 color;
 
-  color = vec4(0.0,0.0,0.0,1.0);
+	color = vec4(0.0,0.0,0.0,1.0);
 
-  for(y = 0 ; y < 16 ; y += 1) {
-    for(x = 0 ; x < 16 ; x += 1) {
-      aperture = texture2D(aptex,vec2((float(x)+0.5)/%d.0,(float(y)+0.5)/16.0));
-      // comment: multiplying by 4th channel in aperture to obtain proper scaling and ignoring aperture component in input coordinate for abbe sine condition reasons
-      xyuv = RTM*vec4(gl_TexCoord[0].xy, apertureScale*aperture.w*(aperture.xy-vec2(0.5,0.5)));
-      if(aperture.z == 0.0) break;
-      if(all(bvec4(lessThan(abs(xyuv.pq),vec2(0.5,0.5)),lessThan(abs(xyuv.st),vec2(0.5,0.5))))) {
-        coord = xyuv.st * normalDim.st;
-        // assume that we have no perspective effect, so use the
-        // aperture value from the aperture texture instead of the
-        // returned result (xyuv.pq)
-        coord0 = floor(coord) + aperture.xy-vec2(0.5,0.5);
-        coord1 = rectLinear*coord0+rectOffset;
-        coord2 = rectLinear*(coord0 + vec2(0.0,1.0))+rectOffset;
-        coord3 = rectLinear*(coord0 + vec2(1.0,1.0))+rectOffset;
-        coord4 = rectLinear*(coord0 + vec2(1.0,0.0))+rectOffset;
-        fracts = vec4(coord-floor(coord),floor(coord)+vec2(1.0,1.0)-coord);
-        color += aperture.z*
-          (fracts.z*(fracts.w*texture2D(tex, coord1)+
-                     fracts.y*texture2D(tex, coord2)) +
-           fracts.x*(fracts.y*texture2D(tex, coord3)+
-                     fracts.w*texture2D(tex, coord4)));
-      }
-    }
-    if(aperture.z == 0.0) break;
-  }
-  gl_FragColor = pow(vec4(  1.0  *gain.rgb*color.rgb+gl_Color.rgb+offset.rgb,gl_Color.a*gain.a*color.a),gamma);
+	for(y = 0 ; y < 16 ; y += 1) {
+		for(x = 0 ; x < 16 ; x += 1) {
+			aperture = texture2D(aptex,vec2((float(x)+0.5)/%d.0,(float(y)+0.5)/16.0));
+			// comment: multiplying by 4th channel in aperture to obtain proper scaling and ignoring aperture component in input coordinate for abbe sine condition reasons
+			xyuv = RTM*vec4(gl_TexCoord[0].xy, apertureScale*aperture.w*(aperture.xy-vec2(0.5,0.5)));
+			if(aperture.z == 0.0) break;
+			if(all(bvec4(lessThan(abs(xyuv.pq),vec2(0.5,0.5)),lessThan(abs(xyuv.st),vec2(0.5,0.5))))) {
+				coord = xyuv.st * normalDim.st;
+				// assume that we have no perspective effect, so use the
+				// aperture value from the aperture texture instead of the
+				// returned result (xyuv.pq)
+				coord0 = floor(coord) + aperture.xy-vec2(0.5,0.5);
+				coord1 = rectLinear*coord0+rectOffset;
+				coord2 = rectLinear*(coord0 + vec2(0.0,1.0))+rectOffset;
+				coord3 = rectLinear*(coord0 + vec2(1.0,1.0))+rectOffset;
+				coord4 = rectLinear*(coord0 + vec2(1.0,0.0))+rectOffset;
+				fracts = vec4(coord-floor(coord),floor(coord)+vec2(1.0,1.0)-coord);
+				color += aperture.z*
+				(fracts.z*(fracts.w*texture2D(tex, coord1)+
+				fracts.y*texture2D(tex, coord2)) +
+				fracts.x*(fracts.y*texture2D(tex, coord3)+
+				fracts.w*texture2D(tex, coord4)));
+			}
+		}
+		if(aperture.z == 0.0) break;
+	}
+	gl_FragColor = pow(vec4(  1.0  *gain.rgb*color.rgb+gl_Color.rgb+offset.rgb,gl_Color.a*gain.a*color.a),gamma);
 }
 
 </script>
@@ -195,20 +195,20 @@ uniform vec2 u_resolution;
 varying vec2 v_texCoord;
 
 void main() {
-   // convert the rectangle from pixels to 0.0 to 1.0
-   vec2 zeroToOne = a_position / u_resolution;
+	// convert the rectangle from pixels to 0.0 to 1.0
+	vec2 zeroToOne = a_position / u_resolution;
 
-   // convert from 0->1 to 0->2
-   vec2 zeroToTwo = zeroToOne * 2.0;
+	// convert from 0->1 to 0->2
+	vec2 zeroToTwo = zeroToOne * 2.0;
 
-   // convert from 0->2 to -1->+1 (clipspace)
-   vec2 clipSpace = zeroToTwo - 1.0;
+	// convert from 0->2 to -1->+1 (clipspace)
+	vec2 clipSpace = zeroToTwo - 1.0;
 
-   gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+	gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
 
-   // pass the texCoord to the fragment shader
-   // The GPU will interpolate this value between points.
-   v_texCoord = a_texCoord;
+	// pass the texCoord to the fragment shader
+	// The GPU will interpolate this value between points.
+	v_texCoord = a_texCoord;
 }
 </script>
 
@@ -222,7 +222,7 @@ uniform sampler2D u_image;
 varying vec2 v_texCoord;
 
 void main() {
-   gl_FragColor = texture2D(u_image, v_texCoord);
+	gl_FragColor = texture2D(u_image, v_texCoord);
 }
 </script>
 
