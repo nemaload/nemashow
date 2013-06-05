@@ -40,8 +40,8 @@ function render(image) {
 	gl.useProgram(program);
 
 	// set(up) parameters
-	var resolutionLocation = gl.getUniformLocation(program, "u_resolution");
-	gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
+	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
+	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
 
 	var texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
@@ -58,12 +58,12 @@ function render(image) {
 	gl.enableVertexAttribArray(texCoordLocation);
 	gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
-	var positionBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	var canvCoordBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, canvCoordBuffer);
 	setRectangle(gl, 0, 0, canvas.width, canvas.height);
-	var positionLocation = gl.getAttribLocation(program, "a_position");
-	gl.enableVertexAttribArray(positionLocation);
-	gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+	var canvCoordLocation = gl.getAttribLocation(program, "a_canvCoord");
+	gl.enableVertexAttribArray(canvCoordLocation);
+	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
 	var texture = gl.createTexture();
 	gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -81,7 +81,7 @@ function setRectangle(gl, x, y, width, height) {
         var x2 = x + width;
         var y1 = y;
         var y2 = y + height;
-	// positionBuffer is bound here
+	// canvCoordBuffer is bound here
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
 		// bottom triangle
 		x1, y1,
@@ -95,16 +95,16 @@ function setRectangle(gl, x, y, width, height) {
 </script>
 
 <script id="2d-vertex-shader" type="x-shader/x-vertex">
-attribute vec2 a_position;
+attribute vec2 a_canvCoord;
 attribute vec2 a_texCoord;
 
-uniform vec2 u_resolution;
+uniform vec2 u_canvSize;
 
 varying vec2 v_texCoord;
 
 void main() {
 	// convert the rectangle from pixels to 0.0 to 1.0
-	vec2 zeroToOne = a_position / u_resolution;
+	vec2 zeroToOne = a_canvCoord / u_canvSize;
 
 	// convert from 0->1 to 0->2
 	vec2 zeroToTwo = zeroToOne * 2.0;
