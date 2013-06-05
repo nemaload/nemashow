@@ -123,11 +123,21 @@ void main() {
 </script>
 
 <script id="lightfield-pinhole-fragment-shader" type="x-shader/x-fragment">
-uniform sampler2D tex;
-uniform mat2 rectLinear;
-uniform vec2 rectOffset;
-uniform vec4 normalDim;
-uniform mat4 RTM;
+precision mediump float;
+
+// our texture
+uniform sampler2D u_image;
+
+// the texCoords passed in from the vertex shader.
+varying vec4 v_texCoord;
+
+// lens grid
+uniform vec2 u_gridSize; // number of lens
+uniform vec2 u_rectOffset; // center of grid in texCoords
+uniform mat2 u_rectLinear; // grid intervals in texCoords
+
+// ray transfer matrix
+uniform mat4 u_RTM;
 
 void main(void) {
 	vec4 xyuv;
@@ -137,24 +147,24 @@ void main(void) {
 	// XXX: xyuv is evil since it zips coordinates in two 2D planes:
 	// xyuv.st are coordinates in the focal (specimen) st-place
 	// xyuv.pq are perspective correction for in-lens coordinates (TODO clarify)
-	xyuv = RTM * gl_TexCoord[0];
+	xyuv = u_RTM * v_texCoord;
 	if (all(bvec4(lessThanEqual(abs(xyuv.pq), vec2(0.5,0.5)),
 	              lessThanEqual(abs(xyuv.st), vec2(0.5,0.5))))) {
 		// Coordinates in the lens grid space
-		coord = xyuv.st * normalDim.st;
+		coord = xyuv.st * u_gridSize;
 		// The interesting in-lens pixel
 		coord0 = floor(coord) + xyuv.pq;
 		// Examine the four nearest lens, interpolating the final color
-		coord1 = rectOffset + rectLinear * coord0;
-		coord2 = rectOffset + rectLinear * (coord0 + vec2(0.0,1.0));
-		coord3 = rectOffset + rectLinear * (coord0 + vec2(1.0,1.0));
-		coord4 = rectOffset + rectLinear * (coord0 + vec2(1.0,0.0));
+		coord1 = u_rectOffset + u_rectLinear * coord0;
+		coord2 = u_rectOffset + u_rectLinear * (coord0 + vec2(0.0,1.0));
+		coord3 = u_rectOffset + u_rectLinear * (coord0 + vec2(1.0,1.0));
+		coord4 = u_rectOffset + u_rectLinear * (coord0 + vec2(1.0,0.0));
 		// Interpolation color based on the surrounding lens distance
 		fracts = vec4(coord - floor(coord), floor(coord)+vec2(1.0,1.0) - coord);
-		color = fracts.z * (fracts.w * texture2D(tex, coord1) +
-			            fracts.y * texture2D(tex, coord2)) +
-			fracts.x * (fracts.y * texture2D(tex, coord3) +
-			            fracts.w * texture2D(tex, coord4));
+		color = fracts.z * (fracts.w * texture2D(u_image, coord1) +
+			            fracts.y * texture2D(u_image, coord2)) +
+			fracts.x * (fracts.y * texture2D(u_image, coord3) +
+			            fracts.w * texture2D(u_image, coord4));
 	}
 	gl_FragColor = vec4(color.rgb + gl_Color.rgb, gl_Color.a * color.a);
 }
