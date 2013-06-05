@@ -60,6 +60,7 @@ function render(image) {
 
 	var positionBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+	setRectangle(gl, 0, 0, canvas.width, canvas.height);
 	var positionLocation = gl.getAttribLocation(program, "a_position");
 	gl.enableVertexAttribArray(positionLocation);
 	gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
@@ -72,7 +73,6 @@ function render(image) {
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
-	setRectangle(gl, 0, 0, canvas.width, canvas.height);
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 
