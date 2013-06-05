@@ -48,8 +48,8 @@ function render(image) {
 
 function render_image(image, canvas, gl) {
 	// compile shaders
-	vertexShader = createShaderFromScriptElement(gl, "2d-vertex-shader");
-	fragmentShader = createShaderFromScriptElement(gl, "2d-fragment-shader");
+	vertexShader = createShaderFromScriptElement(gl, "image-vertex-shader");
+	fragmentShader = createShaderFromScriptElement(gl, "image-fragment-shader");
 	program = createProgram(gl, [vertexShader, fragmentShader]);
 	gl.useProgram(program);
 
@@ -90,7 +90,7 @@ function setRectangle(gl, x, y, width, height) {
 }
 </script>
 
-<script id="2d-vertex-shader" type="x-shader/x-vertex">
+<script id="image-vertex-shader" type="x-shader/x-vertex">
 attribute vec2 a_canvCoord;
 attribute vec2 a_texCoord;
 
@@ -109,7 +109,7 @@ void main() {
 }
 </script>
 
-<script id="2d-fragment-shader" type="x-shader/x-fragment">
+<script id="image-fragment-shader" type="x-shader/x-fragment">
 precision mediump float;
 
 // our texture
