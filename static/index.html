@@ -77,7 +77,6 @@ function setRectangle(gl, x, y, width, height) {
         var x2 = x + width;
         var y1 = y;
         var y2 = y + height;
-	// canvCoordBuffer is bound here
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
 		// bottom triangle
 		x1, y1,
