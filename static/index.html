@@ -41,7 +41,7 @@ function render(image) {
 
 	// set(up) parameters
 	var resolutionLocation = gl.getUniformLocation(program, "u_resolution");
-	gl.uniform2f(resolutionLocation, canvas.width, canvas.height);
+	gl.uniform2f(resolutionLocation, image.width, image.height);
 
 	var texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
@@ -72,7 +72,7 @@ function render(image) {
 	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
-	setRectangle(gl, 0, 0, image.width/2, image.height/2);
+	setRectangle(gl, 0, 0, canvas.width, canvas.height);
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 
