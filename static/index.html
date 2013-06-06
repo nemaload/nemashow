@@ -87,6 +87,65 @@ function setRectangle(gl, x, y, width, height) {
 		x2, y1,
 		x2, y2]), gl.STATIC_DRAW);
 }
+
+function render_lightfield_pinhole(image, canvas, gl) {
+	// compile shaders
+	vertexShader = createShaderFromScriptElement(gl, "image-vertex-shader");
+	fragmentShader = createShaderFromScriptElement(gl, "lightfield-pinhole-fragment-shader");
+	program = createProgram(gl, [vertexShader, fragmentShader]);
+	gl.useProgram(program);
+
+	var lenslets = {
+		"offset": [1071.093000, 1273.697000],
+		"right": [23.300000, 0.200000],
+		"down": [-0.400000, 23.300000]
+	};
+	var gridSize = {
+		"width": Math.ceil(image.width / lenslets.right[0]),
+		"height": Math.ceil(image.height / lenslets.down[1])
+	};
+
+	var ofs_U = 0.0;
+	var ofs_V = 0.0;
+
+	// set(up) parameters
+
+	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
+	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
+
+	var gridSizeLocation = gl.getUniformLocation(program, "u_gridSize");
+	gl.uniform2f(gridSizeLocation, gridSize.width, gridSize.height);
+	var rectOffsetLocation = gl.getUniformLocation(program, "u_rectOffset");
+	gl.uniform2f(rectOffsetLocation, lenslets.offset[0] / image.width, 1.0 - lenslets.offset[1] / image.height);
+	var rectLinearLocation = gl.getUniformLocation(program, "u_rectLinear");
+	gl.uniformMatrix2fv(rectLinearLocation, false, [
+		lenslets.right[0] / image.width, -lenslets.right[1] / image.height,
+		lenslets.down[0] / image.width, -lenslets.down[1] / image.height]);
+	var UVCoordLocation = gl.getUniformLocation(program, "u_UVCoord");
+	gl.uniform2f(UVCoordLocation, ofs_U / lenslets.right[0], -ofs_V / lenslets.down[1]);
+
+	var texCoordBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+		// bottom triangle
+		-0.5, -0.5,
+		0.5, -0.5,
+		-0.5, 0.5,
+		// top triangle
+		-0.5, 0.5,
+		0.5, -0.5,
+		0.5, 0.5,]), gl.STATIC_DRAW);
+	var texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
+	gl.enableVertexAttribArray(texCoordLocation);
+	gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+	var canvCoordBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, canvCoordBuffer);
+	setRectangle(gl, 0, 0, canvas.width, canvas.height);
+	var canvCoordLocation = gl.getAttribLocation(program, "a_canvCoord");
+	gl.enableVertexAttribArray(canvCoordLocation);
+	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
+}
 </script>
 
 <script id="image-vertex-shader" type="x-shader/x-vertex">
