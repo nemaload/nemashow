@@ -128,32 +128,26 @@ precision mediump float;
 // our texture
 uniform sampler2D u_image;
 
-// the texCoords passed in from the vertex shader.
-varying vec4 v_texCoord;
+// the texCoords passed in from the vertex shader (ST/focal plane)
+varying vec2 v_texCoord;
+// the observer's coordinates (UV/camera plane)
+uniform vec2 u_UVCoord;
 
 // lens grid
 uniform vec2 u_gridSize; // number of lens
 uniform vec2 u_rectOffset; // center of grid in texCoords
 uniform mat2 u_rectLinear; // grid intervals in texCoords
 
-// ray transfer matrix
-uniform mat4 u_RTM;
-
 void main(void) {
-	vec4 xyuv;
 	vec2 coord, coord0, coord1, coord2, coord3, coord4;
 	vec4 fracts;
 	vec4 color;
-	// XXX: xyuv is evil since it zips coordinates in two 2D planes:
-	// xyuv.st are coordinates in the focal (specimen) st-place
-	// xyuv.pq are perspective correction for in-lens coordinates (TODO clarify)
-	xyuv = u_RTM * v_texCoord;
-	if (all(bvec4(lessThanEqual(abs(xyuv.pq), vec2(0.5,0.5)),
-	              lessThanEqual(abs(xyuv.st), vec2(0.5,0.5))))) {
+	if (all(bvec4(lessThanEqual(abs(u_UVCoord.xy), vec2(0.5,0.5)),
+	              lessThanEqual(abs(v_texCoord.st), vec2(0.5,0.5))))) {
 		// Coordinates in the lens grid space
-		coord = xyuv.st * u_gridSize;
+		coord = v_texCoord.st * u_gridSize * vec2(1, -1);
 		// The interesting in-lens pixel
-		coord0 = floor(coord) + xyuv.pq;
+		coord0 = floor(coord) + u_UVCoord.xy;
 		// Examine the four nearest lens, interpolating the final color
 		coord1 = u_rectOffset + u_rectLinear * coord0;
 		coord2 = u_rectOffset + u_rectLinear * (coord0 + vec2(0.0,1.0));
