@@ -52,6 +52,7 @@ function render(image) {
 	var gl = getWebGLContext(canvas);
 	//checks if system is WebGL compatible
 	if (!gl) {
+		alert("WebGL not supported in this browser, sorry");
 		return;
 	}
 
