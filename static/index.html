@@ -166,7 +166,7 @@ void main(void) {
 			fracts.x * (fracts.y * texture2D(u_image, coord3) +
 			            fracts.w * texture2D(u_image, coord4));
 	}
-	gl_FragColor = vec4(color.rgb + gl_Color.rgb, gl_Color.a * color.a);
+	gl_FragColor = vec4(color.rgb, color.a);
 }
 </script>
 
