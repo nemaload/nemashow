@@ -1,0 +1,87 @@
+<head>
+  <title>HDFWeb</title>
+</head>
+
+<body>
+      
+	{{> header}}
+    <div class="container-fluid">
+      <div class="row-fluid">
+        <div class="span3">
+          <div class="well sidebar-nav">
+            <ul class="nav nav-list">
+              {{> fileCollectionsSidebar}}
+            </ul>
+          </div><!--/.well -->
+        </div><!--/span-->
+        <div class="span9">
+          {{> hello}}
+          <div class="row-fluid">
+          </div><!--/row-->
+        </div><!--/span-->
+      </div><!--/row-->
+
+      <hr>
+
+      <footer>
+        <p>NEMALOAD 2013</p>
+      </footer>
+
+    </div><!--/.fluid-container-->
+
+</body>
+
+<template name="hello">
+	<div class="hero-unit">
+            
+            {{#unless currentUser}}
+            <h1> Welcome to HDFWeb </h1>
+            HDFWeb allows both NEMALOAD researchers and the public to interactively view
+            the project data.
+            <p><a href="http://nemaload.github.io/HDFWeb" class="btn btn-primary btn-large">Learn more &raquo;</a></p>
+            {{/unless}}
+            {{#if currentUser}}
+            <h1>{{loggedInGreeting}}</h1>
+            <p> Please choose a dataset to explore from the list to the left. </p>
+            {{/if}}
+
+            
+          </div>
+</template>
+
+
+<template name="header">
+<div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container-fluid">
+          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="brand" href="#">HDFWeb</a>
+          <div class="nav-collapse collapse">
+            <div class="navbar-text pull-right">
+              {{loginButtons align="right"}}
+            </div>
+            <ul class="nav">
+              <li><a href="http://nemaload.com">NEMALOAD</a></li>
+              <li><a href="#contact">Help</a></li>
+              <li><a href="#" onclick="return false">Database connection: {{connectionStatus}}</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+</template>
+
+
+
+<template name="fileCollectionsSidebar">
+		<li class="nav-header">Data Collections</li>
+			  {{#each collections}}
+              <li><a href="#{{name}}">{{name}}</a></li>
+              {{/each}}
+        
+
+</template>
