@@ -10,7 +10,7 @@
         <div class="span3">
           <div class="well sidebar-nav">
             <ul class="nav nav-list">
-              {{> fileCollectionsSidebar}}
+              {{> collections}}
             </ul>
           </div><!--/.well -->
         </div><!--/span-->
@@ -42,6 +42,7 @@
             {{/unless}}
             {{#if currentUser}}
             <h1>{{loggedInGreeting}}</h1>
+            {{isBrowsingCollections}}
             <p> Please choose a dataset to explore from the list to the left. </p>
             {{/if}}
 
@@ -75,13 +76,12 @@
     </div>
 </template>
 
-
-
-<template name="fileCollectionsSidebar">
-		<li class="nav-header">Data Collections</li>
-			  {{#each collections}}
-              <li><a href="#{{name}}">{{name}}</a></li>
-              {{/each}}
-        
-
+<template name="collections">
+  <li class="nav-header">Data Collections</li>
+  {{#each collections}}
+    <li><a href="/{{_id}}">{{name}}</a></li>
+  {{/each}}
 </template>
+		
+			  
+      

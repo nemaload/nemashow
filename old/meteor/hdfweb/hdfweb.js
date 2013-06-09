@@ -2,6 +2,15 @@
 Images = new Meteor.Collection('images');
 FileCollections = new Meteor.Collection('fileCollections');
 
+//ID of currently selected collection
+
+Session.setDefault('collection_id', null);
+
+//when viewing an image, the ID of the image
+
+Session.setDefault('viewing_image', null);
+
+
 //accounts related stuff
 Accounts.config({sendVerificationEmail: true, forbidClientAccountCreation: false}); 
 
@@ -26,7 +35,8 @@ if (Meteor.isClient) {
     }
   }
 
-  Template.fileCollectionsSidebar.collections = function () {
+
+  Template.collections.collections = function () {
     return FileCollections.find();
   }
 
