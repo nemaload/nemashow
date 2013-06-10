@@ -8,6 +8,7 @@
 var ofs_U = 0.0;
 var ofs_V = 0.0;
 var image;
+var texture = {}; // indexed by mode name
 var mode;
 
 window.onload = main;
@@ -23,7 +24,7 @@ function newmain(imagepath) {
 	image = new Image();
 	image.src = imagepath;
 	image.onload = function() {
-		render(image);
+		render(image, 1);
 	}
 }
 
@@ -34,18 +35,25 @@ function newmode(newmode) {
 	document.getElementById("canvas-lightfield").style.display = mode == "lightfield" ? 'block' : 'none';
 	document.getElementById("controls-lightfield").style.display = mode == "lightfield" ? 'inline' : 'none';
 
-	render(image);
+	render(image, 1);
 }
 
 function updateUV(delta_U, delta_V) {
 	ofs_U += delta_U;
 	ofs_V += delta_V;
-	render(image);
+	render(image, 0);
+}
+
+var mousedrag_X, mousedrag_Y;
+function mousedrag(new_X, new_Y) {
+	updateUV(new_X - mousedrag_X, new_Y - mousedrag_Y);
+	mousedrag_X = new_X;
+	mousedrag_Y = new_Y;
 }
 
 
 // Get A WebGL context
-function render(image) {
+function render(image, is_new_image) {
 	//grabs the canvas element
 	var canvas = document.getElementById("canvas-" + mode);
 	//gets the WebGL context
@@ -62,13 +70,20 @@ function render(image) {
 		render_lightfield_pinhole(image, canvas, gl);
 	}
 
-	var texture = gl.createTexture();
-	gl.bindTexture(gl.TEXTURE_2D, texture);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+	if (is_new_image) {
+		if (texture[mode]) {
+			gl.deleteTexture(texture[mode]);
+		}
+		texture[mode] = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, texture[mode]);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+	} else {
+		gl.bindTexture(gl.TEXTURE_2D, texture[mode]);
+	}
 
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
@@ -363,6 +378,22 @@ $('#imageselect').change(function () {
 $('#rendermode').change(function () {
 	console.log("Mode changed");
 	newmode($(this).val());
+});
+
+// mouse dragging hack
+$('#canvas-lightfield').mousedown(function() {
+	console.log("mousedown");
+	mousedrag_X = event.pageX
+	mousedrag_Y = event.pageY
+	$(window).mousemove(function() {
+		console.log("mousedrag " + event);
+		mousedrag(event.pageX, event.pageY)
+	});
+	$(window).mouseup(function() {
+		console.log("mouseup");
+		$(window).unbind("mousemove");
+		$(window).unbind("mouseup");
+	});
 });
 </script>
 	</body>
