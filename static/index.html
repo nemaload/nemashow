@@ -15,7 +15,7 @@ function main() {
 	image = new Image();
 	image.src = "rawimage.png";  // MUST BE SAME DOMAIN!!!
 	image.onload = function() {
-		render(image);
+		newmode("image"); // implies render(image);
 	}
 }
 
@@ -364,7 +364,6 @@ $('#rendermode').change(function () {
 	console.log("Mode changed")
 	newmode($(this).val());
 });
-newmode("image");
 </script>
 	</body>
 </html>
