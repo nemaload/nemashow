@@ -11,6 +11,14 @@ var image;
 var texture = {}; // indexed by mode name
 var mode;
 
+var optics = {
+	"pitch": 150,
+	"flen": 3000,
+	"mag": 60,
+	"abbe": false,
+	"na": 1.4,
+	"medium": 1.515
+};
 var lenslets = {
 	"offset": [1071.093000, 1273.697000],
 	"right": [23.300000, 0.200000],
@@ -45,8 +53,19 @@ function newmode(newmode) {
 }
 
 function updateUV(delta_U, delta_V) {
-	ofs_U += delta_U;
-	ofs_V += delta_V;
+	newofs_U = ofs_U + delta_U;
+	newofs_V = ofs_V + delta_V;
+
+	var rel_U = newofs_U / lenslets.right[0];
+	var rel_V = newofs_V / lenslets.down[1];
+	var UV_dist = rel_U*rel_U + rel_V*rel_V;
+	var max_slope = maxNormalizedSlope();
+	if (UV_dist > max_slope*max_slope) {
+		console.log(UV_dist + " > " + max_slope*max_slope)
+		return;
+	}
+
+	ofs_U = newofs_U; ofs_V = newofs_V;
 	render(image, 0);
 }
 
@@ -56,6 +75,23 @@ function mousedrag(new_X, new_Y) {
 	mousedrag_X = new_X;
 	mousedrag_Y = new_Y;
 }
+
+
+function maxNormalizedSlope() {
+	/* Return the maximum slope afforded by the optical system */
+
+	// ???
+	image_na = optics.na / optics.mag;
+	if (image_na >= 1.0)
+		return 0.0;
+	na_slope = image_na / Math.sqrt(1.0-image_na*image_na);
+
+	// slope of looking at a lens neighboring with central lens
+	ulens_slope = optics.pitch / optics.flen;
+
+	return na_slope / ulens_slope;
+}
+
 
 
 // Get A WebGL context
