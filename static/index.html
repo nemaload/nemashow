@@ -11,6 +11,12 @@ var image;
 var texture = {}; // indexed by mode name
 var mode;
 
+var lenslets = {
+	"offset": [1071.093000, 1273.697000],
+	"right": [23.300000, 0.200000],
+	"down": [-0.400000, 23.300000]
+};
+
 window.onload = main;
 function main() {
 	image = new Image();
@@ -137,11 +143,6 @@ function render_lightfield_pinhole(image, canvas, gl) {
 	program = createProgram(gl, [vertexShader, fragmentShader]);
 	gl.useProgram(program);
 
-	var lenslets = {
-		"offset": [1071.093000, 1273.697000],
-		"right": [23.300000, 0.200000],
-		"down": [-0.400000, 23.300000]
-	};
 	var gridSize = {
 		"width": Math.ceil(image.width / lenslets.right[0]),
 		"height": Math.ceil(image.height / lenslets.down[1])
