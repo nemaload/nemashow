@@ -7,23 +7,11 @@
 
 var ofs_U = 0.0;
 var ofs_V = 0.0;
-var image;
 var texture = {}; // indexed by mode name
 var mode;
 
-var optics = {
-	"pitch": 150,
-	"flen": 3000,
-	"mag": 60,
-	"abbe": false,
-	"na": 1.4,
-	"medium": 1.515
-};
-var lenslets = {
-	"offset": [1071.093000, 1273.697000],
-	"right": [23.300000, 0.200000],
-	"down": [-0.400000, 23.300000]
-};
+var image, optics, lenslets;
+var loaded = {}; // indexed by variable name
 
 window.onload = main;
 function main() {
@@ -32,11 +20,34 @@ function main() {
 }
 
 function loadimage(imagepath) {
+	// This method of asynchronous loading may be problematic if there
+	// is still an outstanding request from previous loadimage(); FIXME
+	loaded = { "image": 0, "optics": 0, "lenslets": 0 };
 	image = new Image();
 	image.src = imagepath; // MUST BE SAME DOMAIN!!!
 	image.onload = function() {
-		render(image, 1);
+		loaded.image = 1;
+		loadimage_onload();
 	}
+	opticspath = imagepath.replace(/\.[^/.]+$/, "-optics.json");
+	$.getJSON(opticspath, function(data) {
+		optics = data;
+		loaded.optics = 1;
+		loadimage_onload();
+	});
+	lensletspath = imagepath.replace(/\.[^/.]+$/, "-lenslets.json");
+	$.getJSON(lensletspath, function(data) {
+		lenslets = data;
+		loaded.lenslets = 1;
+		loadimage_onload();
+	});
+}
+function loadimage_onload() {
+	console.log("loadimage " + loaded.image + " " + loaded.optics + " " + loaded.lenslets);
+	if (!loaded.image || !loaded.optics || !loaded.lenslets)
+		return;
+	// we finally have everything, proceed!
+	render(image, 1);
 }
 
 function newmode(newmode) {
