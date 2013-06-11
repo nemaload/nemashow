@@ -27,18 +27,13 @@ var lenslets = {
 
 window.onload = main;
 function main() {
-	image = new Image();
-	image.src = "rawimage.png";  // MUST BE SAME DOMAIN!!!
-	image.onload = function() {
-		render(image, 1);
-	}
-
+	loadimage("rawimage.png"); // asynchronous
 	newmode("image");
 }
 
-function newmain(imagepath) {
+function loadimage(imagepath) {
 	image = new Image();
-	image.src = imagepath;
+	image.src = imagepath; // MUST BE SAME DOMAIN!!!
 	image.onload = function() {
 		render(image, 1);
 	}
@@ -410,7 +405,7 @@ Please select an image to view.
 <script>
 $('#imageselect').change(function () {
 	console.log("Image changed");
-	newmain($(this).val());
+	loadimage($(this).val());
 });
 $('#rendermode').change(function () {
 	console.log("Mode changed");
