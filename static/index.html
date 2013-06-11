@@ -30,8 +30,10 @@ function main() {
 	image = new Image();
 	image.src = "rawimage.png";  // MUST BE SAME DOMAIN!!!
 	image.onload = function() {
-		newmode("image"); // implies render(image);
+		render(image, 1);
 	}
+
+	newmode("image");
 }
 
 function newmain(imagepath) {
@@ -48,8 +50,6 @@ function newmode(newmode) {
 	document.getElementById("canvas-image").style.display = mode == "image" ? 'block' : 'none';
 	document.getElementById("canvas-lightfield").style.display = mode == "lightfield" ? 'block' : 'none';
 	document.getElementById("controls-lightfield").style.display = mode == "lightfield" ? 'inline' : 'none';
-
-	render(image, 1);
 }
 
 function updateUV(delta_U, delta_V) {
@@ -415,6 +415,7 @@ $('#imageselect').change(function () {
 $('#rendermode').change(function () {
 	console.log("Mode changed");
 	newmode($(this).val());
+	render(image, 1);
 });
 
 // mouse dragging hack
