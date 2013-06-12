@@ -201,11 +201,12 @@
 	{id:"hfdhrdthw3", name: "Light-sheet", numFiles:30}
 	];
 	
-	var images = [
+	var images1 = [
 	{id:"1", name:"test1", size:50},
 	{id:"2", name:"test2", size:70}
 	];
 	
+
 	//Initialize some objects
 	
 	var imageList = new ImageList();

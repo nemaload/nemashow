@@ -8,19 +8,17 @@
     <div class="container-fluid">
       <div class="row-fluid">
         <div class="span3">
-          <div class="well sidebar-nav">
-            <ul class="nav nav-list">
-              {{> collections}}
-            </ul>
+          <div class="well sidebar-nav" style="height: 400px;">
+            
+            {{> collections}}
           </div><!--/.well -->
         </div><!--/span-->
         <div class="span9">
-          {{> hello}}
+          {{> mainView}}
           <div class="row-fluid">
           </div><!--/row-->
         </div><!--/span-->
       </div><!--/row-->
-
       <hr>
 
       <footer>
@@ -29,58 +27,128 @@
 
     </div><!--/.fluid-container-->
 
+    <!--Modals -->
+  <div id="helpModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="Help" aria-hidden="true">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+      <h3 id="helpModalLabel">Help</h3>
+    </div>
+    <div class="modal-body">
+      <p>This is the help</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Okay</button>
+    </div>
+  </div>
+  
+  <div id="aboutModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="Help" aria-hidden="true">
+    <div class="modal-header">
+      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+      <h3 id="aboutModalLabel">About HDFWeb</h3>
+    </div>
+    <div class="modal-body">
+      For some reason, Meteor and Bootstrap don't allow loading an external page in this div...
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Okay</button>
+    </div>
+  </div>
+
 </body>
 
-<template name="hello">
-	<div class="hero-unit">
+<template name="mainView">
+	<div class="hero-unit"  style="height:300px;" overflow="auto">
             
-            {{#unless currentUser}}
-            <h1> Welcome to HDFWeb </h1>
-            HDFWeb allows both NEMALOAD researchers and the public to interactively view
-            the project data.
-            <p><a href="http://nemaload.github.io/HDFWeb" class="btn btn-primary btn-large">Learn more &raquo;</a></p>
-            {{/unless}}
+            {{#if isViewing "viewingAbout"}}
+              <p> This is the about screen </p>
+            {{/if}}
+            {{#if isViewing "viewingHelp"}}
+              <p> This is the Help screen </p>
+            {{/if}}
             {{#if currentUser}}
-            <h1>{{loggedInGreeting}}</h1>
-            {{isBrowsingCollections}}
-            <p> Please choose a dataset to explore from the list to the left. </p>
+              {{#if isViewing "viewingFirstScreen"}}
+              <p> Please choose a dataset to explore from the list to the left. </p>
+              {{/if}}
+              {{#if isViewing "fileListing"}}
+              <p> File list goes here </p>
+              {{> fileView}}
+              {{/if}}
+            {{else}}
+              {{#if isViewing "viewingFirstScreen"}}
+              <h1> Welcome to HDFWeb </h1>
+              HDFWeb allows both NEMALOAD researchers and the public to interactively view
+              the project data.
+              <p><a href="http://nemaload.github.io/HDFWeb" class="btn btn-primary btn-large">Learn more &raquo;</a></p>
+              {{/if}}
+              {{#if isViewing "fileListing"}}
+              <p> You need to log in to view files. </p>
+              {{/if}}
             {{/if}}
 
             
-          </div>
+  </div>
 </template>
+
+
+<template name="fileView">
+<div style="height: 300px; overflow: auto;">
+<table class="table table-striped" >
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Size</th>
+    </tr>
+  </thead>
+  <tbody>
+{{#each filesWithId}}
+<tr>
+<td> {{_id}} </td>
+<td> {{baseName}} </td>
+<td> {{size}} </td>
+</tr>
+{{/each}}
+</tbody>
+</table>
+</div>
+</template>
+
+
+
 
 
 <template name="header">
-<div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
         <div class="container-fluid">
-          <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
             <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="brand" href="#">HDFWeb</a>
-          <div class="nav-collapse collapse">
-            <div class="navbar-text pull-right">
-              {{loginButtons align="right"}}
-            </div>
-            <ul class="nav">
-              <li><a href="http://nemaload.com">NEMALOAD</a></li>
-              <li><a href="#contact">Help</a></li>
-              <li><a href="#" onclick="return false">Database connection: {{connectionStatus}}</a></li>
-            </ul>
-          </div><!--/.nav-collapse -->
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+              </button>
+              <a class="brand" id="triggerFirstScreen">HDFWeb</a>
+              <div class="nav-collapse collapse">
+                <div class="navbar-text pull-right">
+                  {{loginButtons align="right"}}
+                </div>
+              <ul class="nav">
+                <li><a id="triggerAbout">About</a></li>       
+                <li><a id="triggerHelp">Help</a></li>
+                <li><a href="http://nemaload.com">NEMALOAD</a></li>
+                <li><a href="#" onclick="return false">Database connection: {{connectionStatus}}</a></li>
+              </ul>
+            </div><!--/.nav-collapse -->
         </div>
-      </div>
     </div>
+  </div>
 </template>
-
 <template name="collections">
+  <ul class="nav nav-list" >
   <li class="nav-header">Data Collections</li>
   {{#each collections}}
-    <li><a href="/{{_id}}">{{name}}</a></li>
+    <li><a id="{{_id}}">{{name}}</a></li>
   {{/each}}
+</ul>
 </template>
 		
 			  

@@ -1,74 +1,79 @@
+
+
 //collections related config
 Images = new Meteor.Collection('images');
 FileCollections = new Meteor.Collection('fileCollections');
 
-//ID of currently selected collection
-
-Session.setDefault('collection_id', null);
-
-//when viewing an image, the ID of the image
-
-Session.setDefault('viewing_image', null);
 
 
 //accounts related stuff
 Accounts.config({sendVerificationEmail: true, forbidClientAccountCreation: false}); 
 
 if (Meteor.isClient) {
-  //boilerplate code
-  Template.hello.loggedInGreeting = function () {
-    if (Meteor.user().profile !== undefined)
-    {
-        return "Welcome back, " + Meteor.user().profile.name.split(" ")[0] +"!";        
-    }
-    else
-    {
-      if(Meteor.user().emails[0].verified == true)
-      {
-        return "Wecome back, " + Meteor.user().emails[0].address + "!";       
-      }
-      else 
-      {
-        return "Please verify your email address!(change this lol)"
-      }
-      
-    }
-  }
+  //be mindful of these session variables
+  Session.setDefault("currentCollectionId",null);
+  Session.setDefault("currentView", "viewingFirstScreen");
 
 
   Template.collections.collections = function () {
     return FileCollections.find();
   }
 
-  Template.header.connectionStatus = function () {
-    return Meteor.status().status
+  Template.fileView.filesWithId = function() {
+    return Images.find({collectionId: Session.get("currentCollectionId")});
   }
 
-  Template.hello.events({
-    'click input' : function () {
-      // template data, if any, is available in 'this'
-      if (typeof console !== 'undefined')
-        console.log("You pressed the button");
+  Template.header.connectionStatus = function () {
+    return Meteor.status().status;
+  }
+
+  Template.mainView.isViewing = function (view) {
+    return Session.get("currentView") === view;
+  }
+
+  Template.header.events = {
+    'click #triggerAbout': function() {
+      Session.set("currentView", "viewingAbout");
+    },
+    'click #triggerHelp': function() {
+      Session.set("currentView", "viewingHelp");
+    },
+    'click #triggerFirstScreen': function() {
+      Session.set("currentView", "viewingFirstScreen");
     }
-  });
+  }
+  Template.collections.events = {
+    'click li': function(e) {
+      e.preventDefault();
+      Session.set("currentCollectionId", $(e.target).attr("id"));
+      Session.set("currentView", "fileListing");
+    }
+
+  }
+
+
+
+
 
 
   //image related stuff
-  Template.images.helpers({
+  /*Template.images.helpers({
     images: function() {
       return Images.find();
     }
-  });
+  });*/
+
+
 }
 
 
-
 if (Meteor.isServer) {
+
   Meteor.startup(function () {
     
     //FileCollections.insert({name:"Light-field Microscopy"});
     //FileCollections.insert({name:"Light-sheet Microscopy"});
-    //Images.insert({baseName : "Test1", Size :"20050"});
+    //Images.insert({baseName : "Test1", Size :"20050", collectionId:"test"});
   });
   //add some dummy data
 

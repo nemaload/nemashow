@@ -6,7 +6,6 @@
 autopublish
 insecure
 preserve-inputs
-bootstrap
 coffeescript
 accounts-ui
 accounts-github
@@ -14,3 +13,4 @@ accounts-google
 accounts-password
 backbone
 jquery
+bootstrap
