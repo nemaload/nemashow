@@ -27,22 +27,22 @@ function loadimage(imagepath) {
 	image.src = imagepath; // MUST BE SAME DOMAIN!!!
 	image.onload = function() {
 		loaded.image = 1;
-		loadimage_onload();
+		render_if_ready();
 	}
 	opticspath = imagepath.replace(/\.[^/.]+$/, "-optics.json");
 	$.getJSON(opticspath, function(data) {
 		optics = data;
 		loaded.optics = 1;
-		loadimage_onload();
+		render_if_ready();
 	});
 	lensletspath = imagepath.replace(/\.[^/.]+$/, "-lenslets.json");
 	$.getJSON(lensletspath, function(data) {
 		lenslets = data;
 		loaded.lenslets = 1;
-		loadimage_onload();
+		render_if_ready();
 	});
 }
-function loadimage_onload() {
+function render_if_ready() {
 	console.log("loadimage " + loaded.image + " " + loaded.optics + " " + loaded.lenslets);
 	if (!loaded.image || !loaded.optics || !loaded.lenslets)
 		return;
