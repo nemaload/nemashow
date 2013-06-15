@@ -1,0 +1,15 @@
+{
+  "meteor": {},
+  "dependencies": {
+    "basePackages": {
+      "font-awesome": {}
+    },
+    "packages": {
+      "font-awesome": {
+        "git": "https://github.com/nate-strauser/meteor-font-awesome.git",
+        "tag": "v3.2.0",
+        "commit": "2cba6f907a2579cae2d399b522f9544c13d5e091"
+      }
+    }
+  }
+}

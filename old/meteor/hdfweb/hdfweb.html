@@ -10,7 +10,7 @@
         <div class="span3">
           <div class="well sidebar-nav" style="height: 400px;">
             
-            {{> collections}}
+            {{> folders}}
           </div><!--/.well -->
         </div><!--/span-->
         <div class="span9">
@@ -27,63 +27,55 @@
 
     </div><!--/.fluid-container-->
 
-    <!--Modals -->
-  <div id="helpModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="Help" aria-hidden="true">
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-      <h3 id="helpModalLabel">Help</h3>
-    </div>
-    <div class="modal-body">
-      <p>This is the help</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Okay</button>
-    </div>
-  </div>
-  
-  <div id="aboutModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="Help" aria-hidden="true">
-    <div class="modal-header">
-      <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-      <h3 id="aboutModalLabel">About HDFWeb</h3>
-    </div>
-    <div class="modal-body">
-      For some reason, Meteor and Bootstrap don't allow loading an external page in this div...
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-primary" data-dismiss="modal" aria-hidden="true">Okay</button>
-    </div>
-  </div>
-
 </body>
 
 <template name="mainView">
 	<div class="hero-unit"  style="height:300px;" overflow="auto">
-            
-            {{#if isViewing "viewingAbout"}}
-              <p> This is the about screen </p>
-            {{/if}}
-            {{#if isViewing "viewingHelp"}}
-              <p> This is the Help screen </p>
-            {{/if}}
-            {{#if currentUser}}
-              {{#if isViewing "viewingFirstScreen"}}
-              <p> Please choose a dataset to explore from the list to the left. </p>
-              {{/if}}
-              {{#if isViewing "fileListing"}}
-              <p> File list goes here </p>
-              {{> fileView}}
-              {{/if}}
-            {{else}}
-              {{#if isViewing "viewingFirstScreen"}}
-              <h1> Welcome to HDFWeb </h1>
-              HDFWeb allows both NEMALOAD researchers and the public to interactively view
-              the project data.
-              <p><a href="http://nemaload.github.io/HDFWeb" class="btn btn-primary btn-large">Learn more &raquo;</a></p>
-              {{/if}}
-              {{#if isViewing "fileListing"}}
-              <p> You need to log in to view files. </p>
-              {{/if}}
-            {{/if}}
+    <!--Stuff that everyone sees -->
+    {{#if isViewing "viewingAbout"}}
+
+      <p> This is the about screen </p>
+
+    {{/if}}
+
+    {{#if isViewing "viewingHelp"}}
+
+      <p> This is the Help screen </p>
+
+    {{/if}}
+    <!-- Stuff that logged in users can see -->
+    {{#if currentUser}}
+
+      {{#if isViewing "viewingFirstScreen"}}
+      
+        <p> Please choose a dataset to explore from the list to the left. </p>
+      
+      {{/if}}
+      
+      {{#if isViewing "fileListing"}}
+      
+      {{> fileView}}
+      
+      {{/if}}
+    <!--Stuff that people who aren't logged in see -->
+    {{else}}
+      
+      {{#if isViewing "viewingFirstScreen"}}
+      
+        <h1> Welcome to HDFWeb </h1>
+        HDFWeb allows both NEMALOAD researchers and the public to interactively view
+        the project data.
+        <p><a href="http://nemaload.github.io/HDFWeb" class="btn btn-primary btn-large">Learn more &raquo;</a></p>
+      
+      {{/if}}
+      
+      {{#if isViewing "fileListing"}}
+        
+        <p> You need to log in to view files. </p>
+      
+      {{/if}}
+    
+    {{/if}}
 
             
   </div>
@@ -91,6 +83,7 @@
 
 
 <template name="fileView">
+  <h3> {{getFolderName}} </h3>
 <div style="height: 300px; overflow: auto;">
 <table class="table table-striped" >
   <thead>
@@ -102,7 +95,7 @@
   </thead>
   <tbody>
 {{#each filesWithId}}
-<tr>
+<tr class="fileViewRow" fileId={{_id}}>
 <td> {{_id}} </td>
 <td> {{baseName}} </td>
 <td> {{size}} </td>
@@ -134,22 +127,38 @@
               <ul class="nav">
                 <li><a id="triggerAbout">About</a></li>       
                 <li><a id="triggerHelp">Help</a></li>
-                <li><a href="http://nemaload.com">NEMALOAD</a></li>
-                <li><a href="#" onclick="return false">Database connection: {{connectionStatus}}</a></li>
+                <li><a href="http://nemaload.com" target="_blank">NEMALOAD</a></li>
+                <li><p id="databaseConnection"><i class="icon-cloud"></i> Status: {{connectionStatus}}</p></li>
               </ul>
             </div><!--/.nav-collapse -->
         </div>
     </div>
   </div>
 </template>
-<template name="collections">
+
+<!-- Folder related templates -->
+
+<!-- The folder nav list -->
+<template name="folders">
   <ul class="nav nav-list" >
-  <li class="nav-header">Data Collections</li>
-  {{#each collections}}
-    <li><a id="{{_id}}">{{name}}</a></li>
+  <li class="nav-header"><i class="icon-folder-close"></i> Folders</li>
+  {{#each folders}}
+    {{#if isCurrentFolder _id}}
+    <li><a id="{{_id}}"><i class="icon-folder-open-alt"></i> {{name}}</a></li>
+    {{else}}
+    <li><a id="{{_id}}"><i class="icon-folder-close-alt"></i> {{name}}</a></li>
+    {{/if}}
   {{/each}}
 </ul>
 </template>
+
+<!-- The new folder input -->
+<template name="newFolderInput">
+  <input id="new_folder_name" type="text" />
+  <input type="button" value="Add Folder" />
+</template>
+
+
 		
 			  
       

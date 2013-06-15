@@ -1,26 +1,60 @@
-
+//Explanatory notes
+//The folder is the top level of organization. It currently contains only files, but eventually it will be able to contain
+//other folders. 
+//Images is a object collection containing HDF5 images. 
 
 //collections related config
 Images = new Meteor.Collection('images');
-FileCollections = new Meteor.Collection('fileCollections');
-
-
+Folders = new Meteor.Collection('folders');
 
 //accounts related stuff
 Accounts.config({sendVerificationEmail: true, forbidClientAccountCreation: false}); 
 
 if (Meteor.isClient) {
-  //be mindful of these session variables
-  Session.setDefault("currentCollectionId",null);
+  //Session variable guide:
+  // currentCollectionId
+  Session.setDefault("currentFolderId",null);
   Session.setDefault("currentView", "viewingFirstScreen");
 
-
-  Template.collections.collections = function () {
-    return FileCollections.find();
+  //Folder related functions
+  Template.folders.folders = function () {
+    return Folders.find();
   }
 
+  Template.folders.isCurrentFolder = function (folder) {
+    console.log(folder);
+    return Session.get("currentFolderId") === folder;
+  }
+
+    Template.folders.events = {
+    'click li': function(e) {
+      e.preventDefault();
+      Session.set("currentFolderId", $(e.target).attr("id"));
+      Session.set("currentView", "fileListing");
+    }
+  }
+
+  //FileView related objects
+
   Template.fileView.filesWithId = function() {
-    return Images.find({collectionId: Session.get("currentCollectionId")});
+    return Images.find({folderId: Session.get("currentFolderId")});
+  }
+
+  Template.fileView.getFolderName = function() {
+    return Folders.findOne({_id: Session.get("currentFolderId")}).name;
+  }
+
+  Template.fileView.events = {
+    'mouseenter .fileViewRow' : function (e) {
+      $(e.target).children().addClass("fileViewRowActive");
+    },
+    'mouseleave .fileViewRow' : function(e) {
+      $(e.target).children().removeClass("fileViewRowActive");
+    },
+    'click .fileViewRow': function(e) {
+      alert($(e.target).parent().attr("fileid"));
+      console.log($(e.target).parent().attr(fileid));
+    }
   }
 
   Template.header.connectionStatus = function () {
@@ -30,6 +64,8 @@ if (Meteor.isClient) {
   Template.mainView.isViewing = function (view) {
     return Session.get("currentView") === view;
   }
+  //UI related stuff
+  //Header stuff
 
   Template.header.events = {
     'click #triggerAbout': function() {
@@ -42,26 +78,10 @@ if (Meteor.isClient) {
       Session.set("currentView", "viewingFirstScreen");
     }
   }
-  Template.collections.events = {
-    'click li': function(e) {
-      e.preventDefault();
-      Session.set("currentCollectionId", $(e.target).attr("id"));
-      Session.set("currentView", "fileListing");
-    }
-
-  }
 
 
 
 
-
-
-  //image related stuff
-  /*Template.images.helpers({
-    images: function() {
-      return Images.find();
-    }
-  });*/
 
 
 }

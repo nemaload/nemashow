@@ -15,3 +15,18 @@ body {
           padding-right: 5px;
         }
       }
+#databaseConnection {
+  float: none;
+  padding: 10px 15px 10px;
+  color: #999999;
+  text-decoration: none;
+  //text-shadow: 0 1px 0 #ffffff;
+}
+
+.fileViewRowActive {
+  background-color: yellow !important;
+}
+
+.fileViewRow td:hover {
+  cursor:pointer;
+}
