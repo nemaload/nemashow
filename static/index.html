@@ -5,8 +5,7 @@
 <script type="text/javascript" src="http://greggman.github.io/webgl-fundamentals/webgl/resources/webgl-utils.js"></script> 
 <script>
 
-var ofs_U = 0.0;
-var ofs_V = 0.0;
+var ofs_U = 0.0, ofs_V = 0.0; // in OpenGL coordinate system
 var texture = {}; // indexed by mode name
 var mode;
 
@@ -77,7 +76,7 @@ function updateUV(delta_U, delta_V) {
 
 var mousedrag_X, mousedrag_Y;
 function mousedrag(new_X, new_Y) {
-	updateUV(new_X - mousedrag_X, new_Y - mousedrag_Y);
+	updateUV(new_X - mousedrag_X, -(new_Y - mousedrag_Y));
 	mousedrag_X = new_X;
 	mousedrag_Y = new_Y;
 }
@@ -244,7 +243,7 @@ function render_lightfield_pinhole(image, canvas, gl) {
 		lenslets.right[0] / image.width, lenslets.right[1] / image.height,
 		lenslets.down[0] / image.width, lenslets.down[1] / image.height]);
 	var UVCoordLocation = gl.getUniformLocation(program, "u_UVCoord");
-	gl.uniform2f(UVCoordLocation, ofs_U / lenslets.right[0], -ofs_V / lenslets.down[1]);
+	gl.uniform2f(UVCoordLocation, ofs_U / lenslets.right[0], ofs_V / lenslets.down[1]);
 
 	var texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
