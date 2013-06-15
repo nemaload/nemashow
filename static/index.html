@@ -165,6 +165,9 @@ function render(image, is_new_image) {
 	}
 
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+	if (mode == "image" && $('#grid').prop('checked'))
+		render_grid(canvas, gl);
 }
 
 function render_image(image, canvas, gl) {
@@ -256,6 +259,44 @@ function render_lightfield_pinhole(image, canvas, gl) {
 	gl.enableVertexAttribArray(canvCoordLocation);
 	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
 }
+
+function render_grid(canvas, gl) {
+	var vertexShader = createShaderFromScriptElement(gl, "grid-vertex-shader");
+	var fragmentShader = createShaderFromScriptElement(gl, "grid-fragment-shader");
+	var program = createProgram(gl, [vertexShader, fragmentShader]);
+	gl.useProgram(program);
+
+	var gridCorner = lenslets_offset2corner(lenslets);
+	var gridSize = {
+		"width": Math.ceil(image.width / lenslets.right[0]),
+		"height": Math.ceil(image.height / lenslets.down[1])
+	};
+	var lineList = new Array;
+	for (var x = 0; x <= gridSize.width; x++) {
+		lineList.push(gridCorner[0] + x * lenslets.right[0]);
+		lineList.push(gridCorner[1] + x * lenslets.right[1]);
+		lineList.push(gridCorner[0] + x * lenslets.right[0] + gridSize.height * lenslets.down[0]);
+		lineList.push(gridCorner[1] + x * lenslets.right[1] + gridSize.height * lenslets.down[1]);
+	}
+	for (var y = 0; y <= gridSize.height; y++) {
+		lineList.push(gridCorner[0] + y * lenslets.down[0]);
+		lineList.push(gridCorner[1] + y * lenslets.down[1]);
+		lineList.push(gridCorner[0] + y * lenslets.down[0] + gridSize.width * lenslets.right[0]);
+		lineList.push(gridCorner[1] + y * lenslets.down[1] + gridSize.width * lenslets.right[1]);
+	}
+
+	var gridLinesBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, gridLinesBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lineList), gl.STATIC_DRAW);
+	var canvCoordLocation = gl.getAttribLocation(program, "a_canvCoord");
+	gl.enableVertexAttribArray(canvCoordLocation);
+	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
+	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
+
+	gl.drawArrays(gl.LINES, 0, lineList.length / 2);
+}
 </script>
 
 <script id="image-vertex-shader" type="x-shader/x-vertex">
@@ -338,6 +379,24 @@ void main(void) {
 			    fracts.w * texture2D(u_image, coord4));
 
 	gl_FragColor = pow(vec4(color.rgb, color.a) * gain, gamma);
+}
+</script>
+
+<script id="grid-vertex-shader" type="x-shader/x-vertex">
+attribute vec2 a_canvCoord;
+uniform vec2 u_canvSize;
+void main() {
+	// convert the rectangle from pixels to -1.0 to 1.0
+	vec2 clipSpace = a_canvCoord / u_canvSize * 1.0 - 1.0;
+	gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+}
+</script>
+
+<script id="grid-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+void main() {
+	gl_FragColor = vec4(0.0, 1.0, 0.0, 0.2);
 }
 </script>
 
@@ -447,11 +506,11 @@ Please select an image to view.
 <input type="button" value="V+" onClick="updateUV(0, +1.0);">
 </span>
 </p>
-<p>
 <table>
 	<tr><td>Gain:</td><td><input type="range" id="gain" value="0" min="-1" max="1" step="0.05" /></td><td><span id="gain_current" style="width: 5em"></span></td></tr>
 	<tr><td>Gamma:</td><td><input type="range" id="gamma" value="1" min="0.5" max="1.5" step="0.01" /></td><td><span id="gamma_current" style="width: 5em"></span></td></tr>
 </table>
+<div><input type="checkbox" id="grid" value="1" /> Grid</div>
 </center>
 <canvas id="canvas-image" width="1080" height="1280"></canvas>
 <canvas id="canvas-lightfield" width="432" height="512"></canvas>
@@ -491,6 +550,11 @@ $('#gain').change(function () {
 $('#gamma').change(function () {
 	console.log("Gamma changed");
 	$('#gamma_current').html(parseFloat(this.value).toFixed(2));
+	render_if_ready(image, 0);
+}).change();
+
+$('#grid').change(function () {
+	console.log("Grid changed");
 	render_if_ready(image, 0);
 }).change();
 </script>
