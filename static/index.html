@@ -55,7 +55,7 @@ function newmode(newmode) {
 
 	document.getElementById("canvas-image").style.display = mode == "image" ? 'block' : 'none';
 	document.getElementById("canvas-lightfield").style.display = mode == "lightfield" ? 'block' : 'none';
-	document.getElementById("controls-lightfield").style.display = mode == "lightfield" ? 'inline' : 'none';
+	document.getElementById("controls-lightfield").style.display = mode == "lightfield" ? 'block' : 'none';
 }
 
 function updateUV(delta_U, delta_V) {
@@ -400,14 +400,34 @@ void main() {
 }
 </script>
 
+<style>
+body {
+	text-align: center;
+}
+canvas, .controls {
+	clear: both;
+	margin: auto auto;
+}
+
+.controlbox {
+	float: left;
+	border: 1pt solid;
+	margin: 1ex 1em;
+	padding: 0.5ex 0.5em;
+}
+</style>
 
 </head>
 	<body>
-<center> <img src="http://nemaload.davidad.org/png/nemaload.png">
+<img src="http://nemaload.davidad.org/png/nemaload.png">
 <h1> WebGL Shader Demonstration </h1>
-The image below is being rendered using WebGL shaders on an HTML5 Canvas element. <br />
-Porting the raytracing pipeline to the browser is a work in progress. <br />
-Please select an image to view.
+
+<p>The image below is being rendered using WebGL shaders on an HTML5 Canvas element.</p>
+
+<div class="controls">
+
+<p class="controlbox">
+Please select an image to view.<br />
 <!-- These are generated with a Python script for now due to cross-domain limitations I violated while half-awake -->
 <select id="imageselect">
 	<option value="/images/lensgrid.hdf5.png">lensgrid</option>
@@ -494,26 +514,36 @@ Please select an image to view.
 	<option value="/images/punc31_gCAMP5_td_video24_global_gfpfilter_tail.hdf5.png">punc31_gCAMP5_td_video24_global_gfpfilter_tail</option>
 	<option value="/images/punc31_gCAMP5_td_video25_global_gfpfilter.hdf5.png">punc31_gCAMP5_td_video25_global_gfpfilter</option>
 </select>
-<p>
+</p>
+
+<div class="controlbox">
 <select id="rendermode">
 	<option value="image">Image</option>
 	<option value="lightfield">Light field</option>
 </select>
-<span id="controls-lightfield">
+</div>
+
+<table class="controlbox">
+	<tr><td>Gain:</td><td><input type="range" id="gain" value="0" min="-1" max="1" step="0.05" /></td><td><span id="gain_current" style="width: 5em"></span></td></tr>
+	<tr><td>Gamma:</td><td><input type="range" id="gamma" value="1" min="0.5" max="1.5" step="0.01" /></td><td><span id="gamma_current" style="width: 5em"></span></td></tr>
+</table>
+
+<p class="controlbox">
+<input type="checkbox" id="grid" value="1" /> Grid
+</p>
+
+<p id="controls-lightfield" class="controlbox">
 <input type="button" value="U-" onClick="updateUV(-1.0, 0);">
 <input type="button" value="U+" onClick="updateUV(+1.0, 0);">
 <input type="button" value="V-" onClick="updateUV(0, -1.0);">
 <input type="button" value="V+" onClick="updateUV(0, +1.0);">
-</span>
 </p>
-<table>
-	<tr><td>Gain:</td><td><input type="range" id="gain" value="0" min="-1" max="1" step="0.05" /></td><td><span id="gain_current" style="width: 5em"></span></td></tr>
-	<tr><td>Gamma:</td><td><input type="range" id="gamma" value="1" min="0.5" max="1.5" step="0.01" /></td><td><span id="gamma_current" style="width: 5em"></span></td></tr>
-</table>
-<div><input type="checkbox" id="grid" value="1" /> Grid</div>
-</center>
+
+</div>
+
 <canvas id="canvas-image" width="1080" height="1280"></canvas>
 <canvas id="canvas-lightfield" width="432" height="512"></canvas>
+
 <script>
 $('#imageselect').change(function () {
 	console.log("Image changed");
