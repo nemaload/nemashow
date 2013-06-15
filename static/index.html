@@ -159,6 +159,7 @@ function render(image, is_new_image) {
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 	} else {
 		gl.bindTexture(gl.TEXTURE_2D, texture[mode]);
@@ -237,11 +238,11 @@ function render_lightfield_pinhole(image, canvas, gl) {
 	var gridSizeLocation = gl.getUniformLocation(program, "u_gridSize");
 	gl.uniform2f(gridSizeLocation, gridSize.width, gridSize.height);
 	var rectOffsetLocation = gl.getUniformLocation(program, "u_rectOffset");
-	gl.uniform2f(rectOffsetLocation, gridCorner[0] / image.width, 1.0 - gridCorner[1] / image.height);
+	gl.uniform2f(rectOffsetLocation, gridCorner[0] / image.width, -gridCorner[1] / image.height);
 	var rectLinearLocation = gl.getUniformLocation(program, "u_rectLinear");
 	gl.uniformMatrix2fv(rectLinearLocation, false, [
-		lenslets.right[0] / image.width, -lenslets.right[1] / image.height,
-		lenslets.down[0] / image.width, -lenslets.down[1] / image.height]);
+		lenslets.right[0] / image.width, lenslets.right[1] / image.height,
+		lenslets.down[0] / image.width, lenslets.down[1] / image.height]);
 	var UVCoordLocation = gl.getUniformLocation(program, "u_UVCoord");
 	gl.uniform2f(UVCoordLocation, ofs_U / lenslets.right[0], -ofs_V / lenslets.down[1]);
 
@@ -310,7 +311,7 @@ varying vec2 v_texCoord;
 void main() {
 	// convert the rectangle from pixels to -1.0 to 1.0
 	vec2 clipSpace = a_canvCoord / u_canvSize * 2.0 - 1.0;
-	gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+	gl_Position = vec4(clipSpace, 0, 1);
 
 	// pass the texCoord to the fragment shader
 	// The GPU will interpolate this value between points.
@@ -363,7 +364,7 @@ void main(void) {
 	vec4 color;
 
 	// Coordinates in the lens grid space
-	coord = (vec2(0.0, 1.0) + vec2(1.0, -1.0) * v_texCoord.st) * u_gridSize;
+	coord = v_texCoord.st * u_gridSize;
 	// The interesting in-lens pixel
 	coord0 = floor(coord) + u_UVCoord.xy;
 	// Examine the four nearest lens, interpolating the final color
