@@ -79,6 +79,18 @@ if (Meteor.isClient) {
     }
   }
 
+  Template.webgl.rendered = function {
+    //$(document).ready() stuff goes here
+    
+  }
+  //WebGL related stuff
+  Template.webgl.events = {
+    'change #imageselect' = function () {
+      console.log("Image changed");
+
+    }
+  }
+
 
 
 
