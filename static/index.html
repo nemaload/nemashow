@@ -5,6 +5,8 @@
 <script type="text/javascript" src="http://greggman.github.io/webgl-fundamentals/webgl/resources/webgl-utils.js"></script> 
 <script>
 
+var mouseSensitivity = 4.0;
+
 var ofs_U = 0.0, ofs_V = 0.0; // in OpenGL coordinate system
 var texture = {}; // indexed by mode name
 var mode;
@@ -76,7 +78,7 @@ function updateUV(delta_U, delta_V) {
 
 var mousedrag_X, mousedrag_Y;
 function mousedrag(new_X, new_Y) {
-	updateUV(new_X - mousedrag_X, -(new_Y - mousedrag_Y));
+	updateUV((new_X - mousedrag_X) / mouseSensitivity, -(new_Y - mousedrag_Y) / mouseSensitivity);
 	mousedrag_X = new_X;
 	mousedrag_Y = new_Y;
 }
