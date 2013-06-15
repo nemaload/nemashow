@@ -74,6 +74,13 @@ function updateUV(delta_U, delta_V) {
 
 	ofs_U = newofs_U; ofs_V = newofs_V;
 	render(image, 0);
+	updateUV_display();
+}
+
+function updateUV_display()
+{
+	$('#U_current').html(parseFloat(ofs_U).toFixed(2));
+	$('#V_current').html(parseFloat(ofs_V).toFixed(2));
 }
 
 var mousedrag_X, mousedrag_Y;
@@ -537,8 +544,11 @@ Please select an image to view.<br />
 <p id="controls-lightfield" class="controlbox">
 <input type="button" value="U-" onClick="updateUV(-1.0, 0);">
 <input type="button" value="U+" onClick="updateUV(+1.0, 0);">
+<span id="U_current" style="width: 5em"></span>
+<br />
 <input type="button" value="V-" onClick="updateUV(0, -1.0);">
 <input type="button" value="V+" onClick="updateUV(0, +1.0);">
+<span id="V_current" style="width: 5em"></span>
 </p>
 
 </div>
@@ -589,6 +599,8 @@ $('#grid').change(function () {
 	console.log("Grid changed");
 	render_if_ready(image, 0);
 }).change();
+
+updateUV_display();
 </script>
 	</body>
 </html>
