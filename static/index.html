@@ -5,26 +5,50 @@
 <script type="text/javascript" src="http://greggman.github.io/webgl-fundamentals/webgl/resources/webgl-utils.js"></script> 
 <script>
 
-var ofs_U = 0.0;
-var ofs_V = 0.0;
-var image;
+var mouseSensitivity = 4.0;
+
+var ofs_U = 0.0, ofs_V = 0.0; // in OpenGL coordinate system
+var texture = {}; // indexed by mode name
 var mode;
+
+var image, optics, lenslets;
+var loaded = {}; // indexed by variable name
 
 window.onload = main;
 function main() {
-	image = new Image();
-	image.src = "rawimage.png";  // MUST BE SAME DOMAIN!!!
-	image.onload = function() {
-		render(image);
-	}
+	loadimage("rawimage.png"); // asynchronous
+	newmode("image");
 }
 
-function newmain(imagepath) {
+function loadimage(imagepath) {
+	// This method of asynchronous loading may be problematic if there
+	// is still an outstanding request from previous loadimage(); FIXME
+	loaded = { "image": 0, "optics": 0, "lenslets": 0 };
 	image = new Image();
-	image.src = imagepath;
+	image.src = imagepath; // MUST BE SAME DOMAIN!!!
 	image.onload = function() {
-		render(image);
+		loaded.image = 1;
+		render_if_ready();
 	}
+	opticspath = imagepath.replace(/\.[^/.]+$/, "-optics.json");
+	$.getJSON(opticspath, function(data) {
+		optics = data;
+		loaded.optics = 1;
+		render_if_ready();
+	});
+	lensletspath = imagepath.replace(/\.[^/.]+$/, "-lenslets.json");
+	$.getJSON(lensletspath, function(data) {
+		lenslets = data;
+		loaded.lenslets = 1;
+		render_if_ready();
+	});
+}
+function render_if_ready() {
+	console.log("loadimage " + loaded.image + " " + loaded.optics + " " + loaded.lenslets);
+	if (!loaded.image || !loaded.optics || !loaded.lenslets)
+		return;
+	// we finally have everything, proceed!
+	render(image, 1);
 }
 
 function newmode(newmode) {
@@ -32,20 +56,87 @@ function newmode(newmode) {
 
 	document.getElementById("canvas-image").style.display = mode == "image" ? 'block' : 'none';
 	document.getElementById("canvas-lightfield").style.display = mode == "lightfield" ? 'block' : 'none';
-	document.getElementById("controls-lightfield").style.display = mode == "lightfield" ? 'inline' : 'none';
-
-	render(image);
+	document.getElementById("controls-lightfield").style.display = mode == "lightfield" ? 'block' : 'none';
 }
 
 function updateUV(delta_U, delta_V) {
-	ofs_U += delta_U;
-	ofs_V += delta_V;
-	render(image);
+	newofs_U = ofs_U + delta_U;
+	newofs_V = ofs_V + delta_V;
+
+	var rel_U = newofs_U / lenslets.right[0];
+	var rel_V = newofs_V / lenslets.down[1];
+	var UV_dist = rel_U*rel_U + rel_V*rel_V;
+	var max_slope = maxNormalizedSlope();
+	if (UV_dist > max_slope*max_slope) {
+		console.log(UV_dist + " > " + max_slope*max_slope)
+		return;
+	}
+
+	ofs_U = newofs_U; ofs_V = newofs_V;
+	render(image, 0);
+	updateUV_display();
+}
+
+function updateUV_display()
+{
+	$('#U_current').html(parseFloat(ofs_U).toFixed(2));
+	$('#V_current').html(parseFloat(ofs_V).toFixed(2));
+}
+
+var mousedrag_X, mousedrag_Y;
+function mousedrag(new_X, new_Y) {
+	updateUV((new_X - mousedrag_X) / mouseSensitivity, -(new_Y - mousedrag_Y) / mouseSensitivity);
+	mousedrag_X = new_X;
+	mousedrag_Y = new_Y;
 }
 
 
+function maxNormalizedSlope() {
+	/* Return the maximum slope afforded by the optical system */
+
+	// ???
+	image_na = optics.na / optics.mag;
+	if (image_na >= 1.0)
+		return 0.0;
+	na_slope = image_na / Math.sqrt(1.0-image_na*image_na);
+
+	// slope of looking at a lens neighboring with central lens
+	ulens_slope = optics.pitch / optics.flen;
+
+	return na_slope / ulens_slope;
+}
+
+function lenslets_offset2corner(lenslets) {
+	/* Walk from the lenslets.offset point to the point of the grid
+	 * nearest to the top left corner. */
+
+	var corner = lenslets.offset.slice();
+	var changed;
+	do {
+		changed = false;
+		if (corner[0] > lenslets.right[0] && corner[1] > lenslets.right[1]) {
+			corner[0] -= lenslets.right[0];
+			corner[1] -= lenslets.right[1];
+			changed = true;
+		}
+		if (corner[0] > lenslets.down[0] && corner[1] > lenslets.down[1]) {
+			corner[0] -= lenslets.down[0];
+			corner[1] -= lenslets.down[1];
+			changed = true;
+		}
+	} while (changed);
+	/* FIXME: Note that we might get stuck at a point where we e.g. still have
+	 * some room to go many steps up at the cost of going one step right. */
+
+	console.log("lenslets " + JSON.stringify(lenslets) + " -> corner offset " + corner);
+
+	return corner;
+}
+
+
+
 // Get A WebGL context
-function render(image) {
+function render(image, is_new_image) {
 	//grabs the canvas element
 	var canvas = document.getElementById("canvas-" + mode);
 	//gets the WebGL context
@@ -56,21 +147,36 @@ function render(image) {
 		return;
 	}
 
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+	gl.enable(gl.BLEND);
+	gl.disable(gl.DEPTH_TEST);
+
 	if (mode == "image") {
 		render_image(image, canvas, gl);
 	} else {
 		render_lightfield_pinhole(image, canvas, gl);
 	}
 
-	var texture = gl.createTexture();
-	gl.bindTexture(gl.TEXTURE_2D, texture);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-	gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+	if (is_new_image) {
+		if (texture[mode]) {
+			gl.deleteTexture(texture[mode]);
+		}
+		texture[mode] = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, texture[mode]);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+	} else {
+		gl.bindTexture(gl.TEXTURE_2D, texture[mode]);
+	}
 
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+	if (mode == "image" && $('#grid').prop('checked'))
+		render_grid(canvas, gl);
 }
 
 function render_image(image, canvas, gl) {
@@ -83,6 +189,8 @@ function render_image(image, canvas, gl) {
 	// set(up) parameters
 	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
 	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
+	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
+	gl.uniform2f(gammaGainLocation, parseFloat($('#gamma').val()), Math.pow(10, parseFloat($('#gain').val())));
 
 	var texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
@@ -122,11 +230,7 @@ function render_lightfield_pinhole(image, canvas, gl) {
 	program = createProgram(gl, [vertexShader, fragmentShader]);
 	gl.useProgram(program);
 
-	var lenslets = {
-		"offset": [1071.093000, 1273.697000],
-		"right": [23.300000, 0.200000],
-		"down": [-0.400000, 23.300000]
-	};
+	var gridCorner = lenslets_offset2corner(lenslets);
 	var gridSize = {
 		"width": Math.ceil(image.width / lenslets.right[0]),
 		"height": Math.ceil(image.height / lenslets.down[1])
@@ -136,29 +240,23 @@ function render_lightfield_pinhole(image, canvas, gl) {
 
 	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
 	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
+	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
+	gl.uniform2f(gammaGainLocation, $('#gamma').val(), Math.pow(10, $('#gain').val()));
 
 	var gridSizeLocation = gl.getUniformLocation(program, "u_gridSize");
 	gl.uniform2f(gridSizeLocation, gridSize.width, gridSize.height);
 	var rectOffsetLocation = gl.getUniformLocation(program, "u_rectOffset");
-	gl.uniform2f(rectOffsetLocation, lenslets.offset[0] / image.width, 1.0 - lenslets.offset[1] / image.height);
+	gl.uniform2f(rectOffsetLocation, gridCorner[0] / image.width, -gridCorner[1] / image.height);
 	var rectLinearLocation = gl.getUniformLocation(program, "u_rectLinear");
 	gl.uniformMatrix2fv(rectLinearLocation, false, [
-		lenslets.right[0] / image.width, -lenslets.right[1] / image.height,
-		lenslets.down[0] / image.width, -lenslets.down[1] / image.height]);
+		lenslets.right[0] / image.width, lenslets.right[1] / image.height,
+		lenslets.down[0] / image.width, lenslets.down[1] / image.height]);
 	var UVCoordLocation = gl.getUniformLocation(program, "u_UVCoord");
-	gl.uniform2f(UVCoordLocation, ofs_U / lenslets.right[0], -ofs_V / lenslets.down[1]);
+	gl.uniform2f(UVCoordLocation, ofs_U / lenslets.right[0], ofs_V / lenslets.down[1]);
 
 	var texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-		// bottom triangle
-		-0.5, -0.5,
-		0.5, -0.5,
-		-0.5, 0.5,
-		// top triangle
-		-0.5, 0.5,
-		0.5, -0.5,
-		0.5, 0.5,]), gl.STATIC_DRAW);
+	setRectangle(gl, 0.0, 0.0, 1.0, 1.0);
 	var texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
 	gl.enableVertexAttribArray(texCoordLocation);
 	gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
@@ -169,6 +267,44 @@ function render_lightfield_pinhole(image, canvas, gl) {
 	var canvCoordLocation = gl.getAttribLocation(program, "a_canvCoord");
 	gl.enableVertexAttribArray(canvCoordLocation);
 	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
+}
+
+function render_grid(canvas, gl) {
+	var vertexShader = createShaderFromScriptElement(gl, "grid-vertex-shader");
+	var fragmentShader = createShaderFromScriptElement(gl, "grid-fragment-shader");
+	var program = createProgram(gl, [vertexShader, fragmentShader]);
+	gl.useProgram(program);
+
+	var gridCorner = lenslets_offset2corner(lenslets);
+	var gridSize = {
+		"width": Math.ceil(image.width / lenslets.right[0]),
+		"height": Math.ceil(image.height / lenslets.down[1])
+	};
+	var lineList = new Array;
+	for (var x = 0; x <= gridSize.width; x++) {
+		lineList.push(gridCorner[0] + x * lenslets.right[0]);
+		lineList.push(gridCorner[1] + x * lenslets.right[1]);
+		lineList.push(gridCorner[0] + x * lenslets.right[0] + gridSize.height * lenslets.down[0]);
+		lineList.push(gridCorner[1] + x * lenslets.right[1] + gridSize.height * lenslets.down[1]);
+	}
+	for (var y = 0; y <= gridSize.height; y++) {
+		lineList.push(gridCorner[0] + y * lenslets.down[0]);
+		lineList.push(gridCorner[1] + y * lenslets.down[1]);
+		lineList.push(gridCorner[0] + y * lenslets.down[0] + gridSize.width * lenslets.right[0]);
+		lineList.push(gridCorner[1] + y * lenslets.down[1] + gridSize.width * lenslets.right[1]);
+	}
+
+	var gridLinesBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, gridLinesBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lineList), gl.STATIC_DRAW);
+	var canvCoordLocation = gl.getAttribLocation(program, "a_canvCoord");
+	gl.enableVertexAttribArray(canvCoordLocation);
+	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
+	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
+
+	gl.drawArrays(gl.LINES, 0, lineList.length / 2);
 }
 </script>
 
@@ -183,7 +319,7 @@ varying vec2 v_texCoord;
 void main() {
 	// convert the rectangle from pixels to -1.0 to 1.0
 	vec2 clipSpace = a_canvCoord / u_canvSize * 2.0 - 1.0;
-	gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+	gl_Position = vec4(clipSpace, 0, 1);
 
 	// pass the texCoord to the fragment shader
 	// The GPU will interpolate this value between points.
@@ -200,8 +336,12 @@ uniform sampler2D u_image;
 // the texCoords passed in from the vertex shader.
 varying vec2 v_texCoord;
 
+uniform vec2 u_gammaGain; // display parameters
+
 void main() {
-	gl_FragColor = texture2D(u_image, v_texCoord);
+	vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, u_gammaGain.x);
+	vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, u_gammaGain.y);
+	gl_FragColor = pow(texture2D(u_image, v_texCoord) * gain, gamma);
 }
 </script>
 
@@ -221,20 +361,25 @@ uniform vec2 u_gridSize; // number of lens
 uniform vec2 u_rectOffset; // center of grid in texCoords
 uniform mat2 u_rectLinear; // grid intervals in texCoords
 
+uniform vec2 u_gammaGain; // display parameters
+
 void main(void) {
+	vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, u_gammaGain.x);
+	vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, u_gammaGain.y);
+
 	vec2 coord, coord0, coord1, coord2, coord3, coord4;
 	vec4 fracts;
 	vec4 color;
 
 	// Coordinates in the lens grid space
-	coord = v_texCoord.st * u_gridSize * vec2(1, -1);
+	coord = v_texCoord.st * u_gridSize;
 	// The interesting in-lens pixel
 	coord0 = floor(coord) + u_UVCoord.xy;
 	// Examine the four nearest lens, interpolating the final color
-	coord1 = u_rectOffset + u_rectLinear * coord0;
-	coord2 = u_rectOffset + u_rectLinear * (coord0 + vec2(0.0,1.0));
-	coord3 = u_rectOffset + u_rectLinear * (coord0 + vec2(1.0,1.0));
-	coord4 = u_rectOffset + u_rectLinear * (coord0 + vec2(1.0,0.0));
+	coord1 = u_rectOffset +  coord0                  * u_rectLinear;
+	coord2 = u_rectOffset + (coord0 + vec2(0.0,1.0)) * u_rectLinear;
+	coord3 = u_rectOffset + (coord0 + vec2(1.0,1.0)) * u_rectLinear;
+	coord4 = u_rectOffset + (coord0 + vec2(1.0,0.0)) * u_rectLinear;
 	// Interpolation color based on the surrounding lens distance
 	fracts = vec4(coord - floor(coord), floor(coord)+vec2(1.0,1.0) - coord);
 	color = fracts.z * (fracts.w * texture2D(u_image, coord1) +
@@ -242,18 +387,56 @@ void main(void) {
 		fracts.x * (fracts.y * texture2D(u_image, coord3) +
 			    fracts.w * texture2D(u_image, coord4));
 
-	gl_FragColor = vec4(color.rgb, color.a);
+	gl_FragColor = pow(vec4(color.rgb, color.a) * gain, gamma);
 }
 </script>
 
+<script id="grid-vertex-shader" type="x-shader/x-vertex">
+attribute vec2 a_canvCoord;
+uniform vec2 u_canvSize;
+void main() {
+	// convert the rectangle from pixels to -1.0 to 1.0
+	vec2 clipSpace = a_canvCoord / u_canvSize * 1.0 - 1.0;
+	gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+}
+</script>
+
+<script id="grid-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+void main() {
+	gl_FragColor = vec4(0.0, 1.0, 0.0, 0.2);
+}
+</script>
+
+<style>
+body {
+	text-align: center;
+}
+canvas, .controls {
+	clear: both;
+	margin: auto auto;
+}
+
+.controlbox {
+	float: left;
+	border: 1pt solid;
+	margin: 1ex 1em;
+	padding: 0.5ex 0.5em;
+}
+</style>
 
 </head>
 	<body>
-<center> <img src="http://nemaload.davidad.org/png/nemaload.png">
+<img src="http://nemaload.davidad.org/png/nemaload.png">
 <h1> WebGL Shader Demonstration </h1>
-The image below is being rendered using WebGL shaders on an HTML5 Canvas element. <br />
-Porting the raytracing pipeline to the browser is a work in progress. <br />
-Please select an image to view.
+
+<p>The image below is being rendered using WebGL shaders on an HTML5 Canvas element.</p>
+
+<div class="controls">
+
+<p class="controlbox">
+Please select an image to view.<br />
 <!-- These are generated with a Python script for now due to cross-domain limitations I violated while half-awake -->
 <select id="imageselect">
 	<option value="/images/lensgrid.hdf5.png">lensgrid</option>
@@ -340,31 +523,84 @@ Please select an image to view.
 	<option value="/images/punc31_gCAMP5_td_video24_global_gfpfilter_tail.hdf5.png">punc31_gCAMP5_td_video24_global_gfpfilter_tail</option>
 	<option value="/images/punc31_gCAMP5_td_video25_global_gfpfilter.hdf5.png">punc31_gCAMP5_td_video25_global_gfpfilter</option>
 </select>
-<p>
+</p>
+
+<div class="controlbox">
 <select id="rendermode">
 	<option value="image">Image</option>
 	<option value="lightfield">Light field</option>
 </select>
-<span id="controls-lightfield">
+</div>
+
+<table class="controlbox">
+	<tr><td>Gain:</td><td><input type="range" id="gain" value="0" min="-1" max="1" step="0.05" /></td><td><span id="gain_current" style="width: 5em"></span></td></tr>
+	<tr><td>Gamma:</td><td><input type="range" id="gamma" value="1" min="0.5" max="1.5" step="0.01" /></td><td><span id="gamma_current" style="width: 5em"></span></td></tr>
+</table>
+
+<p class="controlbox">
+<input type="checkbox" id="grid" value="1" /> Grid
+</p>
+
+<p id="controls-lightfield" class="controlbox">
 <input type="button" value="U-" onClick="updateUV(-1.0, 0);">
 <input type="button" value="U+" onClick="updateUV(+1.0, 0);">
+<span id="U_current" style="width: 5em"></span>
+<br />
 <input type="button" value="V-" onClick="updateUV(0, -1.0);">
 <input type="button" value="V+" onClick="updateUV(0, +1.0);">
-</span>
+<span id="V_current" style="width: 5em"></span>
 </p>
-</center>
+
+</div>
+
 <canvas id="canvas-image" width="1080" height="1280"></canvas>
 <canvas id="canvas-lightfield" width="432" height="512"></canvas>
+
 <script>
 $('#imageselect').change(function () {
-	console.log("Image changed")
-	newmain($(this).val());
+	console.log("Image changed");
+	loadimage($(this).val());
 });
 $('#rendermode').change(function () {
-	console.log("Mode changed")
+	console.log("Mode changed");
 	newmode($(this).val());
+	render(image, 1);
 });
-newmode("image");
+
+// mouse dragging hack
+$('#canvas-lightfield').mousedown(function() {
+	console.log("mousedown");
+	mousedrag_X = event.pageX
+	mousedrag_Y = event.pageY
+	$(window).mousemove(function() {
+		console.log("mousedrag " + event);
+		mousedrag(event.pageX, event.pageY)
+	});
+	$(window).mouseup(function() {
+		console.log("mouseup");
+		$(window).unbind("mousemove");
+		$(window).unbind("mouseup");
+	});
+});
+
+$('#gain').change(function () {
+	console.log("Gain changed");
+	$('#gain_current').html(Math.pow(10, this.value).toFixed(2));
+	render_if_ready(image, 0);
+}).change();
+
+$('#gamma').change(function () {
+	console.log("Gamma changed");
+	$('#gamma_current').html(parseFloat(this.value).toFixed(2));
+	render_if_ready(image, 0);
+}).change();
+
+$('#grid').change(function () {
+	console.log("Grid changed");
+	render_if_ready(image, 0);
+}).change();
+
+updateUV_display();
 </script>
 	</body>
 </html>
