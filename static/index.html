@@ -91,11 +91,6 @@ function updateUV_display()
 	cuvpos.arc(cradius, cradius, cradius, 0, 2*Math.PI);
 	cuvpos.stroke();
 
-	/* Now put a single pixel; there are many ways to do this, but
-	 * this shouldn't be time-critical anyway and should be fastest
-	 * in 2013 browsers. */
-	var px = cuvpos.createImageData(1, 1);
-	px.data[0] = 255; px.data[1] = 0; px.data[2] = 0; px.data[3] = 255;
 	var pos_x, pos_y;
 	if (optics != null && lenslets != null) {
 		var rel_U = ofs_U / lenslets.right[0];
@@ -108,7 +103,6 @@ function updateUV_display()
 		pos_x = canvas.width / 2;
 		pos_y = canvas.height / 2;
 	}
-	//cuvpos.putImageData(px, pos_x, pos_y);
 	cuvpos.beginPath();
 	cuvpos.arc(pos_x, pos_y, 2, 0, Math.PI*2, true);
 	cuvpos.closePath();
