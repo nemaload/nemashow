@@ -424,6 +424,12 @@ canvas, .controls {
 	margin: 1ex 1em;
 	padding: 0.5ex 0.5em;
 }
+
+.UV_value {
+	font-family: monospace;
+	display: inline-block;
+	width: 6em; /* "-10.00" */
+}
 </style>
 
 </head>
@@ -533,23 +539,29 @@ Please select an image to view.<br />
 </div>
 
 <table class="controlbox">
-	<tr><td>Gain:</td><td><input type="range" id="gain" value="0" min="-1" max="1" step="0.05" /></td><td><span id="gain_current" style="width: 5em"></span></td></tr>
-	<tr><td>Gamma:</td><td><input type="range" id="gamma" value="1" min="0.5" max="1.5" step="0.01" /></td><td><span id="gamma_current" style="width: 5em"></span></td></tr>
+	<tr><td>Gain:</td><td><input type="range" id="gain" value="0" min="-1" max="1" step="0.05" /></td><td><span id="gain_current"></span></td></tr>
+	<tr><td>Gamma:</td><td><input type="range" id="gamma" value="1" min="0.5" max="1.5" step="0.01" /></td><td><span id="gamma_current"></span></td></tr>
 </table>
 
 <p class="controlbox">
 <input type="checkbox" id="grid" value="1" /> Grid
 </p>
 
-<p id="controls-lightfield" class="controlbox">
+<div id="controls-lightfield" class="controlbox">
+<table style="float: right">
+<tr><td>
 <input type="button" value="U-" onClick="updateUV(-1.0, 0);">
 <input type="button" value="U+" onClick="updateUV(+1.0, 0);">
-<span id="U_current" style="width: 5em"></span>
-<br />
+</td><td>
+<span id="U_current" class="UV_value"></span>
+</td></tr>
+<tr><td>
 <input type="button" value="V-" onClick="updateUV(0, -1.0);">
 <input type="button" value="V+" onClick="updateUV(0, +1.0);">
-<span id="V_current" style="width: 5em"></span>
-</p>
+</td><td>
+<span id="V_current" class="UV_value"></span>
+</td></tr></table>
+</div>
 
 </div>
 
