@@ -15,6 +15,8 @@ if (Meteor.isClient) {
   // currentCollectionId
   Session.setDefault("currentFolderId",null);
   Session.setDefault("currentView", "viewingFirstScreen");
+  Session.setDefault("currentImageId", null);
+  Session.setDefault("currentImageView", "viewingNothing");
 
   //Folder related functions
   Template.folders.folders = function () {
@@ -52,8 +54,7 @@ if (Meteor.isClient) {
       $(e.target).children().removeClass("fileViewRowActive");
     },
     'click .fileViewRow': function(e) {
-      alert($(e.target).parent().attr("fileid"));
-      console.log($(e.target).parent().attr(fileid));
+      Session.set("currentImageId", $(e.target).parent().attr("fileid") )
     }
   }
 
@@ -79,6 +80,21 @@ if (Meteor.isClient) {
     }
   }
 
+  //image information stuff
+  Template.imageInformation.name = function() {
+    return Images.find({_id: Session.get("currentImageId")}).baseName;
+  }
+
+  Template.imageInformation.helpers({
+    currentImageObject : Images.find({_id: Session.get("currentImageId")})
+  });
+
+  Template.imageView.isViewing = function (view) {
+    return Session.get("currentImageView") === view;
+  }
+
+  //webgl related stuff
+
   Template.webgl.rendered = function () {
     updateUV_display();
 
@@ -88,6 +104,7 @@ if (Meteor.isClient) {
     'change #imageselect' : function (e) {
       console.log("Image changed");
       loadimage($(e.target).val());
+      //change this with session variable
     },
 
     'change #rendermode' : function (e) {
