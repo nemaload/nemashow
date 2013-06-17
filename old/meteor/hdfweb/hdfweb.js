@@ -54,7 +54,8 @@ if (Meteor.isClient) {
       $(e.target).children().removeClass("fileViewRowActive");
     },
     'click .fileViewRow': function(e) {
-      Session.set("currentImageId", $(e.target).parent().attr("fileid") )
+      Session.set("currentImageId", $(e.target).parent().attr("fileid"));
+      Session.set("currentImageView", "viewingImage");
     }
   }
 
@@ -81,13 +82,12 @@ if (Meteor.isClient) {
   }
 
   //image information stuff
-  Template.imageInformation.name = function() {
-    return Images.find({_id: Session.get("currentImageId")}).baseName;
-  }
 
-  Template.imageInformation.helpers({
-    currentImageObject : Images.find({_id: Session.get("currentImageId")})
-  });
+  Template.imageInformation.imageObject = function () {
+    return Images.findOne(Session.get("currentImageId"));
+  };
+
+
 
   Template.imageView.isViewing = function (view) {
     return Session.get("currentImageView") === view;

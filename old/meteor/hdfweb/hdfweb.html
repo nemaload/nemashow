@@ -263,8 +263,12 @@ void main() {
 
 <template name="imageInformation">
   <div class="row-fluid">
+    
     <div class="span3">
-      <h1> {{baseName}}</h1>
+      {{#with imageObject}}
+      <h1> {{baseName}} </h1>
+      {{size}}
+      {{/with}}
     </div>
     <div class="span9">
       {{> webgl}}
