@@ -26,6 +26,108 @@
       </footer>
 
     </div><!--/.fluid-container-->
+<!-- WebGL script elements for rendering -->
+<script id="image-vertex-shader" type="x-shader/x-vertex">
+attribute vec2 a_canvCoord;
+attribute vec2 a_texCoord;
+
+uniform vec2 u_canvSize;
+
+varying vec2 v_texCoord;
+
+void main() {
+  // convert the rectangle from pixels to -1.0 to 1.0
+  vec2 clipSpace = a_canvCoord / u_canvSize * 2.0 - 1.0;
+  gl_Position = vec4(clipSpace, 0, 1);
+
+  // pass the texCoord to the fragment shader
+  // The GPU will interpolate this value between points.
+  v_texCoord = a_texCoord;
+}
+</script>
+
+<script id="image-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+// our texture
+uniform sampler2D u_image;
+
+// the texCoords passed in from the vertex shader.
+varying vec2 v_texCoord;
+
+uniform vec2 u_gammaGain; // display parameters
+
+void main() {
+  vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, u_gammaGain.x);
+  vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, u_gammaGain.y);
+  gl_FragColor = pow(texture2D(u_image, v_texCoord) * gain, gamma);
+}
+</script>
+
+<script id="lightfield-pinhole-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+// our texture
+uniform sampler2D u_image;
+
+// the texCoords passed in from the vertex shader (ST/focal plane)
+varying vec2 v_texCoord;
+// the observer's coordinates (UV/camera plane)
+uniform vec2 u_UVCoord;
+
+// lens grid
+uniform vec2 u_gridSize; // number of lens
+uniform vec2 u_rectOffset; // center of grid in texCoords
+uniform mat2 u_rectLinear; // grid intervals in texCoords
+
+uniform vec2 u_gammaGain; // display parameters
+
+void main(void) {
+  vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, u_gammaGain.x);
+  vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, u_gammaGain.y);
+
+  vec2 coord, coord0, coord1, coord2, coord3, coord4;
+  vec4 fracts;
+  vec4 color;
+
+  // Coordinates in the lens grid space
+  coord = v_texCoord.st * u_gridSize;
+  // The interesting in-lens pixel
+  coord0 = floor(coord) + u_UVCoord.xy;
+  // Examine the four nearest lens, interpolating the final color
+  coord1 = u_rectOffset +  coord0                  * u_rectLinear;
+  coord2 = u_rectOffset + (coord0 + vec2(0.0,1.0)) * u_rectLinear;
+  coord3 = u_rectOffset + (coord0 + vec2(1.0,1.0)) * u_rectLinear;
+  coord4 = u_rectOffset + (coord0 + vec2(1.0,0.0)) * u_rectLinear;
+  // Interpolation color based on the surrounding lens distance
+  fracts = vec4(coord - floor(coord), floor(coord)+vec2(1.0,1.0) - coord);
+  color = fracts.z * (fracts.w * texture2D(u_image, coord1) +
+          fracts.y * texture2D(u_image, coord2)) +
+    fracts.x * (fracts.y * texture2D(u_image, coord3) +
+          fracts.w * texture2D(u_image, coord4));
+
+  gl_FragColor = pow(vec4(color.rgb, color.a) * gain, gamma);
+}
+</script>
+
+<script id="grid-vertex-shader" type="x-shader/x-vertex">
+attribute vec2 a_canvCoord;
+uniform vec2 u_canvSize;
+void main() {
+  // convert the rectangle from pixels to -1.0 to 1.0
+  vec2 clipSpace = a_canvCoord / u_canvSize * 1.0 - 1.0;
+  gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
+}
+</script>
+
+<script id="grid-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+void main() {
+  gl_FragColor = vec4(0.0, 1.0, 0.0, 0.2);
+}
+</script>
+
 
 </body>
 
@@ -161,10 +263,6 @@
 
 <!-- WebGL stuff -->
 <template name="webgl">
-  <img src="http://nemaload.davidad.org/png/nemaload.png">
-<h1> WebGL Shader Demonstration </h1>
-
-<p>The image below is being rendered using WebGL shaders on an HTML5 Canvas element.</p>
 
 <div class="controls">
 

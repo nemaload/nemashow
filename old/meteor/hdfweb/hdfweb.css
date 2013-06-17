@@ -30,3 +30,15 @@ body {
 .fileViewRow td:hover {
   cursor:pointer;
 }
+
+canvas, .controls {
+  clear: both;
+  margin: auto auto;
+}
+
+.controlbox {
+  float: left;
+  border: 1pt solid;
+  margin: 1ex 1em;
+  padding: 0.5ex 0.5em;
+}

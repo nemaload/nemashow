@@ -79,15 +79,45 @@ if (Meteor.isClient) {
     }
   }
 
-  Template.webgl.rendered = function {
-    //$(document).ready() stuff goes here
-    
+  Template.webgl.rendered = function () {
+    updateUV_display();
+
   }
   //WebGL related stuff
   Template.webgl.events = {
-    'change #imageselect' = function () {
+    'change #imageselect' : function (e) {
       console.log("Image changed");
+      loadimage($(e.target).val());
+    },
 
+    'change #rendermode' : function (e) {
+      console.log("Mode changed");
+      newmode($(e.target).val());
+      render(image,1);
+    },
+    'mousedown #canvas-lightfield' : function (e) {
+      console.log("mousedown");
+      mousedrag_X = e.pageX;
+      mousedrag_Y = e.pageY;
+      $(window).mousemove(function () {
+        console.log("mousedrag" + e);
+        mousedrag(e.pageX, e.pageY);
+      });
+      $(window).mouseup(function() {
+        console.log("mouseup");
+        $(window).unbind("mousemove");
+        $(window).unbind("mouseup");
+      });
+    },
+    'change #gain' : function (e) {
+      console.log("Gain changed");
+      $('#gain_current').html(Math.pow(10, $(e.target).val()).toFixed(2));
+      render_if_ready(image,0);
+    }, 
+    //this might cause some problems, not having the .change(), also check spelling
+    'change #grid' : function() {
+      console.log("Grid changed");
+      render_if_ready(image, 0);
     }
   }
 
