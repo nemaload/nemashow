@@ -41,7 +41,6 @@ function render_if_ready() {
 
 function newmode(newmode) {
 	mode = newmode;
-
 	document.getElementById("canvas-image").style.display = mode == "image" ? 'block' : 'none';
 	document.getElementById("canvas-lightfield").style.display = mode == "lightfield" ? 'block' : 'none';
 	document.getElementById("controls-lightfield").style.display = mode == "lightfield" ? 'block' : 'none';
@@ -127,6 +126,7 @@ function render(image, is_new_image) {
 	//gets the WebGL context
 	var gl = getWebGLContext(canvas);
 	//checks if system is WebGL compatible
+
 	if (!gl) {
 		alert("WebGL not supported in this browser, sorry");
 		return;

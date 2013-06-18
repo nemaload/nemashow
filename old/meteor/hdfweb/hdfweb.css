@@ -42,3 +42,17 @@ canvas, .controls {
   margin: 1ex 1em;
   padding: 0.5ex 0.5em;
 }
+
+.webglstuff {
+-moz-border-radius: 15px;
+border-radius: 15px;
+background-color: #eeeeee;
+padding: 10px;
+}
+
+.frameInput {
+  width: 30px;
+}
+.commentInput {
+  height: 300px;
+}

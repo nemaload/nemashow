@@ -264,10 +264,12 @@ void main() {
 <template name="imageInformation">
   <div class="row-fluid">
     
-    <div class="span3">
+    <div class="span3 webglstuff">
       {{#with imageObject}}
-      <h1> {{baseName}} </h1>
-      {{size}}
+      <h1>{{baseName}} </h1>
+      <p>Size: {{size}} bytes</p>
+      <p>ID: {{_id}}</p>
+      {{> imageAnnotations}}
       {{/with}}
     </div>
     <div class="span9">
@@ -282,19 +284,25 @@ void main() {
   {{/unless}}
 </template>
 
+<template name="imageAnnotations">
+<h5> <i class="icon-comments"></i> Annotations</h5>
+{{#each annotationsForImage}}
+<h6> {{creator}} said: </h6>
+<p> {{content}} <p>
+{{/each}}
+<h5> <i class="icon-pencil"></i> Write an annotation: <h5>
+Start: <input type="number" name="quantity" min="1" max="5" class="frameInput"> End: <input type="number" name="quantity" min="1" max="5" class="frameInput">
+ <br />Comment: <br />
+<textarea type="text" class="commentInput"></textarea><br />
+<button class="btn">Add Annotation</button>
+</template>
+
+
+
 <!-- WebGL stuff -->
 <template name="webgl">
-
+<div class="webglstuff">
 <div class="controls">
-
-<p class="controlbox">
-Please select an image to view.<br />
-<!-- These are generated with a Python script for now due to cross-domain limitations I violated while half-awake -->
-<select id="imageselect">
-  <option value="/images/lensgrid.hdf5.png">lensgrid</option>
-
-</select>
-</p>
 
 <div class="controlbox">
 <select id="rendermode">
@@ -307,10 +315,11 @@ Please select an image to view.<br />
   <tr><td>Gain:</td><td><input type="range" id="gain" value="0" min="-1" max="1" step="0.05" /></td><td><span id="gain_current" style="width: 5em"></span></td></tr>
   <tr><td>Gamma:</td><td><input type="range" id="gamma" value="1" min="0.5" max="1.5" step="0.01" /></td><td><span id="gamma_current" style="width: 5em"></span></td></tr>
 </table>
-
+{{#if needsGridBox}}
 <p class="controlbox">
 <input type="checkbox" id="grid" value="1" /> Grid
 </p>
+{{/if}}
 
 <p id="controls-lightfield" class="controlbox">
 <input type="button" value="U-" onClick="updateUV(-1.0, 0);">
@@ -323,9 +332,9 @@ Please select an image to view.<br />
 </p>
 
 </div>
-
 <canvas id="canvas-image" width="1080" height="1280"></canvas>
 <canvas id="canvas-lightfield" width="432" height="512"></canvas>
+</div>
 </template>
 
 
