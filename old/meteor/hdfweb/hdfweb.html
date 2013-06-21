@@ -230,6 +230,9 @@ void main() {
                 <div class="navbar-text pull-right">
                   {{loginButtons align="right"}}
                 </div>
+                <form class="navbar-search pull-right" style="margin-right: 10px;">
+                  <input type="text" class="search-query" placeholder="Search annotations...">
+                </form>
               <ul class="nav">
                 <li><a id="triggerAbout">About</a></li>       
                 <li><a id="triggerHelp">Help</a></li>
@@ -297,8 +300,7 @@ void main() {
       <a href="#"><i class="icon-twitter-sign"></i></a>
       </h3>
       </div>
-      <h4> Attributes </h4>
-      <table id="imageAttributeTable" class="attributeTable table table-striped">
+      <table id="imageAttributeTable" class="table table-striped">
         <thead>
           <tr>
             <th align="left"> Attribute </th>
@@ -309,6 +311,10 @@ void main() {
           <tr>
             <td> Name: </td>
             <td> {{baseName}}</td>
+          </tr>
+          <tr>
+            <td>Frames: </td>
+            <td> 50 </td>
           </tr>
           <tr>
             <td>Size: </td> 

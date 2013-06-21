@@ -39,11 +39,6 @@ canvas, .controls {
 .folderLi {
   cursor: pointer;
 }
-
-.attributeTable {
-  width: 100%; 
-}
-
 .controlbox {
   float: left;
   border: 1pt solid;
