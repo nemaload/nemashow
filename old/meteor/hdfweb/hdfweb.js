@@ -112,6 +112,14 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
       $(e.target).addClass('dragover');
 
     },
+    'dragover .nav-header': function (e,t) {
+      e.preventDefault();
+      $(e.target).addClass('dragover');
+    },
+    'dragleave .nav-header' : function (e,t) {
+      e.preventDefault();
+      $(e.target).removeClass('dragover');
+    },
     'dragleave .folderLi': function (e,t) {
       e.preventDefault();
       $(e.target).removeClass('dragover');
@@ -148,6 +156,26 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
     'dragstart li.folderLi': function (e,t) {
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('folderId', $.trim($(e.target).children().clone().remove().end().attr('id')));
+    },
+    'drop li.nav-header': function(e,t) {
+      e.preventDefault();
+      e.dataTransfer.dropeffect = 'move';
+      if (e.dataTransfer.getData('folderId') =="") {
+        alert("All files must be in a folder.");
+      }
+      else if (e.dataTransfer.getData('folderId') !== "") {
+        Meteor.call('moveFolderToFolder', $.trim(e.dataTransfer.getData('folderId')), null, function (err, result) {
+          if (err) {
+            alert("There wasn an error");
+          }
+          else if (result !== "Success"){
+            alert(result);
+          }
+          $(e.target).removeClass('dragover');
+        });
+      }
+      //edit this to make the differentiation between folders and images
+
     }
   }
 
@@ -337,6 +365,13 @@ if (Meteor.isServer) {
       if (Meteor.call('isAdmin')) {
         //Transverse destination folder parents to see if folder is contained within the source folder
         var invalidOperation = false;
+        if (destinationFolder == null) {
+          Folders.update(movingFolder, {$set: {parent: null}});
+          return "Success";
+        }
+        if (destinationFolder == movingFolder) {
+          return "You cannot move a folder into itself."
+        }
         var currentTransversalFolderId = Folders.findOne(destinationFolder).parent;
         while (typeof(currentTransversalFolderId) !== "undefined") {
           console.log("Transversed once");
