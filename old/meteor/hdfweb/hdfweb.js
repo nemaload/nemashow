@@ -48,13 +48,19 @@ Handlebars.registerHelper('isAdmin', function () { //DO NOT RELY ON THIS FOR SEC
 
 //a smarter each to retrieve children
 Handlebars.registerHelper('each_children', function (context, options) {
-  children = Template.folders.children(context).fetch();
   var ret = "";
-  for(var i=0, j=children.length; i<j; i++) {
-    ret = ret + options.fn(children[i]);
-  }
+  Template.folders.children(context).forEach(function (child) {
+    ret = ret + options.fn(child);
+  });
   return ret;
 
+});
+
+Handlebars.registerHelper('labelBranch', function (label, options) {
+  var data = this;
+  return Spark.labelBranch(label, function () {
+    return options.fn(data);
+  });
 });
 
 
@@ -68,11 +74,27 @@ Handlebars.registerHelper('each_children', function (context, options) {
 
   //Folder related functions
   Template.folders.foldersTop = function () {
+
     return Folders.find({parent: null});
   }
 
-  Template.folders.children = function(parentId) {
+  /*Template.folders.children = function(parentId) {
+    //call stack error lies here
     return Folders.find({parent: parentId});
+  }*/
+
+  Template.folders_main.hasChildren = function (parentId) {
+    var numFolders = Folders.find({parent: parentId}).count();
+    if (numFolders > 0) {
+      return true;
+    }
+    else {
+      return false;
+    }
+  }
+
+  Template.folders.setFolderSession = function (folderId) {
+    Session.set("currentParentFolder", folderId);
   }
 
   Template.folders.isCurrentFolder = function (folder) {
@@ -140,7 +162,14 @@ Handlebars.registerHelper('each_children', function (context, options) {
   }
 
   Template.fileView.getFolderName = function() {
-    return Folders.findOne({_id: Session.get("currentFolderId")}).name;
+    var folder = Folders.findOne({_id: Session.get("currentFolderId")});
+    if (typeof(folder) !== "undefined")
+    {
+      return folder.name;
+    }
+    else {
+      return "";
+    }
   }
 
   Template.fileView.events = {
