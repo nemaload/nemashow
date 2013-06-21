@@ -188,7 +188,8 @@ void main() {
 
 
 <template name="fileView">
-  <h3> {{getFolderName}} </h3>
+
+  <h3> {{getFolderName}}  <i class="icon-remove-sign" style="float: right; cursor:pointer;" id="removeFolder"></i></h3>
 <div style="height: 300px; overflow: auto;">
 <table class="table table-striped" >
   <thead>
@@ -246,7 +247,7 @@ void main() {
 <!-- The folder nav list -->
 <template name="folders"> <!-- initial nav -->
   <ul class="nav nav-list" >
-  <li class="nav-header"><i class="icon-folder-close"></i> Folders</li>
+  <li class="nav-header" id="topLevelFolder"><i class="icon-folder-close"></i> Folders</li>
   {{#each foldersTop}}
     {{#if isCurrentFolder _id}}
     <li class="folderLi" draggable="true"><a id="{{_id}}" ><i class="icon-folder-open-alt"></i>{{> folders_sub}}</a></li>
@@ -255,6 +256,7 @@ void main() {
     {{/if}}
   {{/each}}
 </ul>
+<li class="nav-header" style="cursor:pointer;" id="addFolder"><i class="icon-plus-sign-alt"></i> Add a folder </li>
 </template>
 <template name="folders_main"> <!-- each lower level, for children -->
 
@@ -288,8 +290,38 @@ void main() {
     <div class="span3 webglstuff">
       {{#with imageObject}}
       <h1>{{baseName}} </h1>
-      <p>Size: {{size}} bytes</p>
-      <p>ID: {{_id}}</p>
+      <div id="imageOptions">
+      <h3 style="letter-spacing: 0.2em;">
+      <a href="#"><i class="icon-magnet"></i></a>
+      <a href="#"><i class="icon-picture"></i></a>
+      <a href="#"><i class="icon-twitter-sign"></i></a>
+      </h3>
+      </div>
+      <h4> Attributes </h4>
+      <table id="imageAttributeTable" class="attributeTable table table-striped">
+        <thead>
+          <tr>
+            <th align="left"> Attribute </th>
+            <th align="left"> Value </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td> Name: </td>
+            <td> {{baseName}}</td>
+          </tr>
+          <tr>
+            <td>Size: </td> 
+            <td>{{size}} bytes</td>
+          </tr>
+          <tr>
+            <td>ID </td> 
+            <td> {{_id}}</td>
+          </tr>
+        </tbody>
+      </table>
+
+
       {{> imageAnnotations}}
       {{/with}}
     </div>
@@ -311,9 +343,9 @@ void main() {
 <h6> {{creator}} said: </h6>
 <p> {{content}} <p>
 {{/each}}
-<h5> <i class="icon-pencil"></i> Write an annotation: <h5>
-Start: <input type="number" name="quantity" min="1" max="5" class="frameInput" style="margin-right: 10px;">     End: <input type="number" name="quantity" min="1" max="5" class="frameInput">
- <br />Comment: <br />
+<h5> <i class="icon-pencil"></i> Write an annotation:</h5> 
+<button type="button" class="btn btn-success" rel="tooltip" title="Select your start frame using the slider.">Start</button><b id="startFrame"style="padding: 10px;">5</b> <button type="button" class="btn btn-danger" rel="tooltip" title="Select your end frame using the slider.">End</button> <b style="padding: 10px;" id="endFrame">10 </b>
+<h5 style="margin-top: 10px; margin-bottom: 10px;"> Comment: <h5>
 <textarea type="text" class="commentInput"></textarea><br />
 <button class="btn">Add Annotation</button>
 </template>

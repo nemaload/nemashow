@@ -71,6 +71,7 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
   Session.setDefault("currentImageId", null);
   Session.setDefault("currentImageView", "viewingNothing");
   Session.setDefault("currentWebGLMode", "image");
+  Session.setDefault("currentFrameIndex", 0); //frameindex
 
   //Folder related functions
   Template.folders.foldersTop = function () {
@@ -102,7 +103,7 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
   }
 
     Template.folders.events = {
-    'click li': function(e) {
+    'click .folderLi': function(e) {
       e.preventDefault();
       Session.set("currentFolderId", $(e.target).attr("id"));
       Session.set("currentView", "fileListing");
@@ -112,11 +113,11 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
       $(e.target).addClass('dragover');
 
     },
-    'dragover .nav-header': function (e,t) {
+    'dragover #topLevelFolder': function (e,t) {
       e.preventDefault();
       $(e.target).addClass('dragover');
     },
-    'dragleave .nav-header' : function (e,t) {
+    'dragleave #topLevelFolder' : function (e,t) {
       e.preventDefault();
       $(e.target).removeClass('dragover');
     },
@@ -157,7 +158,7 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('folderId', $.trim($(e.target).children().clone().remove().end().attr('id')));
     },
-    'drop li.nav-header': function(e,t) {
+    'drop #topLevelFolder': function(e,t) {
       e.preventDefault();
       e.dataTransfer.dropeffect = 'move';
       if (e.dataTransfer.getData('folderId') =="") {
@@ -166,7 +167,7 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
       else if (e.dataTransfer.getData('folderId') !== "") {
         Meteor.call('moveFolderToFolder', $.trim(e.dataTransfer.getData('folderId')), null, function (err, result) {
           if (err) {
-            alert("There wasn an error");
+            alert("There was an error.");
           }
           else if (result !== "Success"){
             alert(result);
@@ -174,8 +175,20 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
           $(e.target).removeClass('dragover');
         });
       }
-      //edit this to make the differentiation between folders and images
 
+    },
+    'click #addFolder' : function (e) {
+      e.preventDefault();
+      var folderName = prompt("Enter folder name: ");
+      //add validation here
+      Meteor.call('makeFolder', folderName, function (err, result) {
+        if (err) {
+          alert("There was an error.");
+        }
+        else if (result !== "Success"){
+          alert(result);
+        }
+      });
     }
   }
 
@@ -185,6 +198,22 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
     return Images.find({folderId: Session.get("currentFolderId")});
   }
 
+  Template.fileView.removeFolder = function () {
+    if (confirm("Do you really want to delete this folder? Deleting a folder strands all of the files within it.")){
+      Meteor.call('deleteFolder', Session.get("currentFolderId"), function (err, result) {
+        if (err) {
+          alert(err);
+        }
+        else if (result !== "Success") {
+          alert(result);
+        } 
+        else {
+          Session.set("currentView", "viewingFirstScreen");
+        }
+      });
+
+    }
+  }
   Template.fileView.getFolderName = function() {
     var folder = Folders.findOne({_id: Session.get("currentFolderId")});
     if (typeof(folder) !== "undefined")
@@ -210,6 +239,10 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
     'dragstart .fileViewRow' : function (e) {
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text', e.target.cells[0].innerHTML); // id
+    },
+    'click #removeFolder' : function (e) {
+      e.preventDefault();
+      Template.fileView.removeFolder();
     }
   }
 
@@ -252,6 +285,10 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
   Template.imageAnnotations.annotationsForImage = function () {
     console.log('Found annotations for images');
     return Annotations.find({imageId: Session.get("currentImageId")});
+  }
+
+  Template.imageAnnotations.rendered = function () {
+    $('[rel=tooltip]').tooltip();
   }
 
   //webgl related stuff
@@ -350,6 +387,23 @@ if (Meteor.isServer) {
         return false;
       }
       return true;
+    },
+    makeFolder: function (folderName) {
+      if (Meteor.call('isAdmin')) {
+        Folders.insert({name: folderName});
+        return "Success";
+      }
+      else {
+        return "You must be an administrator to create folders.";
+      }
+    },
+    deleteFolder: function (folderId) {
+      //TODO: move all files in the folder to the top level
+      if (Meteor.call('isAdmin')) {
+        Folders.remove(folderId);
+        return "Success";
+      }
+      return "There was an error removing the folder";
     },
     moveFileToFolder: function (file,folder) {
       if (Meteor.call('isAdmin')){

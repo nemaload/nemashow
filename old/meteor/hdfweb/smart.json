@@ -1,5 +1,6 @@
 {
   "packages": {
-    "font-awesome": {}
+    "font-awesome": {},
+    "jquery-ui-bootstrap": {}
   }
 }
