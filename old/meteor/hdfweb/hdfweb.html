@@ -249,28 +249,23 @@ void main() {
   <li class="nav-header"><i class="icon-folder-close"></i> Folders</li>
   {{#each foldersTop}}
     {{#if isCurrentFolder _id}}
-    <li class="folderLi" draggable="true"><a id="{{_id}}" href="#"><i class="icon-folder-open-alt"></i>{{> folders_sub}}</a></li>
+    <li class="folderLi" draggable="true"><a id="{{_id}}" ><i class="icon-folder-open-alt"></i>{{> folders_sub}}</a></li>
     {{else}}
-    <li class="folderLi" draggable="true"><a id="{{_id}}" href="#"><i class="icon-folder-close-alt"></i>{{> folders_sub}}</a></li>
+    <li class="folderLi" draggable="true"><a id="{{_id}}" ><i class="icon-folder-close-alt"></i>{{> folders_sub}}</a></li>
     {{/if}}
   {{/each}}
 </ul>
 </template>
-<!-- YOU HAVE TO WRITE A FUNCTION TO RETURN OBJECTS WHEN ID IS PASSED IN FROM FOLDER CHILDREN ARRAY and then you've done it :)-->
 <template name="folders_main"> <!-- each lower level, for children -->
 
 <ul class="nav nav-list" >
-  {{#if hasChildren _id}}
     {{#each children _id}}
-    <!--{{#each_children _id}}-->
       {{#if isCurrentFolder _id}}
-        <li class="folderLi" draggable="true"><a id="{{_id}}" href="#"><i class="icon-folder-open-alt"></i>{{> folders_sub}}</a></li>
+        <li class="folderLi" draggable="true"><a id="{{_id}}"><i class="icon-folder-open-alt"></i>{{> folders_sub}}</a></li>
       {{else}}
-        <li class="folderLi" draggable="true"><a id="{{_id}}" href="#"><i class="icon-folder-close-alt"></i>{{> folders_sub}}</a></li>
+        <li class="folderLi" draggable="true"><a id="{{_id}}"><i class="icon-folder-close-alt"></i>{{> folders_sub}}</a></li>
       {{/if}}
-    <!--{{/each_children}}-->
     {{/each}}
-  {{/if}}
 </ul>
 </template>
 

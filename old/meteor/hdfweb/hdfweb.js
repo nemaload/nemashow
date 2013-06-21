@@ -78,10 +78,10 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
     return Folders.find({parent: null});
   }
 
-  /*Template.folders.children = function(parentId) {
+  Template.folders_main.children = function(parentId) {
     //call stack error lies here
     return Folders.find({parent: parentId});
-  }*/
+  }
 
   Template.folders_main.hasChildren = function (parentId) {
     var numFolders = Folders.find({parent: parentId}).count();
@@ -91,10 +91,6 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
     else {
       return false;
     }
-  }
-
-  Template.folders.setFolderSession = function (folderId) {
-    Session.set("currentParentFolder", folderId);
   }
 
   Template.folders.isCurrentFolder = function (folder) {
@@ -122,6 +118,7 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
     },
     'drop .folderLi': function (e,t) {
       e.preventDefault();
+      console.log(e.dataTransfer.getData('folderId'));
       e.dataTransfer.dropeffect = 'move';
       if (e.dataTransfer.getData('folderId') =="") {
         Meteor.call('moveFileToFolder', $.trim(e.dataTransfer.getData('text')),$(e.target).attr('id'), function(err, result) {
@@ -150,7 +147,6 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
     },
     'dragstart li.folderLi': function (e,t) {
       e.dataTransfer.effectAllowed = 'move';
-      console.log();
       e.dataTransfer.setData('folderId', $.trim($(e.target).children().clone().remove().end().attr('id')));
     }
   }
