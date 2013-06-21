@@ -21,7 +21,9 @@
       </div><!--/row-->
       <hr>
       {{> imageView}}
-      
+      {{#if isAdmin}}
+      <p> BLAH </p>
+      {{/if}}
       <footer>
         <p>NEMALOAD 2013</p>
       </footer>
@@ -198,7 +200,7 @@ void main() {
   </thead>
   <tbody>
 {{#each filesWithId}}
-<tr class="fileViewRow" fileId={{_id}}>
+<tr class="fileViewRow" fileId={{_id}} draggable="true">
 <td> {{_id}} </td>
 <td> {{baseName}} </td>
 <td> {{size}} </td>
@@ -242,18 +244,38 @@ void main() {
 <!-- Folder related templates -->
 
 <!-- The folder nav list -->
-<template name="folders">
+<template name="folders"> <!-- initial nav -->
   <ul class="nav nav-list" >
   <li class="nav-header"><i class="icon-folder-close"></i> Folders</li>
-  {{#each folders}}
+  {{#each foldersTop}}
     {{#if isCurrentFolder _id}}
-    <li><a id="{{_id}}"><i class="icon-folder-open-alt"></i> {{name}}</a></li>
+    <li class="folderLi" draggable="true"><a id="{{_id}}"><i class="icon-folder-open-alt"></i>{{> folders_sub}}</a></li>
     {{else}}
-    <li><a id="{{_id}}"><i class="icon-folder-close-alt"></i> {{name}}</a></li>
+    <li class="folderLi" draggable="true"><a id="{{_id}}"><i class="icon-folder-close-alt"></i>{{> folders_sub}}</a></li>
     {{/if}}
   {{/each}}
 </ul>
 </template>
+<!-- YOU HAVE TO WRITE A FUNCTION TO RETURN OBJECTS WHEN ID IS PASSED IN FROM FOLDER CHILDREN ARRAY and then you've done it :)-->
+<template name="folders_main"> <!-- each lower level, for children -->
+
+<ul class="nav nav-list" >
+    {{#each_children _id}}
+      {{#if isCurrentFolder _id}}
+        <li class="folderLi" draggable="true"><a id="{{_id}}"><i class="icon-folder-open-alt"></i>{{> folders_sub}}</a></li>
+      {{else}}
+        <li class="folderLi" draggable="true"><a id="{{_id}}"><i class="icon-folder-close-alt"></i>{{> folders_sub}}</a></li>
+      {{/if}}
+    {{/each_children}}
+</ul>
+</template>
+
+<template name="folders_sub"> <!-- the display for each folder -->
+  {{name}}
+  {{> folders_main}}
+</template>
+
+
 
 <!-- The new folder input -->
 <template name="newFolderInput">
@@ -291,7 +313,7 @@ void main() {
 <p> {{content}} <p>
 {{/each}}
 <h5> <i class="icon-pencil"></i> Write an annotation: <h5>
-Start: <input type="number" name="quantity" min="1" max="5" class="frameInput"> End: <input type="number" name="quantity" min="1" max="5" class="frameInput">
+Start: <input type="number" name="quantity" min="1" max="5" class="frameInput" style="margin-right: 10px;">     End: <input type="number" name="quantity" min="1" max="5" class="frameInput">
  <br />Comment: <br />
 <textarea type="text" class="commentInput"></textarea><br />
 <button class="btn">Add Annotation</button>

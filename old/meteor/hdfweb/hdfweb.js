@@ -7,6 +7,8 @@
 Images = new Meteor.Collection('images');
 Folders = new Meteor.Collection('folders');
 Annotations = new Meteor.Collection('annotations');
+Admins = new Meteor.Collection('admins'); //all administrator user IDs go in here
+
 
 
 //User permission levels?
@@ -39,6 +41,23 @@ Annotations.deny({
 Accounts.config({sendVerificationEmail: true, forbidClientAccountCreation: false}); 
 
 if (Meteor.isClient) {
+//handlebars helper functions
+Handlebars.registerHelper('isAdmin', function () { //DO NOT RELY ON THIS FOR SECURITY, USE ALLOW
+  return Meteor.call('isAdmin');
+});
+
+//a smarter each to retrieve children
+Handlebars.registerHelper('each_children', function (context, options) {
+  children = Template.folders.children(context).fetch();
+  var ret = "";
+  for(var i=0, j=children.length; i<j; i++) {
+    ret = ret + options.fn(children[i]);
+  }
+  return ret;
+
+});
+
+
   //Session variable guide:
   // currentCollectionId
   Session.setDefault("currentFolderId",null);
@@ -48,13 +67,20 @@ if (Meteor.isClient) {
   Session.setDefault("currentWebGLMode", "image");
 
   //Folder related functions
-  Template.folders.folders = function () {
-    return Folders.find();
+  Template.folders.foldersTop = function () {
+    return Folders.find({parent: null});
+  }
+
+  Template.folders.children = function(parentId) {
+    return Folders.find({parent: parentId});
   }
 
   Template.folders.isCurrentFolder = function (folder) {
-    console.log(folder);
     return Session.get("currentFolderId") === folder;
+  }
+
+  Template.folders_main.isCurrentFolder = function (folder) {
+    return Template.folders.isCurrentFolder(folder);
   }
 
     Template.folders.events = {
@@ -62,6 +88,48 @@ if (Meteor.isClient) {
       e.preventDefault();
       Session.set("currentFolderId", $(e.target).attr("id"));
       Session.set("currentView", "fileListing");
+    },
+    'dragover .folderLi': function (e,t) {
+      e.preventDefault();
+      $(e.target).addClass('dragover');
+
+    },
+    'dragleave .folderLi': function (e,t) {
+      e.preventDefault();
+      $(e.target).removeClass('dragover');
+    },
+    'drop .folderLi': function (e,t) {
+      e.preventDefault();
+      e.dataTransfer.dropeffect = 'move';
+      if (e.dataTransfer.getData('folderId') =="") {
+        Meteor.call('moveFileToFolder', $.trim(e.dataTransfer.getData('text')),$(e.target).attr('id'), function(err, result) {
+        if (err){
+          alert("There was an error");
+        }
+        else if (result !== "Success"){
+          alert(result);
+        }
+        $(e.target).removeClass('dragover');
+        });
+      }
+      else if (e.dataTransfer.getData('folderId') !== "") {
+        Meteor.call('moveFolderToFolder', $.trim(e.dataTransfer.getData('folderId')), $(e.target).attr('id'), function (err, result) {
+          if (err) {
+            alert("There wasn an error");
+          }
+          else if (result !== "Success"){
+            alert(result);
+          }
+          $(e.target).removeClass('dragover');
+        });
+      }
+      //edit this to make the differentiation between folders and images
+      
+    },
+    'dragstart li.folderLi': function (e,t) {
+      e.dataTransfer.effectAllowed = 'move';
+      console.log();
+      e.dataTransfer.setData('folderId', $.trim($(e.target).children().clone().remove().end().attr('id')));
     }
   }
 
@@ -85,6 +153,10 @@ if (Meteor.isClient) {
     'click .fileViewRow': function(e) {
       Session.set("currentImageId", $(e.target).parent().attr("fileid"));
       Session.set("currentImageView", "viewingImage");
+    },
+    'dragstart .fileViewRow' : function (e) {
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text', e.target.cells[0].innerHTML); // id
     }
   }
 
@@ -218,5 +290,74 @@ if (Meteor.isServer) {
     //Images.insert({baseName : "Test1", Size :"20050", collectionId:"test"});
   });
   //add some dummy data
-
+  Meteor.methods( {
+    isAdmin: function () {
+      var user = Meteor.user();
+      if (!("string" === typeof (user.admin) && "admin" == (user.admin))) {
+        return false;
+      }
+      return true;
+    },
+    moveFileToFolder: function (file,folder) {
+      if (Meteor.call('isAdmin')){
+        Images.update(file, {$set: {folderId: folder}});
+        return "Success";
+      }
+      else
+      {
+        return "You must be an administrator to move files.";
+      }
+    },
+    moveFolderToFolder: function (movingFolder, destinationFolder) {
+      if (Meteor.call('isAdmin')) {
+        //Transverse destination folder parents to see if folder is contained within the source folder
+        var invalidOperation = false;
+        var currentTransversalFolderId = Folders.findOne(destinationFolder).parent;
+        while (typeof(currentTransversalFolderId) !== "undefined") {
+          console.log("Transversed once");
+          if (currentTransversalFolderId == movingFolder) {
+            console.log("Yay");
+            invalidOperation = true;
+            break;
+          }
+          else {
+            currentTransversalFolderId = Folders.findOne(currentTransversalFolderId);
+            console.log(typeof(currentTransversalFolderId));
+            if (typeof(currentTransversalFolderId) !== "undefined") {
+              currentTransversalFolderId = currentTransversalFolderId.parent;
+              console.log(currentTransversalFolderId);
+            }
+          }
+        }
+        //check if invalid bool is set
+        if (invalidOperation) {
+          return "You cannot move a parent folder into any of it's children";
+        }
+        else {
+          Folders.update(movingFolder, {$set: {parent: destinationFolder}});
+          return "Success";        
+        }
+      }
+      else {
+        return "You must be an administrator to move folders."
+      }
+    },
+    //Utility function which provides quick access to make users administrators
+    makeUserAdmin: function (userId) {
+      if (Meteor.call('isAdmin')) {
+        Meteor.users.update({_id: userId}, { $set : { "profile.type": "admin" } }, function (err) {
+          if (err) {
+            return err;          
+          }
+          else {
+            return "The user was successfully updated.";
+          }
+        });
+      }
+      else
+      {
+        return "You must be an admin to do that.";
+      }
+    }
+  });
 }
