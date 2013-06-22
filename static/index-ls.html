@@ -6,6 +6,7 @@
 <script>
 
 var mouseSensitivity = 4.0;
+var ofs_Z_step = 0.05; // TODO: recomputed later for particular metadata
 
 var ofs_Z = 0.0, ofs_U = 0.0, ofs_V = 0.0; // in OpenGL coordinate system
 var texture = {}; // indexed by mode name
@@ -24,16 +25,21 @@ function loadimage(imagepath) {
 	// This method of asynchronous loading may be problematic if there
 	// is still an outstanding request from previous loadimage(); FIXME
 	loaded = { "image": 0, "metadata": 0 };
+
 	image = new Image();
 	image.src = imagepath; // MUST BE SAME DOMAIN!!!
 	image.onload = function() {
 		loaded.image = 1;
 		render_if_ready();
 	}
+
 	metadatapath = imagepath.replace(/\.[^/.]+$/, ".json");
 	$.getJSON(metadatapath, function(data) {
 		metadata = data;
 		loaded.metadata = 1;
+
+		setupZ();
+
 		render_if_ready();
 	});
 }
@@ -55,9 +61,16 @@ function newmode(newmode) {
 	document.getElementById("controls-lightsheet").style.display = mode == "lightsheet" ? 'block' : 'none';
 }
 
+function setupZ() {
+	/* After loading metadata, update a variety of stuff related
+	 * to the Z-coordinate. */
+	ofs_Z = metadata.framedata[Math.floor(metadata.framedata.length / 2)].z;
+	$('#Z_current').html(parseFloat(ofs_Z).toFixed(2));
+}
+
 function updateZ(delta_Z) {
 	newofs_Z = ofs_Z + delta_Z;
-	if (newofs_Z < 0.0 || newofs_Z >= metadata.framedata.length)
+	if (newofs_Z < metadata.framedata[0].z || newofs_Z >= metadata.framedata[metadata.framedata.length - 1].z)
 		return;
 
 	ofs_Z = newofs_Z;
@@ -134,6 +147,15 @@ function render_slice(image, canvas, gl) {
 	gl.useProgram(program);
 
 	var n_slices = metadata.framedata.length;
+	// find the slices corresponding to our z-coord
+	var z_slice = 0;
+	for (var i = 1; i < n_slices; i++) {
+		if (metadata.framedata[i].z > ofs_Z) {
+			z_slice = i - 1;
+			break;
+		}
+	}
+	var frame0 = metadata.framedata[z_slice], frame2 = metadata.framedata[z_slice + 1];
 
 	// set(up) parameters
 	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
@@ -141,7 +163,9 @@ function render_slice(image, canvas, gl) {
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
 	gl.uniform2f(gammaGainLocation, parseFloat($('#gamma').val()), Math.pow(10, parseFloat($('#gain').val())));
 	var zSlicesLocation = gl.getUniformLocation(program, "u_zSlices");
-	gl.uniform2f(zSlicesLocation, ofs_Z, n_slices);
+	gl.uniform2f(zSlicesLocation, z_slice, n_slices);
+	var z0z1z2Location = gl.getUniformLocation(program, "u_z0z1z2");
+	gl.uniform3f(z0z1z2Location, frame0.z, ofs_Z, frame2.z);
 
 	var texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
@@ -158,9 +182,11 @@ function render_slice(image, canvas, gl) {
 	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
 	// also update some status values
-	$('#Z_r').html(parseFloat(metadata.framedata[ofs_Z].z_r).toFixed(3));
-	$('#Z_m').html(parseFloat(metadata.framedata[ofs_Z].z).toFixed(3));
-	$('#t').html(parseFloat(metadata.framedata[ofs_Z].t).toFixed(0));
+	var frame
+	$('#Z_i').html(z_slice);
+	$('#t').html(parseFloat(frame0.t).toFixed(0) + ", " + parseFloat(frame2.t).toFixed(0));
+	$('#Z_m').html(parseFloat(frame0.z).toFixed(3) + ", " + parseFloat(frame2.z).toFixed(3));
+	$('#Z_r').html(parseFloat(frame0.z_r).toFixed(3) + ", " + parseFloat(frame2.z_r).toFixed(3));
 }
 
 function setRectangle(gl, x, y, width, height) {
@@ -210,17 +236,26 @@ varying vec2 v_texCoord;
 
 uniform vec2 u_gammaGain; // display parameters
 uniform vec2 u_zSlices; // slicing parameters
+uniform vec3 u_z0z1z2; // Z-coords of (slice0, ourpos, slice2)
 
 void main() {
 	vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, u_gammaGain.x);
 	vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, u_gammaGain.y);
 
-	// derive the texCoord of the appropriate Z-coord slice
+	// derive the texCoord of the pair of appropriate Z-coord slices
 	float z = u_zSlices[0];
 	float sliceStep = 1.0 / u_zSlices[1];
-	vec2 texCoord = vec2(v_texCoord[0], sliceStep * (z + v_texCoord[1]));
+	vec2 texCoord0 = vec2(v_texCoord[0], sliceStep * (z + v_texCoord[1]));
+	vec2 texCoord2 = vec2(v_texCoord[0], sliceStep * (z + 1.0 + v_texCoord[1]));
 
-	gl_FragColor = pow(texture2D(u_image, texCoord) * gain, gamma);
+	// interpolation coefficient
+	float beta = (u_z0z1z2[1] - u_z0z1z2[0]) / (u_z0z1z2[2] - u_z0z1z2[0]);
+	// interpolate
+	vec4 color0 = texture2D(u_image, texCoord0);
+	vec4 color2 = texture2D(u_image, texCoord2);
+	vec4 color = beta * color0 + (1.0 - beta) * color2;
+
+	gl_FragColor = pow(color * gain, gamma);
 }
 </script>
 
@@ -243,19 +278,19 @@ canvas, .controls {
 .UV_value {
 	font-family: monospace;
 	display: inline-block;
-	width: 6em; /* "-10.00" */
+	width: 10em; /* "-10.00" x2 */
 }
 
 .Z_value {
 	font-family: monospace;
 	display: inline-block;
-	width: 6em; /* "10.000" */
+	width: 10em; /* "10.000" x2 */
 }
 
 .t_value {
 	font-family: monospace;
 	display: inline-block;
-	width: 4em; /* "1000" */
+	width: 6em; /* "1000" x2 */
 }
 </style>
 
@@ -389,8 +424,8 @@ Please select an image to view.<br />
 <div id="controls-slice" class="controlbox">
 <table>
 <tr><td>
-<input type="button" value="Z-" onClick="updateZ(-1.0);">
-<input type="button" value="Z+" onClick="updateZ(+1.0);">
+<input type="button" value="Z-" onClick="updateZ(-ofs_Z_step);">
+<input type="button" value="Z+" onClick="updateZ(+ofs_Z_step);">
 </td><td>
 <span id="Z_current" class="Z_value"></span>
 </td></tr></table>
@@ -398,6 +433,7 @@ Please select an image to view.<br />
 
 <div id="info-slice" class="controlbox">
 <table>
+<tr><td>i =</td><td><span id="Z_i" class="t_value"></span></td></tr>
 <tr><td>t =</td><td><span id="t" class="t_value"></span></td></tr>
 <tr><td>z<sub>req</sub> =</td><td><span id="Z_r" class="Z_value"></span></td></tr>
 <tr><td>z<sub>meas</sub> =</td><td><span id="Z_m" class="Z_value"></span></td></tr>
@@ -448,7 +484,6 @@ $('#gamma').change(function () {
 	render_if_ready(image, 0);
 }).change();
 
-$('#Z_current').html(parseFloat(ofs_Z).toFixed(2));
 $('#U_current').html(parseFloat(ofs_U).toFixed(2));
 $('#V_current').html(parseFloat(ofs_V).toFixed(2));
 </script>
