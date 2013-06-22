@@ -7,6 +7,8 @@
 
 var mouseSensitivity = 4.0;
 var ofs_Z_step = 0.05; // TODO: recomputed later for particular metadata
+var ofs_UV_step = 1.0;
+var observerDistance = 200.0; // distance of the observer from the z=0 plane
 
 var ofs_Z = 0.0, ofs_U = 0.0, ofs_V = 0.0; // in OpenGL coordinate system
 var imageTexture = {}, zTexture = {}; // indexed by mode name
@@ -233,6 +235,12 @@ function render_lightsheet(image, canvas, gl) {
 	var zSlicesLocation = gl.getUniformLocation(program, "u_zSlices");
 	gl.uniform2f(zSlicesLocation, 0 /* TODO */, n_slices);
 
+	// compute angle-slope to the z=0 plane based on U,V coordinates
+	var U_slope = ofs_U / observerDistance;
+	var V_slope = ofs_V / observerDistance;
+	var UVSlopeLocation = gl.getUniformLocation(program, "u_UVSlope");
+	gl.uniform2f(UVSlopeLocation, U_slope, V_slope);
+
 	var texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
 	setRectangle(gl, 0.0, 0.0, 1.0, 1.0);
@@ -330,8 +338,8 @@ uniform sampler2D u_zdata;
 
 // the texCoords passed in from the vertex shader
 varying vec2 v_texCoord;
-// the observer's coordinates
-uniform vec2 u_UVCoord;
+// the viewing angle-slope
+uniform vec2 u_UVSlope;
 
 uniform vec2 u_gammaGain; // display parameters
 uniform vec2 u_zSlices; // slicing parameters
@@ -347,8 +355,12 @@ void main() {
 	for (float z = 0.0; z < 1000.0; z++) {
 		if (z >= n_slices)
 			break;
-		vec2 texCoord = vec2(v_texCoord[0], sliceStep * (z + v_texCoord[1]));
-		color = color + texture2D(u_image, texCoord) * sliceStep;
+		float zOffset = texture2D(u_zdata, vec2(z / n_slices, 0))[0];
+		vec2 planeCoord = v_texCoord + u_UVSlope * vec2(zOffset, zOffset);
+		if (!any(bvec4(lessThan(planeCoord, vec2(0.0, 0.0)), lessThan(vec2(1.0, 1.0), planeCoord)))) {
+			vec2 texCoord = vec2(planeCoord[0], sliceStep * (z + planeCoord[1]));
+			color = color + texture2D(u_image, texCoord) * sliceStep;
+		}
 	}
 
 	gl_FragColor = pow(color * gain, gamma);
@@ -504,14 +516,14 @@ Please select an image to view.<br />
 <div id="controls-lightsheet" class="controlbox">
 <table>
 <tr><td>
-<input type="button" value="U-" onClick="updateUV(-1.0, 0);">
-<input type="button" value="U+" onClick="updateUV(+1.0, 0);">
+<input type="button" value="U-" onClick="updateUV(-ofs_UV_step, 0);">
+<input type="button" value="U+" onClick="updateUV(+ofs_UV_step, 0);">
 </td><td>
 <span id="U_current" class="UV_value"></span>
 </td></tr>
 <tr><td>
-<input type="button" value="V-" onClick="updateUV(0, -1.0);">
-<input type="button" value="V+" onClick="updateUV(0, +1.0);">
+<input type="button" value="V-" onClick="updateUV(0, -ofs_UV_step);">
+<input type="button" value="V+" onClick="updateUV(0, +ofs_UV_step);">
 </td><td>
 <span id="V_current" class="UV_value"></span>
 </td></tr></table>
