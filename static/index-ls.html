@@ -133,19 +133,19 @@ function render_slice(image, canvas, gl) {
 	program = createProgram(gl, [vertexShader, fragmentShader]);
 	gl.useProgram(program);
 
+	var n_slices = metadata.framedata.length;
+
 	// set(up) parameters
 	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
 	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
 	gl.uniform2f(gammaGainLocation, parseFloat($('#gamma').val()), Math.pow(10, parseFloat($('#gain').val())));
-
-	var n_slices = metadata.framedata.length;
-	var tex_y1 = 1.0 / n_slices;
-	var tex_y = ofs_Z * tex_y1;
+	var zSlicesLocation = gl.getUniformLocation(program, "u_zSlices");
+	gl.uniform2f(zSlicesLocation, ofs_Z, n_slices);
 
 	var texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-	setRectangle(gl, 0.0, tex_y, 1.0, tex_y1);
+	setRectangle(gl, 0.0, 0.0, 1.0, 1.0);
 	var texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
 	gl.enableVertexAttribArray(texCoordLocation);
 	gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
@@ -209,11 +209,18 @@ uniform sampler2D u_image;
 varying vec2 v_texCoord;
 
 uniform vec2 u_gammaGain; // display parameters
+uniform vec2 u_zSlices; // slicing parameters
 
 void main() {
 	vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, u_gammaGain.x);
 	vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, u_gammaGain.y);
-	gl_FragColor = pow(texture2D(u_image, v_texCoord) * gain, gamma);
+
+	// derive the texCoord of the appropriate Z-coord slice
+	float z = u_zSlices[0];
+	float sliceStep = 1.0 / u_zSlices[1];
+	vec2 texCoord = vec2(v_texCoord[0], sliceStep * (z + v_texCoord[1]));
+
+	gl_FragColor = pow(texture2D(u_image, texCoord) * gain, gamma);
 }
 </script>
 
