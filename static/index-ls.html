@@ -216,6 +216,40 @@ function render_slice(image, canvas, gl) {
 	return program;
 }
 
+function render_lightsheet(image, canvas, gl) {
+	// compile shaders
+	vertexShader = createShaderFromScriptElement(gl, "image-vertex-shader");
+	fragmentShader = createShaderFromScriptElement(gl, "lightsheet-fragment-shader");
+	program = createProgram(gl, [vertexShader, fragmentShader]);
+	gl.useProgram(program);
+
+	var n_slices = metadata.framedata.length;
+
+	// set(up) parameters
+	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
+	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
+	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
+	gl.uniform2f(gammaGainLocation, parseFloat($('#gamma').val()), Math.pow(10, parseFloat($('#gain').val())));
+	var zSlicesLocation = gl.getUniformLocation(program, "u_zSlices");
+	gl.uniform2f(zSlicesLocation, 0 /* TODO */, n_slices);
+
+	var texCoordBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+	setRectangle(gl, 0.0, 0.0, 1.0, 1.0);
+	var texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
+	gl.enableVertexAttribArray(texCoordLocation);
+	gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+	var canvCoordBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, canvCoordBuffer);
+	setRectangle(gl, 0, 0, canvas.width, canvas.height);
+	var canvCoordLocation = gl.getAttribLocation(program, "a_canvCoord");
+	gl.enableVertexAttribArray(canvCoordLocation);
+	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+	return program;
+}
+
 function setRectangle(gl, x, y, width, height) {
         var x1 = x;
         var x2 = x + width;
@@ -282,6 +316,40 @@ void main() {
 	vec4 color0 = texture2D(u_image, texCoord0);
 	vec4 color2 = texture2D(u_image, texCoord2);
 	vec4 color = beta * color0 + (1.0 - beta) * color2;
+
+	gl_FragColor = pow(color * gain, gamma);
+}
+</script>
+
+<script id="lightsheet-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+// our texture
+uniform sampler2D u_image;
+uniform sampler2D u_zdata;
+
+// the texCoords passed in from the vertex shader
+varying vec2 v_texCoord;
+// the observer's coordinates
+uniform vec2 u_UVCoord;
+
+uniform vec2 u_gammaGain; // display parameters
+uniform vec2 u_zSlices; // slicing parameters
+
+void main() {
+	vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, u_gammaGain.x);
+	vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, u_gammaGain.y);
+	vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
+
+	float n_slices = u_zSlices[1];
+	float sliceStep = 1.0 / n_slices;
+
+	for (float z = 0.0; z < 1000.0; z++) {
+		if (z >= n_slices)
+			break;
+		vec2 texCoord = vec2(v_texCoord[0], sliceStep * (z + v_texCoord[1]));
+		color = color + texture2D(u_image, texCoord) * sliceStep;
+	}
 
 	gl_FragColor = pow(color * gain, gamma);
 }
