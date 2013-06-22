@@ -181,6 +181,7 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
       e.preventDefault();
       var folderName = prompt("Enter folder name: ");
       //add validation here
+      if (folderName == null) { return;}
       Meteor.call('makeFolder', folderName, function (err, result) {
         if (err) {
           alert("There was an error.");
@@ -320,6 +321,8 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
     //load image with ID stored in current session variable
     Template.webgl.renderImage();
     updateUV_display();
+
+    //set up jquery UI slider here
 
   }
   //WebGL related stuff
