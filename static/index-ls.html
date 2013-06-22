@@ -50,6 +50,7 @@ function newmode(newmode) {
 
 	document.getElementById("canvas-slice").style.display = mode == "slice" ? 'block' : 'none';
 	document.getElementById("controls-slice").style.display = mode == "slice" ? 'block' : 'none';
+	document.getElementById("info-slice").style.display = mode == "slice" ? 'block' : 'none';
 	document.getElementById("canvas-lightsheet").style.display = mode == "lightsheet" ? 'block' : 'none';
 	document.getElementById("controls-lightsheet").style.display = mode == "lightsheet" ? 'block' : 'none';
 }
@@ -155,6 +156,11 @@ function render_slice(image, canvas, gl) {
 	var canvCoordLocation = gl.getAttribLocation(program, "a_canvCoord");
 	gl.enableVertexAttribArray(canvCoordLocation);
 	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+	// also update some status values
+	$('#Z_r').html(parseFloat(metadata.framedata[ofs_Z].z_r).toFixed(3));
+	$('#Z_m').html(parseFloat(metadata.framedata[ofs_Z].z).toFixed(3));
+	$('#t').html(parseFloat(metadata.framedata[ofs_Z].t).toFixed(0));
 }
 
 function setRectangle(gl, x, y, width, height) {
@@ -231,6 +237,18 @@ canvas, .controls {
 	font-family: monospace;
 	display: inline-block;
 	width: 6em; /* "-10.00" */
+}
+
+.Z_value {
+	font-family: monospace;
+	display: inline-block;
+	width: 6em; /* "10.000" */
+}
+
+.t_value {
+	font-family: monospace;
+	display: inline-block;
+	width: 4em; /* "1000" */
 }
 </style>
 
@@ -369,6 +387,14 @@ Please select an image to view.<br />
 </td><td>
 <span id="Z_current" class="Z_value"></span>
 </td></tr></table>
+</div>
+
+<div id="info-slice" class="controlbox">
+<table>
+<tr><td>t =</td><td><span id="t" class="t_value"></span></td></tr>
+<tr><td>z<sub>req</sub> =</td><td><span id="Z_r" class="Z_value"></span></td></tr>
+<tr><td>z<sub>meas</sub> =</td><td><span id="Z_m" class="Z_value"></span></td></tr>
+</table>
 </div>
 
 </div>
