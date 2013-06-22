@@ -152,7 +152,7 @@ function render(image, is_new_image) {
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE,
-				1, z_data.length,
+				z_data.length, 1,
 				0, gl.LUMINANCE, gl.FLOAT,
 				new Float32Array(z_data));
 	}
