@@ -1,0 +1,423 @@
+<html>
+<head>
+
+<script src="http://code.jquery.com/jquery-1.10.0.min.js"></script>
+<script type="text/javascript" src="http://greggman.github.io/webgl-fundamentals/webgl/resources/webgl-utils.js"></script> 
+<script>
+
+var mouseSensitivity = 4.0;
+
+var ofs_Z = 0.0, ofs_U = 0.0, ofs_V = 0.0; // in OpenGL coordinate system
+var texture = {}; // indexed by mode name
+var mode;
+
+var image, metadata;
+var loaded = {}; // indexed by variable name
+
+window.onload = main;
+function main() {
+	loadimage("rawls.png"); // asynchronous
+	newmode("slice");
+}
+
+function loadimage(imagepath) {
+	// This method of asynchronous loading may be problematic if there
+	// is still an outstanding request from previous loadimage(); FIXME
+	loaded = { "image": 0, "metadata": 0 };
+	image = new Image();
+	image.src = imagepath; // MUST BE SAME DOMAIN!!!
+	image.onload = function() {
+		loaded.image = 1;
+		render_if_ready();
+	}
+	metadatapath = imagepath.replace(/\.[^/.]+$/, ".json");
+	$.getJSON(metadatapath, function(data) {
+		metadata = data;
+		loaded.metadata = 1;
+		render_if_ready();
+	});
+}
+function render_if_ready() {
+	console.log("loadimage " + loaded.image + " " + loaded.metadata);
+	if (!loaded.image || !loaded.metadata)
+		return;
+	// we finally have everything, proceed!
+	render(image, 1);
+}
+
+function newmode(newmode) {
+	mode = newmode;
+
+	document.getElementById("canvas-slice").style.display = mode == "slice" ? 'block' : 'none';
+	document.getElementById("controls-slice").style.display = mode == "slice" ? 'block' : 'none';
+	document.getElementById("canvas-lightsheet").style.display = mode == "lightsheet" ? 'block' : 'none';
+	document.getElementById("controls-lightsheet").style.display = mode == "lightsheet" ? 'block' : 'none';
+}
+
+function updateZ(delta_Z) {
+	newofs_Z = ofs_Z + delta_Z;
+	if (newofs_Z < 0.0 || newofs_Z >= metadata.framedata.length)
+		return;
+
+	ofs_Z = newofs_Z;
+	$('#Z_current').html(parseFloat(ofs_Z).toFixed(2));
+
+	render(image, 0);
+}
+
+function updateUV(delta_U, delta_V) {
+	newofs_U = ofs_U + delta_U;
+	newofs_V = ofs_V + delta_V;
+
+	ofs_U = newofs_U; ofs_V = newofs_V;
+	$('#U_current').html(parseFloat(ofs_U).toFixed(2));
+	$('#V_current').html(parseFloat(ofs_V).toFixed(2));
+
+	render(image, 0);
+}
+
+var mousedrag_X, mousedrag_Y;
+function mousedrag(new_X, new_Y) {
+	updateUV((new_X - mousedrag_X) / mouseSensitivity, -(new_Y - mousedrag_Y) / mouseSensitivity);
+	mousedrag_X = new_X;
+	mousedrag_Y = new_Y;
+}
+
+
+// Get A WebGL context
+function render(image, is_new_image) {
+	//grabs the canvas element
+	var canvas = document.getElementById("canvas-" + mode);
+	//gets the WebGL context
+	var gl = getWebGLContext(canvas);
+	//checks if system is WebGL compatible
+	if (!gl) {
+		alert("WebGL not supported in this browser, sorry");
+		return;
+	}
+
+	gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
+	gl.enable(gl.BLEND);
+	gl.disable(gl.DEPTH_TEST);
+
+	if (mode == "slice") {
+		render_slice(image, canvas, gl);
+	} else {
+		render_lightsheet(image, canvas, gl);
+	}
+
+	if (is_new_image) {
+		if (texture[mode]) {
+			gl.deleteTexture(texture[mode]);
+		}
+		texture[mode] = gl.createTexture();
+		gl.bindTexture(gl.TEXTURE_2D, texture[mode]);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
+	} else {
+		gl.bindTexture(gl.TEXTURE_2D, texture[mode]);
+	}
+
+	gl.drawArrays(gl.TRIANGLES, 0, 6);
+}
+
+function render_slice(image, canvas, gl) {
+	// compile shaders
+	vertexShader = createShaderFromScriptElement(gl, "image-vertex-shader");
+	fragmentShader = createShaderFromScriptElement(gl, "slice-fragment-shader");
+	program = createProgram(gl, [vertexShader, fragmentShader]);
+	gl.useProgram(program);
+
+	// set(up) parameters
+	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
+	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
+	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
+	gl.uniform2f(gammaGainLocation, parseFloat($('#gamma').val()), Math.pow(10, parseFloat($('#gain').val())));
+
+	var n_slices = metadata.framedata.length;
+	var tex_y1 = 1.0 / n_slices;
+	var tex_y = ofs_Z * tex_y1;
+
+	var texCoordBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+	setRectangle(gl, 0.0, tex_y, 1.0, tex_y1);
+	var texCoordLocation = gl.getAttribLocation(program, "a_texCoord");
+	gl.enableVertexAttribArray(texCoordLocation);
+	gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+	var canvCoordBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, canvCoordBuffer);
+	setRectangle(gl, 0, 0, canvas.width, canvas.height);
+	var canvCoordLocation = gl.getAttribLocation(program, "a_canvCoord");
+	gl.enableVertexAttribArray(canvCoordLocation);
+	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
+}
+
+function setRectangle(gl, x, y, width, height) {
+        var x1 = x;
+        var x2 = x + width;
+        var y1 = y;
+        var y2 = y + height;
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+		// bottom triangle
+		x1, y1,
+		x2, y1,
+		x1, y2,
+		// top triangle
+		x1, y2,
+		x2, y1,
+		x2, y2]), gl.STATIC_DRAW);
+}
+</script>
+
+<script id="image-vertex-shader" type="x-shader/x-vertex">
+attribute vec2 a_canvCoord;
+attribute vec2 a_texCoord;
+
+uniform vec2 u_canvSize;
+
+varying vec2 v_texCoord;
+
+void main() {
+	// convert the rectangle from pixels to -1.0 to 1.0
+	vec2 clipSpace = a_canvCoord / u_canvSize * 2.0 - 1.0;
+	gl_Position = vec4(clipSpace, 0, 1);
+
+	// pass the texCoord to the fragment shader
+	// The GPU will interpolate this value between points.
+	v_texCoord = a_texCoord;
+}
+</script>
+
+<script id="slice-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+// our texture
+uniform sampler2D u_image;
+
+// the texCoords passed in from the vertex shader.
+varying vec2 v_texCoord;
+
+uniform vec2 u_gammaGain; // display parameters
+
+void main() {
+	vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, u_gammaGain.x);
+	vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, u_gammaGain.y);
+	gl_FragColor = pow(texture2D(u_image, v_texCoord) * gain, gamma);
+}
+</script>
+
+<style>
+body {
+	text-align: center;
+}
+canvas, .controls {
+	clear: both;
+	margin: auto auto;
+}
+
+.controlbox {
+	float: left;
+	border: 1pt solid;
+	margin: 1ex 1em;
+	padding: 0.5ex 0.5em;
+}
+
+.UV_value {
+	font-family: monospace;
+	display: inline-block;
+	width: 6em; /* "-10.00" */
+}
+</style>
+
+</head>
+	<body>
+<img src="http://nemaload.davidad.org/png/nemaload.png">
+<h1> WebGL Shader Demonstration </h1>
+
+<p>The image below is being rendered using WebGL shaders on an HTML5 Canvas element.</p>
+
+<div class="controls">
+
+<p class="controlbox">
+Please select an image to view.<br />
+<!-- These are generated with a Python script for now due to cross-domain limitations I violated while half-awake -->
+<select id="imageselect">
+	<option value="/images/lensgrid.hdf5.png">lensgrid</option>
+	<option value="/images/beads_w_lenses.hdf5.png">beads_w_lenses</option>
+	<option value="/images/beads_w_lenses2.hdf5.png">beads_w_lenses2</option>
+	<option value="/images/beads_w_lenses3.hdf5.png">beads_w_lenses3</option>
+	<option value="/images/beads_wo_lenses.hdf5.png">beads_wo_lenses</option>
+	<option value="/images/beads_wo_lenses2.hdf5.png">beads_wo_lenses2</option>
+	<option value="/images/beads_wo_lenses3.hdf5.png">beads_wo_lenses3</option>
+	<option value="/images/beads_w_lenses.hdf5.png">beads_w_lenses</option>
+	<option value="/images/beads_w_lenses2.hdf5.png">beads_w_lenses2</option>
+	<option value="/images/2D_beads_w_lenses.hdf5.png">2D_beads_w_lenses</option>
+	<option value="/images/MT21063_1.hdf5.png">MT21063_1</option>
+	<option value="/images/MT21063_video1.hdf5.png">MT21063_video1</option>
+	<option value="/images/MT21063_video10.hdf5.png">MT21063_video10</option>
+	<option value="/images/MT21063_video11.hdf5.png">MT21063_video11</option>
+	<option value="/images/Epi_63xZeiss_1.4_3beads_w_lenses1.hdf5.png">Epi_63xZeiss_1.4_3beads_w_lenses1</option>
+	<option value="/images/Epi_63xZeiss_1.4_3beads_w_lenses2.hdf5.png">Epi_63xZeiss_1.4_3beads_w_lenses2</option>
+	<option value="/images/Epi_63xZeiss_1.4_3beads_wo_lenses.hdf5.png">Epi_63xZeiss_1.4_3beads_wo_lenses</option>
+	<option value="/images/Epi_63xZeiss_1.4_pollen_w_lenses.hdf5.png">Epi_63xZeiss_1.4_pollen_w_lenses</option>
+	<option value="/images/Epi_63xZeiss_1.4_pollen_wo_lenses.hdf5.png">Epi_63xZeiss_1.4_pollen_wo_lenses</option>
+	<option value="/images/Kohler_63xZeiss_1.4_pollen_w_lenses.hdf5.png">Kohler_63xZeiss_1.4_pollen_w_lenses</option>
+	<option value="/images/Kohler_63xZeiss_1.4_pollen_wo_lenses.hdf5.png">Kohler_63xZeiss_1.4_pollen_wo_lenses</option>
+	<option value="/images/Drosophila_brain_w_lenses.hdf5.png">Drosophila_brain_w_lenses</option>
+	<option value="/images/Drosophila_brain_w_lenses2.hdf5.png">Drosophila_brain_w_lenses2</option>
+	<option value="/images/Drosophila_brain_w_lenses.hdf5.png">Drosophila_brain_w_lenses</option>
+	<option value="/images/Drosophila_brain_w_lenses2.hdf5.png">Drosophila_brain_w_lenses2</option>
+	<option value="/images/Drosophila_brain_wo_lenses.hdf5.png">Drosophila_brain_wo_lenses</option>
+	<option value="/images/Drosophila_brain_wo_lenses2.hdf5.png">Drosophila_brain_wo_lenses2</option>
+	<option value="/images/Olympus_60x_1.45_beads_w_lenses.hdf5.png">Olympus_60x_1.45_beads_w_lenses</option>
+	<option value="/images/Olympus_60x_1.45_beads_wo_lenses.hdf5.png">Olympus_60x_1.45_beads_wo_lenses</option>
+	<option value="/images/beads_wo_lenses.hdf5.png">beads_wo_lenses</option>
+	<option value="/images/beads_wo_lenses2.hdf5.png">beads_wo_lenses2</option>
+	<option value="/images/larger_beads_w_lenses.hdf5.png">larger_beads_w_lenses</option>
+	<option value="/images/larger_beads_w_lenses2.hdf5.png">larger_beads_w_lenses2</option>
+	<option value="/images/larger_beads_w_lenses2_180rot.hdf5.png">larger_beads_w_lenses2_180rot</option>
+	<option value="/images/larger_beads_wo_lenses.hdf5.png">larger_beads_wo_lenses</option>
+	<option value="/images/larger_beads_wo_lenses2.hdf5.png">larger_beads_wo_lenses2</option>
+	<option value="/images/2D_beads_w_lenses_diff_z1.hdf5.png">2D_beads_w_lenses_diff_z1</option>
+	<option value="/images/2D_beads_w_lenses_diff_z2.hdf5.png">2D_beads_w_lenses_diff_z2</option>
+	<option value="/images/2D_beads_w_lenses_diff_z3.hdf5.png">2D_beads_w_lenses_diff_z3</option>
+	<option value="/images/2D_beads_wo_lenses.hdf5.png">2D_beads_wo_lenses</option>
+	<option value="/images/beads_3D_w_lenses.hdf5.png">beads_3D_w_lenses</option>
+	<option value="/images/beads_3D_w_lenses_diff_z1.hdf5.png">beads_3D_w_lenses_diff_z1</option>
+	<option value="/images/beads_3D_w_lenses_diff_z2.hdf5.png">beads_3D_w_lenses_diff_z2</option>
+	<option value="/images/beads_3D_w_lenses_diff_z3.hdf5.png">beads_3D_w_lenses_diff_z3</option>
+	<option value="/images/beads_3D_w_lenses_diff_z4.hdf5.png">beads_3D_w_lenses_diff_z4</option>
+	<option value="/images/beads_3D_w_lenses_diff_z5.hdf5.png">beads_3D_w_lenses_diff_z5</option>
+	<option value="/images/beads_3D_w_lenses_diff_z6.hdf5.png">beads_3D_w_lenses_diff_z6</option>
+	<option value="/images/beads_3D_wo_lenses.hdf5.png">beads_3D_wo_lenses</option>
+	<option value="/images/dense_2D_beads_w_lenses.hdf5.png">dense_2D_beads_w_lenses</option>
+	<option value="/images/dense_2D_beads_w_lenses_diff_z1.hdf5.png">dense_2D_beads_w_lenses_diff_z1</option>
+	<option value="/images/dense_2D_beads_w_lenses_diff_z2.hdf5.png">dense_2D_beads_w_lenses_diff_z2</option>
+	<option value="/images/dense_2D_beads_w_lenses_diff_z3.hdf5.png">dense_2D_beads_w_lenses_diff_z3</option>
+	<option value="/images/dense_2D_beads_wo_lenses.hdf5.png">dense_2D_beads_wo_lenses</option>
+	<option value="/images/MT21063_video12.hdf5.png">MT21063_video12</option>
+	<option value="/images/MT21063_video13.hdf5.png">MT21063_video13</option>
+	<option value="/images/MT21063_video14.hdf5.png">MT21063_video14</option>
+	<option value="/images/MT21063_video2.hdf5.png">MT21063_video2</option>
+	<option value="/images/MT21063_video3.hdf5.png">MT21063_video3</option>
+	<option value="/images/MT21063_video4.hdf5.png">MT21063_video4</option>
+	<option value="/images/MT21063_video15.hdf5.png">MT21063_video15</option>
+	<option value="/images/MT21063_video16_rolling.hdf5.png">MT21063_video16_rolling</option>
+	<option value="/images/MT21063_video17_rolling.hdf5.png">MT21063_video17_rolling</option>
+	<option value="/images/MT21063_video18_rolling_dz_ml.hdf5.png">MT21063_video18_rolling_dz_ml</option>
+	<option value="/images/cell_layer_pawel_blue.hdf5.png">cell_layer_pawel_blue</option>
+	<option value="/images/cell_layer_pawel_blue_2.hdf5.png">cell_layer_pawel_blue_2</option>
+	<option value="/images/cell_layer_pawel_green.hdf5.png">cell_layer_pawel_green</option>
+	<option value="/images/cell_layer_pawel_green_2.hdf5.png">cell_layer_pawel_green_2</option>
+	<option value="/images/cell_layer_pawel_red.hdf5.png">cell_layer_pawel_red</option>
+	<option value="/images/cells2_pawel_blue.hdf5.png">cells2_pawel_blue</option>
+	<option value="/images/cells2_pawel_blue_2.5x.hdf5.png">cells2_pawel_blue_2.5x</option>
+	<option value="/images/cells2_pawel_green.hdf5.png">cells2_pawel_green</option>
+	<option value="/images/cells2_pawel_green_2.5x.hdf5.png">cells2_pawel_green_2.5x</option>
+	<option value="/images/cells2_pawel_red.hdf5.png">cells2_pawel_red</option>
+	<option value="/images/cells2_pawel_red_2.5x.hdf5.png">cells2_pawel_red_2.5x</option>
+	<option value="/images/pflp18gCAMP5_mCherry_video20_global_dz_ml.hdf5.png">pflp18gCAMP5_mCherry_video20_global_dz_ml</option>
+	<option value="/images/pflp18gCAMP5_mCherry_video21_global.hdf5.png">pflp18gCAMP5_mCherry_video21_global</option>
+	<option value="/images/punc31_gCAMP5_td_snapshot_1.6x_gfpfilter.hdf5.png">punc31_gCAMP5_td_snapshot_1.6x_gfpfilter</option>
+	<option value="/images/punc31_gCAMP5_td_snapshot_1.6x_gfpfilter_2.hdf5.png">punc31_gCAMP5_td_snapshot_1.6x_gfpfilter_2</option>
+	<option value="/images/punc31_gCAMP5_td_snapshot_1.6x_gfpfilter_4.hdf5.png">punc31_gCAMP5_td_snapshot_1.6x_gfpfilter_4</option>
+	<option value="/images/punc31_gCAMP5_td_video22_global.hdf5.png">punc31_gCAMP5_td_video22_global</option>
+	<option value="/images/punc31_gCAMP5_td_video23_global_gfpfilter.hdf5.png">punc31_gCAMP5_td_video23_global_gfpfilter</option>
+	<option value="/images/punc31_gCAMP5_td_video24_global_gfpfilter_tail.hdf5.png">punc31_gCAMP5_td_video24_global_gfpfilter_tail</option>
+	<option value="/images/punc31_gCAMP5_td_video25_global_gfpfilter.hdf5.png">punc31_gCAMP5_td_video25_global_gfpfilter</option>
+</select>
+</p>
+
+<div class="controlbox">
+<select id="rendermode">
+	<option value="slice">Slice</option>
+	<option value="lightsheet">Light sheet</option>
+</select>
+</div>
+
+<table class="controlbox">
+	<tr><td>Gain:</td><td><input type="range" id="gain" value="0" min="-1" max="1" step="0.05" /></td><td><span id="gain_current"></span></td></tr>
+	<tr><td>Gamma:</td><td><input type="range" id="gamma" value="1" min="0.5" max="1.5" step="0.01" /></td><td><span id="gamma_current"></span></td></tr>
+</table>
+
+<div id="controls-lightsheet" class="controlbox">
+<table>
+<tr><td>
+<input type="button" value="U-" onClick="updateUV(-1.0, 0);">
+<input type="button" value="U+" onClick="updateUV(+1.0, 0);">
+</td><td>
+<span id="U_current" class="UV_value"></span>
+</td></tr>
+<tr><td>
+<input type="button" value="V-" onClick="updateUV(0, -1.0);">
+<input type="button" value="V+" onClick="updateUV(0, +1.0);">
+</td><td>
+<span id="V_current" class="UV_value"></span>
+</td></tr></table>
+</div>
+
+<div id="controls-slice" class="controlbox">
+<table>
+<tr><td>
+<input type="button" value="Z-" onClick="updateZ(-1.0);">
+<input type="button" value="Z+" onClick="updateZ(+1.0);">
+</td><td>
+<span id="Z_current" class="Z_value"></span>
+</td></tr></table>
+</div>
+
+</div>
+
+<canvas id="canvas-slice" width="512" height="512"></canvas>
+<canvas id="canvas-lightsheet" width="512" height="512"></canvas>
+
+<script>
+$('#imageselect').change(function () {
+	console.log("Image changed");
+	loadimage($(this).val());
+});
+$('#rendermode').change(function () {
+	console.log("Mode changed");
+	newmode($(this).val());
+	render(image, 1);
+});
+
+// mouse dragging hack
+$('#canvas-lightsheet').mousedown(function() {
+	console.log("mousedown");
+	mousedrag_X = event.pageX
+	mousedrag_Y = event.pageY
+	$(window).mousemove(function() {
+		console.log("mousedrag " + event);
+		mousedrag(event.pageX, event.pageY)
+	});
+	$(window).mouseup(function() {
+		console.log("mouseup");
+		$(window).unbind("mousemove");
+		$(window).unbind("mouseup");
+	});
+});
+
+$('#gain').change(function () {
+	console.log("Gain changed");
+	$('#gain_current').html(Math.pow(10, this.value).toFixed(2));
+	render_if_ready(image, 0);
+}).change();
+
+$('#gamma').change(function () {
+	console.log("Gamma changed");
+	$('#gamma_current').html(parseFloat(this.value).toFixed(2));
+	render_if_ready(image, 0);
+}).change();
+
+$('#Z_current').html(parseFloat(ofs_Z).toFixed(2));
+$('#U_current').html(parseFloat(ofs_U).toFixed(2));
+$('#V_current').html(parseFloat(ofs_V).toFixed(2));
+</script>
+	</body>
+</html>
