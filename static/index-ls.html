@@ -8,7 +8,7 @@
 var mouseSensitivity = 4.0;
 var ofs_Z_step = 0.05; // TODO: recomputed later for particular metadata
 var ofs_UV_step = 1.0;
-var observerDistance = 200.0; // distance of the observer from the z=0 plane
+var observerDistance = 50.0; // distance of the observer from the z=0 plane
 
 var ofs_Z = 0.0, ofs_U = 0.0, ofs_V = 0.0; // in OpenGL coordinate system
 var imageTexture = {}, zTexture = {}; // indexed by mode name
@@ -138,9 +138,10 @@ function render(image, is_new_image) {
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
+		var z_max = metadata.framedata[metadata.framedata.length - 1].z;
 		var z_data = new Array;
 		for (var i = 0; i < metadata.framedata.length; i++)
-			z_data[i] = metadata.framedata[i].z;
+			z_data[i] = metadata.framedata[i].z / z_max;
 
 		/* Alas, TEXTURE_1D is not supported by WebGL. */
 		if (zTexture[mode]) {
