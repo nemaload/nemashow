@@ -61,6 +61,7 @@ function newmode(newmode) {
 	document.getElementById("info-slice").style.display = mode == "slice" ? 'block' : 'none';
 	document.getElementById("canvas-lightsheet").style.display = mode == "lightsheet" ? 'block' : 'none';
 	document.getElementById("controls-lightsheet").style.display = mode == "lightsheet" ? 'block' : 'none';
+	document.getElementById("boundingbox-lightsheet").style.display = mode == "lightsheet" ? 'block' : 'none';
 }
 
 function setupZ() {
@@ -166,6 +167,9 @@ function render(image, is_new_image) {
 	gl.uniform1i(zdataLocation, 1);
 
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+	if (mode == "lightsheet" && $('#box').prop('checked'))
+		render_box(canvas, gl);
 }
 
 function render_slice(image, canvas, gl) {
@@ -257,6 +261,87 @@ function render_lightsheet(image, canvas, gl) {
 	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
 	return program;
+}
+
+function render_box(canvas, gl) {
+	console.log("box render");
+
+	var vertexShader = createShaderFromScriptElement(gl, "box-vertex-shader");
+	var fragmentShader = createShaderFromScriptElement(gl, "box-fragment-shader");
+	var program = createProgram(gl, [vertexShader, fragmentShader]);
+	gl.useProgram(program);
+
+	var n_slices = metadata.framedata.length;
+	var z_max = metadata.framedata[n_slices - 1].z;
+	var boxCorners =
+		[[parseFloat(document.getElementById("box-x0").value) / image.width,
+		  parseFloat(document.getElementById("box-y0").value) / (image.height / n_slices),
+		  parseFloat(document.getElementById("box-z0").value) / z_max],
+		 [parseFloat(document.getElementById("box-x1").value) / image.width,
+		  parseFloat(document.getElementById("box-y1").value) / (image.height / n_slices),
+		  parseFloat(document.getElementById("box-z1").value) / z_max]];
+	var lineList = [
+		/* corner 0,0,0 */
+		boxCorners[0][0], boxCorners[0][1], boxCorners[0][2],
+		boxCorners[0][0], boxCorners[0][1], boxCorners[1][2],
+		boxCorners[0][0], boxCorners[0][1], boxCorners[0][2],
+		boxCorners[0][0], boxCorners[1][1], boxCorners[0][2],
+		boxCorners[0][0], boxCorners[0][1], boxCorners[0][2],
+		boxCorners[1][0], boxCorners[0][1], boxCorners[0][2],
+
+		/* corner 0,0,1 */
+		boxCorners[0][0], boxCorners[0][1], boxCorners[1][2],
+		boxCorners[0][0], boxCorners[1][1], boxCorners[1][2],
+		boxCorners[0][0], boxCorners[0][1], boxCorners[1][2],
+		boxCorners[1][0], boxCorners[0][1], boxCorners[1][2],
+
+		/* corner 0,1,0 */
+		boxCorners[0][0], boxCorners[1][1], boxCorners[0][2],
+		boxCorners[1][0], boxCorners[1][1], boxCorners[0][2],
+		boxCorners[0][0], boxCorners[1][1], boxCorners[0][2],
+		boxCorners[0][0], boxCorners[1][1], boxCorners[1][2],
+
+		/* corner 1,0,0 */
+		boxCorners[1][0], boxCorners[0][1], boxCorners[0][2],
+		boxCorners[1][0], boxCorners[0][1], boxCorners[1][2],
+
+		/* corner 1,1,1 */
+		boxCorners[1][0], boxCorners[1][1], boxCorners[1][2],
+		boxCorners[1][0], boxCorners[1][1], boxCorners[0][2],
+		boxCorners[1][0], boxCorners[1][1], boxCorners[1][2],
+		boxCorners[1][0], boxCorners[0][1], boxCorners[1][2],
+		boxCorners[1][0], boxCorners[1][1], boxCorners[1][2],
+		boxCorners[0][0], boxCorners[1][1], boxCorners[1][2],
+
+		/* corner 1,1,0 */
+		boxCorners[1][0], boxCorners[1][1], boxCorners[0][2],
+		boxCorners[1][0], boxCorners[0][1], boxCorners[0][2],
+	];
+
+	/*
+	for (var i = 0; i < lineList.length; i += 6) {
+		console.log(lineList[i], " ", lineList[i+1], " ", lineList[i+2], " -> ",
+			    lineList[i+3], " ", lineList[i+4], " ", lineList[i+5]);
+	}
+	*/
+
+	var boxLinesBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, boxLinesBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lineList), gl.STATIC_DRAW);
+	var lineCoordLocation = gl.getAttribLocation(program, "a_lineCoord");
+	gl.enableVertexAttribArray(lineCoordLocation);
+	gl.vertexAttribPointer(lineCoordLocation, 3, gl.FLOAT, false, 0, 0);
+
+	// compute angle-slope to the z=0 plane based on U,V coordinates
+	var U_slope = ofs_U / observerDistance;
+	var V_slope = ofs_V / observerDistance;
+	var UVSlopeLocation = gl.getUniformLocation(program, "u_UVSlope");
+	gl.uniform2f(UVSlopeLocation, U_slope, V_slope);
+
+	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
+	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
+
+	gl.drawArrays(gl.LINES, 0, lineList.length / 3);
 }
 
 function setRectangle(gl, x, y, width, height) {
@@ -365,6 +450,26 @@ void main() {
 	}
 
 	gl_FragColor = pow(color * gain, gamma);
+}
+</script>
+
+<script id="box-vertex-shader" type="x-shader/x-vertex">
+attribute vec3 a_lineCoord;
+uniform vec2 u_canvSize;
+uniform vec2 u_UVSlope;
+void main() {
+	// convert the rectangle from [0.0,1.0] to [-1.0, 1.0]
+	vec2 planeCoord = vec2(a_lineCoord[0], a_lineCoord[1]) - (u_UVSlope * vec2(a_lineCoord[2], a_lineCoord[2]));
+	vec2 clipSpace = planeCoord * 2.0 - 1.0;
+	gl_Position = vec4(clipSpace, 0, 1);
+}
+</script>
+
+<script id="box-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+void main() {
+	gl_FragColor = vec4(0.0, 1.0, 0.0, 0.2);
 }
 </script>
 
@@ -549,6 +654,16 @@ Please select an image to view.<br />
 </table>
 </div>
 
+<div id="boundingbox-lightsheet" class="controlbox">
+<input type="checkbox" id="box" value="1" /> Bounding box<br />
+[<input type="text" id="box-x0" value="40.0" size="4" />,
+ <input type="text" id="box-y0" value="40.0" size="4" />,
+ <input type="text" id="box-z0" value="4.0" size="4" />]<br />
+[<input type="text" id="box-x1" value="80.0" size="4" />,
+ <input type="text" id="box-y1" value="80.0" size="4" />,
+ <input type="text" id="box-z1" value="6.0" size="4" />]
+</p>
+
 </div>
 
 <canvas id="canvas-slice" width="512" height="512"></canvas>
@@ -592,6 +707,18 @@ $('#gamma').change(function () {
 	$('#gamma_current').html(parseFloat(this.value).toFixed(2));
 	render_if_ready(image, 0);
 }).change();
+
+function box_changed() {
+	console.log("Box changed");
+	render_if_ready(image, 0);
+}
+$('#box').change(box_changed).change();
+$('#box-x0').change(box_changed);
+$('#box-y0').change(box_changed);
+$('#box-z0').change(box_changed);
+$('#box-x1').change(box_changed);
+$('#box-y1').change(box_changed);
+$('#box-z1').change(box_changed);
 
 $('#U_current').html(parseFloat(ofs_U).toFixed(2));
 $('#V_current').html(parseFloat(ofs_V).toFixed(2));
