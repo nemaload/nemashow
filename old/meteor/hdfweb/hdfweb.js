@@ -254,6 +254,34 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
     return Meteor.status().status;
   }
 
+  Template.header.searchtest = function (searchterm) {
+    Meteor.call('testMongo', searchterm, function (err, result) {
+      console.log(result);
+      if (err) {
+        console.log(err);
+      }
+    });
+  }
+
+  Template.header.rendered = function () {
+    $('#annotationSearch').typeahead({
+      items: 10, 
+      minLength: 4,
+      updater: function (item) {
+        alert(item);
+      },
+      source: function (query, process) {
+        Meteor.call('testMongo', ".*" + query.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1") + ".*", function (err, result) {
+          if (result && result.length) {
+            result.unshift(query.trim());
+          }
+          //cut down on length here, just maybe one or two words around the phrase in question
+          process(result);
+        });
+      }
+    });
+  }
+
   Template.mainView.isViewing = function (view) {
     return Session.get("currentView") === view;
   }
@@ -505,6 +533,14 @@ if (Meteor.isServer) {
       //this is the shadiest hack ever, even mongo documentation warns against using this in production
       //meh, i'll look for security holes later
       //thanks Thimo Brinkmann! https://groups.google.com/forum/#!topic/meteor-talk/x9kYnO52Btg
+      //follow these steps in mongo console to enable:
+      //> use admin
+      //> db.runCommand({setParameter:1, textSearchEnabled: true})
+      //> use meteor
+      // example for annotations
+      //> db.annotations.ensureIndex({comment:"text"})
+      // sample search
+      //> db.annotations.runCommand("text",{search:"test"})
       var searchterm_mod = '';
     
       var searchterms = searchterm.trim().split(" ");
@@ -518,13 +554,14 @@ if (Meteor.isServer) {
     
       var fut = new Future();
     
-      Meteor._RemoteCollectionDriver.mongo.db.executeDbCommand({"text":"annotations",search: searchterm_mod, limit:10, project:{_id:0, name:1}},
+      Meteor._RemoteCollectionDriver.mongo.db.executeDbCommand({"text":"annotations",search: searchterm, limit:10},
         function (error,results){       
           if (results && results.documents[0].ok === 1)
-          { 
+          {  
+            console.log(results['documents'][0]['results']);
             var ret = results.documents[0].results;
             fut.ret(_.uniq(_.map(_.pluck(ret, 'obj'), function (text) {
-              return text.name;
+              return text.comment;
             })));
           }
         }
