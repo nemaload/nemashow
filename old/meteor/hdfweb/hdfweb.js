@@ -75,6 +75,7 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
   Session.setDefault("currentFrameURL", null);
   Session.setDefault("startFrameIndex", 0);
   Session.setDefault("endFrameIndex",0);
+  Session.setDefault("currentSearchTerm", "");
 
   //Folder related functions
   Template.folders.foldersTop = function () {
@@ -255,7 +256,7 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
   }
 
   Template.header.searchtest = function (searchterm) {
-    Meteor.call('testMongo', searchterm, function (err, result) {
+    Meteor.call('search', searchterm, "autocomplete", function (err, result) {
       console.log(result);
       if (err) {
         console.log(err);
@@ -266,12 +267,14 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
   Template.header.rendered = function () {
     $('#annotationSearch').typeahead({
       items: 10, 
-      minLength: 4,
+      minLength: 2,
       updater: function (item) {
-        alert(item);
+        Session.set("currentView", "searchResults");
+        Session.set("currentSearchTerm", item);
+        $("html, body").animate({ scrollTop: 0 }, "slow");
       },
       source: function (query, process) {
-        Meteor.call('testMongo', ".*" + query.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1") + ".*", function (err, result) {
+        Meteor.call('search', ".*" + query.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1") + ".*", "autocomplete", function (err, result) {
           if (result && result.length) {
             result.unshift(query.trim());
           }
@@ -281,6 +284,17 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
       }
     });
   }
+
+  Template.searchResults.currentSearchTerm = function () {
+    return Session.get("currentSearchTerm");
+  }
+
+  Template.searchResults.rendered = function () {
+    //redo search here to get more results
+
+  }
+
+
 
   Template.mainView.isViewing = function (view) {
     return Session.get("currentView") === view;
@@ -529,7 +543,7 @@ if (Meteor.isServer) {
       }
       return true;
     },
-    testMongo: function (searchterm) {
+    search: function (searchterm, mode) {
       //this is the shadiest hack ever, even mongo documentation warns against using this in production
       //meh, i'll look for security holes later
       //thanks Thimo Brinkmann! https://groups.google.com/forum/#!topic/meteor-talk/x9kYnO52Btg
@@ -560,9 +574,16 @@ if (Meteor.isServer) {
           {  
             console.log(results['documents'][0]['results']);
             var ret = results.documents[0].results;
+            if (mode == "autocomplete") {
             fut.ret(_.uniq(_.map(_.pluck(ret, 'obj'), function (text) {
               return text.comment;
             })));
+            } else {
+              fut.ret(_.uniq(_.map(_.pluck(ret, 'obj'), function (text) {
+              return text._id;
+            })));
+
+            }
           }
         }
       );

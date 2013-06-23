@@ -162,6 +162,10 @@ void main() {
       {{> fileView}}
       
       {{/if}}
+
+      {{#if isViewing "searchResults"}}
+      {{> searchResults}}
+      {{/if}}
     <!--Stuff that people who aren't logged in see -->
     {{else}}
       
@@ -343,6 +347,9 @@ void main() {
   {{/unless}}
 </template>
 
+<template name="searchResults">
+  <h3> Search Results for {{currentSearchTerm}}</h3>
+</template>
 <template name="imageAnnotations">
 <h5> <i class="icon-comments"></i> Annotations</h5>
 
