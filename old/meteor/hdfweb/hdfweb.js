@@ -2,7 +2,6 @@
 //The folder is the top level of organization. It currently contains only files, but eventually it will be able to contain
 //other folders. 
 //Images is a object collection containing HDF5 images. 
-
 //collections related config
 Images = new Meteor.Collection('images');
 Folders = new Meteor.Collection('folders');
@@ -10,9 +9,7 @@ Annotations = new Meteor.Collection('annotations');
 Admins = new Meteor.Collection('admins'); //all administrator user IDs go in here
 
 
-
 //User permission levels?
-
 
 /*Annotations.allow({
   insert: function (userId, doc) {
@@ -34,39 +31,40 @@ Annotations.deny({
 });)*/
 
 //security rules
-
 //Write security rules in here, I think only server side changes are good
-
 //accounts related stuff
-Accounts.config({sendVerificationEmail: true, forbidClientAccountCreation: false}); 
+Accounts.config({
+  sendVerificationEmail: true,
+  forbidClientAccountCreation: false
+});
 
 if (Meteor.isClient) {
-//handlebars helper functions
-Handlebars.registerHelper('isAdmin', function () { //DO NOT RELY ON THIS FOR SECURITY, USE ALLOW
-  return Meteor.call('isAdmin');
-});
-
-//a smarter each to retrieve children
-Handlebars.registerHelper('each_children', function (context, options) {
-  var ret = "";
-  Template.folders.children(context).forEach(function (child) {
-    ret = ret + options.fn(child);
+  //handlebars helper functions
+  Handlebars.registerHelper('isAdmin', function() { //DO NOT RELY ON THIS FOR SECURITY, USE ALLOW
+    return Meteor.call('isAdmin');
   });
-  return ret;
 
-});
+  //a smarter each to retrieve children
+  Handlebars.registerHelper('each_children', function(context, options) {
+    var ret = "";
+    Template.folders.children(context).forEach(function(child) {
+      ret = ret + options.fn(child);
+    });
+    return ret;
 
-Handlebars.registerHelper('labelBranch', function (label, options) {
-  var data = this;
-  return Spark.labelBranch(label, function () {
-    return options.fn(data);
   });
-});
+
+  Handlebars.registerHelper('labelBranch', function(label, options) {
+    var data = this;
+    return Spark.labelBranch(label, function() {
+      return options.fn(data);
+    });
+  });
 
 
   //Session variable guide:
   // currentCollectionId
-  Session.setDefault("currentFolderId",null);
+  Session.setDefault("currentFolderId", null);
   Session.setDefault("currentView", "viewingFirstScreen");
   Session.setDefault("currentImageId", null);
   Session.setDefault("currentImageView", "viewingNothing");
@@ -74,106 +72,105 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
   Session.setDefault("currentFrameIndex", 0); //frameindex
   Session.setDefault("currentFrameURL", null);
   Session.setDefault("startFrameIndex", 0);
-  Session.setDefault("endFrameIndex",0);
+  Session.setDefault("endFrameIndex", 0);
   Session.setDefault("currentSearchTerm", "");
 
   //Folder related functions
-  Template.folders.foldersTop = function () {
+  Template.folders.foldersTop = function() {
 
-    return Folders.find({parent: null});
+    return Folders.find({
+      parent: null
+    });
   }
 
   Template.folders_main.children = function(parentId) {
     //call stack error lies here
-    return Folders.find({parent: parentId});
+    return Folders.find({
+      parent: parentId
+    });
   }
 
-  Template.folders_main.hasChildren = function (parentId) {
-    var numFolders = Folders.find({parent: parentId}).count();
+  Template.folders_main.hasChildren = function(parentId) {
+    var numFolders = Folders.find({
+      parent: parentId
+    }).count();
     if (numFolders > 0) {
       return true;
-    }
-    else {
+    } else {
       return false;
     }
   }
 
-  Template.folders.isCurrentFolder = function (folder) {
+  Template.folders.isCurrentFolder = function(folder) {
     return Session.get("currentFolderId") === folder;
   }
 
-  Template.folders_main.isCurrentFolder = function (folder) {
+  Template.folders_main.isCurrentFolder = function(folder) {
     return Template.folders.isCurrentFolder(folder);
   }
 
-    Template.folders.events = {
+  Template.folders.events = {
     'click .folderLi': function(e) {
       e.preventDefault();
       Session.set("currentFolderId", $(e.target).attr("id"));
       Session.set("currentView", "fileListing");
     },
-    'dragover .folderLi': function (e,t) {
+    'dragover .folderLi': function(e, t) {
       e.preventDefault();
       $(e.target).addClass('dragover');
 
     },
-    'dragover #topLevelFolder': function (e,t) {
+    'dragover #topLevelFolder': function(e, t) {
       e.preventDefault();
       $(e.target).addClass('dragover');
     },
-    'dragleave #topLevelFolder' : function (e,t) {
+    'dragleave #topLevelFolder': function(e, t) {
       e.preventDefault();
       $(e.target).removeClass('dragover');
     },
-    'dragleave .folderLi': function (e,t) {
+    'dragleave .folderLi': function(e, t) {
       e.preventDefault();
       $(e.target).removeClass('dragover');
     },
-    'drop .folderLi': function (e,t) {
+    'drop .folderLi': function(e, t) {
       e.preventDefault();
       console.log(e.dataTransfer.getData('folderId'));
       e.dataTransfer.dropeffect = 'move';
-      if (e.dataTransfer.getData('folderId') =="") {
-        Meteor.call('moveFileToFolder', $.trim(e.dataTransfer.getData('text')),$(e.target).attr('id'), function(err, result) {
-        if (err){
-          alert("There was an error");
-        }
-        else if (result !== "Success"){
-          alert(result);
-        }
-        $(e.target).removeClass('dragover');
+      if (e.dataTransfer.getData('folderId') == "") {
+        Meteor.call('moveFileToFolder', $.trim(e.dataTransfer.getData('text')), $(e.target).attr('id'), function(err, result) {
+          if (err) {
+            alert("There was an error");
+          } else if (result !== "Success") {
+            alert(result);
+          }
+          $(e.target).removeClass('dragover');
         });
-      }
-      else if (e.dataTransfer.getData('folderId') !== "") {
-        Meteor.call('moveFolderToFolder', $.trim(e.dataTransfer.getData('folderId')), $(e.target).attr('id'), function (err, result) {
+      } else if (e.dataTransfer.getData('folderId') !== "") {
+        Meteor.call('moveFolderToFolder', $.trim(e.dataTransfer.getData('folderId')), $(e.target).attr('id'), function(err, result) {
           if (err) {
             alert("There wasn an error");
-          }
-          else if (result !== "Success"){
+          } else if (result !== "Success") {
             alert(result);
           }
           $(e.target).removeClass('dragover');
         });
       }
       //edit this to make the differentiation between folders and images
-      
     },
-    'dragstart li.folderLi': function (e,t) {
+    'dragstart li.folderLi': function(e, t) {
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('folderId', $.trim($(e.target).children().clone().remove().end().attr('id')));
     },
-    'drop #topLevelFolder': function(e,t) {
+    'drop #topLevelFolder': function(e, t) {
       e.preventDefault();
       e.dataTransfer.dropeffect = 'move';
-      if (e.dataTransfer.getData('folderId') =="") {
+      if (e.dataTransfer.getData('folderId') == "") {
         alert("All files must be in a folder.");
-      }
-      else if (e.dataTransfer.getData('folderId') !== "") {
-        Meteor.call('moveFolderToFolder', $.trim(e.dataTransfer.getData('folderId')), null, function (err, result) {
+      } else if (e.dataTransfer.getData('folderId') !== "") {
+        Meteor.call('moveFolderToFolder', $.trim(e.dataTransfer.getData('folderId')), null, function(err, result) {
           if (err) {
             alert("There was an error.");
-          }
-          else if (result !== "Success"){
+          } else if (result !== "Success") {
             alert(result);
           }
           $(e.target).removeClass('dragover');
@@ -181,16 +178,17 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
       }
 
     },
-    'click #addFolder' : function (e) {
+    'click #addFolder': function(e) {
       e.preventDefault();
       var folderName = prompt("Enter folder name: ");
       //add validation here
-      if (folderName == null) { return;}
-      Meteor.call('makeFolder', folderName, function (err, result) {
+      if (folderName == null) {
+        return;
+      }
+      Meteor.call('makeFolder', folderName, function(err, result) {
         if (err) {
           alert("There was an error.");
-        }
-        else if (result !== "Success"){
+        } else if (result !== "Success") {
           alert(result);
         }
       });
@@ -198,21 +196,20 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
   }
 
   //FileView related objects
-
   Template.fileView.filesWithId = function() {
-    return Images.find({folderId: Session.get("currentFolderId")});
+    return Images.find({
+      folderId: Session.get("currentFolderId")
+    });
   }
 
-  Template.fileView.removeFolder = function () {
-    if (confirm("Do you really want to delete this folder? Deleting a folder strands all of the files within it.")){
-      Meteor.call('deleteFolder', Session.get("currentFolderId"), function (err, result) {
+  Template.fileView.removeFolder = function() {
+    if (confirm("Do you really want to delete this folder? Deleting a folder strands all of the files within it.")) {
+      Meteor.call('deleteFolder', Session.get("currentFolderId"), function(err, result) {
         if (err) {
           alert(err);
-        }
-        else if (result !== "Success") {
+        } else if (result !== "Success") {
           alert(result);
-        } 
-        else {
+        } else {
           Session.set("currentView", "viewingFirstScreen");
         }
       });
@@ -220,43 +217,43 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
     }
   }
   Template.fileView.getFolderName = function() {
-    var folder = Folders.findOne({_id: Session.get("currentFolderId")});
-    if (typeof(folder) !== "undefined")
-    {
+    var folder = Folders.findOne({
+      _id: Session.get("currentFolderId")
+    });
+    if (typeof(folder) !== "undefined") {
       return folder.name;
-    }
-    else {
+    } else {
       return "";
     }
   }
 
   Template.fileView.events = {
-    'mouseenter .fileViewRow' : function (e) {
+    'mouseenter .fileViewRow': function(e) {
       $(e.target).children().addClass("fileViewRowActive");
     },
-    'mouseleave .fileViewRow' : function(e) {
+    'mouseleave .fileViewRow': function(e) {
       $(e.target).children().removeClass("fileViewRowActive");
     },
     'click .fileViewRow': function(e) {
       Session.set("currentImageId", $(e.target).parent().attr("fileid"));
       Session.set("currentImageView", "viewingImage");
     },
-    'dragstart .fileViewRow' : function (e) {
+    'dragstart .fileViewRow': function(e) {
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text', e.target.cells[0].innerHTML); // id
     },
-    'click #removeFolder' : function (e) {
+    'click #removeFolder': function(e) {
       e.preventDefault();
       Template.fileView.removeFolder();
     }
   }
 
-  Template.header.connectionStatus = function () {
+  Template.header.connectionStatus = function() {
     return Meteor.status().status;
   }
 
-  Template.header.searchtest = function (searchterm) {
-    Meteor.call('search', searchterm, "autocomplete", function (err, result) {
+  Template.header.searchtest = function(searchterm) {
+    Meteor.call('search', searchterm, "autocomplete", function(err, result) {
       console.log(result);
       if (err) {
         console.log(err);
@@ -264,19 +261,24 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
     });
   }
 
-  Template.header.rendered = function () {
+  Template.header.rendered = function() {
     $('#annotationSearch').typeahead({
-      items: 10, 
+      items: 10,
       minLength: 2,
-      updater: function (item) {
+      updater: function(item) {
         Session.set("currentView", "searchResults");
         Session.set("currentSearchTerm", item);
-        $("html, body").animate({ scrollTop: 0 }, "slow");
+        $("body").animate({
+          scrollTop: 0
+        }, "slow");
       },
-      source: function (query, process) {
-        Meteor.call('search', ".*" + query.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1") + ".*", "autocomplete", function (err, result) {
+      source: function(query, process) {
+        Meteor.call('search', ".*" + query.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1") + ".*", "autocomplete", function(err, result) {
+          console.log(result);
           if (result && result.length) {
             result.unshift(query.trim());
+          } else if (result.length == 0) {
+            result = ["No results were found for " + query];
           }
           //cut down on length here, just maybe one or two words around the phrase in question
           process(result);
@@ -285,23 +287,21 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
     });
   }
 
-  Template.searchResults.currentSearchTerm = function () {
+  Template.searchResults.currentSearchTerm = function() {
     return Session.get("currentSearchTerm");
   }
 
-  Template.searchResults.rendered = function () {
+  Template.searchResults.rendered = function() {
     //redo search here to get more results
-
   }
 
 
 
-  Template.mainView.isViewing = function (view) {
+  Template.mainView.isViewing = function(view) {
     return Session.get("currentView") === view;
   }
   //UI related stuff
   //Header stuff
-
   Template.header.events = {
     'click #triggerAbout': function() {
       Session.set("currentView", "viewingAbout");
@@ -315,12 +315,11 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
   }
 
   //image information stuff
-
-  Template.imageInformation.imageObject = function () {
+  Template.imageInformation.imageObject = function() {
     return Images.findOne(Session.get("currentImageId"));
   };
 
-  Template.imageView.isViewing = function (view) {
+  Template.imageView.isViewing = function(view) {
     return Session.get("currentImageView") === view;
     //insert first time rendering function here
     //var imagePath = Images.findOne(Session.get("currentImageId")).imagePath;
@@ -328,65 +327,65 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
   }
 
   //annotations related stuff
-  Template.imageAnnotations.annotationsForImage = function () {
+  Template.imageAnnotations.annotationsForImage = function() {
     console.log('Found annotations for images');
-    return Annotations.find({imageId: Session.get("currentImageId")});
+    return Annotations.find({
+      imageId: Session.get("currentImageId")
+    });
   }
 
-  Template.imageAnnotations.rendered = function () {
+  Template.imageAnnotations.rendered = function() {
     $('[rel=tooltip]').tooltip();
   }
 
-  Template.imageAnnotations.noAnnotations = function () {
-    if (Annotations.find({imageId: Session.get("currentImageId")}).count() == 0) {
+  Template.imageAnnotations.noAnnotations = function() {
+    if (Annotations.find({
+      imageId: Session.get("currentImageId")
+    }).count() == 0) {
       return true;
     }
     return false;
   }
-  Template.imageAnnotations.startFrame = function () {
+  Template.imageAnnotations.startFrame = function() {
     return Session.get("startFrameIndex");
   }
 
-  Template.imageAnnotations.creator = function (userId) {
+  Template.imageAnnotations.creator = function(userId) {
     return Meteor.users.findOne(userId).emails[0].address;
   }
 
-  Template.imageAnnotations.endFrame = function () {
+  Template.imageAnnotations.endFrame = function() {
     return Session.get("endFrameIndex");
   }
 
   Template.imageAnnotations.events = {
-    'click #submitAnnotation' : function (e) {
+    'click #submitAnnotation': function(e) {
       e.preventDefault();
       var startFrame = Session.get('startFrameIndex');
       var endFrame = Session.get('endFrameIndex');
       var comment = $('textarea#commentInput').val();
-      Meteor.call('createAnnotation', startFrame, endFrame, comment, Session.get("currentImageId"), function (err, result) {
+      Meteor.call('createAnnotation', startFrame, endFrame, comment, Session.get("currentImageId"), function(err, result) {
         if (err) {
           alert(err);
-        }
-        else if (result != "Success") {
+        } else if (result != "Success") {
           alert(result);
-        }
-        else {
+        } else {
           $('.commmentInput').val('');
         }
       });
     },
-    'click #endButton' : function (e) {
+    'click #endButton': function(e) {
       //get input from slider here
       //merge these two events into one, getting target to set proper value
-
     },
-    'click #startButton' : function (e) {
+    'click #startButton': function(e) {
       //get input from slider here
     },
-    'click .icon-remove-sign' : function (e) {
-      Meteor.call('removeAnnotation', $(e.target).attr('id'), function (err, result) {
+    'click .icon-remove-sign': function(e) {
+      Meteor.call('removeAnnotation', $(e.target).attr('id'), function(err, result) {
         if (err) {
           alert(err);
-        }
-        else if (result != "Success") {
+        } else if (result != "Success") {
           alert(result);
         }
       });
@@ -394,45 +393,42 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
   }
 
   //webgl related stuff
-  Template.webgl.renderImage = function () {
+  Template.webgl.renderImage = function() {
     var imageObject = Images.findOne(Session.get("currentImageId"));
     //var imagePath = imageObject.path;
     imagePath = "/images/lensgrid.png";
 
     loadimage(imagePath);
     if (Session.get("currentWebGLMode") === "image") {
-    newmode("lightfield");
-    newmode("image");  
-    }
-    else {
+      newmode("lightfield");
+      newmode("image");
+    } else {
       newmode("lightfield");
     }
-    
+
   }
 
-  Template.webgl.needsGridBox = function () {
-    if (Session.get("currentWebGLMode") === "image"){
+  Template.webgl.needsGridBox = function() {
+    if (Session.get("currentWebGLMode") === "image") {
       return true;
-    }
-    else {
+    } else {
       return false;
     }
   }
-  Template.webgl.rendered = function () {
+  Template.webgl.rendered = function() {
     //load image with ID stored in current session variable
     Template.webgl.renderImage();
     updateUV_display();
 
     //set up jquery UI slider here
-    $( "#imageSlider" ).slider({
+    $("#imageSlider").slider({
       value: 0,
       orientation: "horizontal",
       range: "min",
       animate: true,
-      change : function () {
+      change: function() {
         //insert code to change Session variable with image URL and call loadImage
         //change loadimage to get autorectification parameters from database
-
       }
     });
     // setup interface
@@ -446,9 +442,9 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
       orientation: "horizontal",
       range: "min",
       animate: true,
-      change: function () {
+      change: function() {
         $('#gain_current').html(Math.pow(10, $("#gainSlider").slider("value")).toFixed(2));
-        render_if_ready(image,0);
+        render_if_ready(image, 0);
       }
     });
 
@@ -461,9 +457,9 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
       orientation: "horizontal",
       range: "min",
       animate: true,
-      change: function () {
+      change: function() {
         $('#gamma_current').html(parseFloat($("#gammaSlider").slider("value")).toFixed(2));
-        render_if_ready(image,0);
+        render_if_ready(image, 0);
       }
     });
 
@@ -472,24 +468,24 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
   }
   //WebGL related stuff
   Template.webgl.events = {
-    'change #imageselect' : function (e) {
+    'change #imageselect': function(e) {
       console.log("Image changed");
       loadimage($(e.target).val());
       //change this with session variable
     },
 
-    'change #rendermode' : function (e) {
+    'change #rendermode': function(e) {
       console.log("Mode changed");
-      
+
       newmode($(e.target).val());
       Session.set("currentWebGLMode", $('#rendermode').val());
-      render(image,1);
+      render(image, 1);
     },
-    'mousedown #canvas-lightfield' : function (e) {
+    'mousedown #canvas-lightfield': function(e) {
       console.log("mousedown" + e.pageX);
       mousedrag_X = e.pageX;
       mousedrag_Y = e.pageY;
-      $(window).mousemove(function () {
+      $(window).mousemove(function() {
         console.log("mousedrag" + e);
         mousedrag(e.pageX, e.pageY);
       });
@@ -500,21 +496,21 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
       });
     },
     //NOTE, GAMMA AND GAIN WERE CHANGED IN STATIC.JS
-    /*'change #gain' : function (e) {
+/*'change #gain' : function (e) {
       console.log("Gain changed");
       $('#gain_current').html(Math.pow(10, $(e.target).val()).toFixed(2));
       render_if_ready(image,0);
     }, */
-    /*'mouseleave #gainSlider' : function (e) {
+/*'mouseleave #gainSlider' : function (e) {
       console.log("Gain changed");
       $('#gain_current').html(Math.pow(10, $("#gainSlider").slider("value")).toFixed(2));
       render_if_ready(image,0);
     },*/
     //Slider callback is set above
     //this might cause some problems, not having the .change(), also check spelling
-    'click #grid' : function() {
+    'click #grid': function() {
       $("#grid").toggleClass('active');
-      render_if_ready(image,0);
+      render_if_ready(image, 0);
     }
   }
 
@@ -528,22 +524,22 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
 
 if (Meteor.isServer) {
 
-  Meteor.startup(function () {
-    
+  Meteor.startup(function() {
+
     //FileCollections.insert({name:"Light-field Microscopy"});
     //FileCollections.insert({name:"Light-sheet Microscopy"});
     //Images.insert({baseName : "Test1", Size :"20050", collectionId:"test"});
   });
   //add some dummy data
-  Meteor.methods( {
-    isAdmin: function () {
+  Meteor.methods({
+    isAdmin: function() {
       var user = Meteor.user();
-      if (!("string" === typeof (user.admin) && "admin" == (user.admin))) {
+      if (!("string" === typeof(user.admin) && "admin" == (user.admin))) {
         return false;
       }
       return true;
     },
-    search: function (searchterm, mode) {
+    search: function(searchterm, mode) {
       //this is the shadiest hack ever, even mongo documentation warns against using this in production
       //meh, i'll look for security holes later
       //thanks Thimo Brinkmann! https://groups.google.com/forum/#!topic/meteor-talk/x9kYnO52Btg
@@ -556,70 +552,77 @@ if (Meteor.isServer) {
       // sample search
       //> db.annotations.runCommand("text",{search:"test"})
       var searchterm_mod = '';
-    
+
       var searchterms = searchterm.trim().split(" ");
       for (var i = 0; i < searchterms.length; i++) {
-        searchterm_mod+= '\"' + searchterms[i] + '\"' + ' ';
+        searchterm_mod += '\"' + searchterms[i] + '\"' + ' ';
       }
-    
-      searchterm_mod = searchterm_mod.replace(/\.\*|\(|\)/g,"").trim();
-      
+
+      searchterm_mod = searchterm_mod.replace(/\.\*|\(|\)/g, "").trim();
+
       Future = Npm.require('fibers/future');
-    
+
       var fut = new Future();
-    
-      Meteor._RemoteCollectionDriver.mongo.db.executeDbCommand({"text":"annotations",search: searchterm, limit:10},
-        function (error,results){       
-          if (results && results.documents[0].ok === 1)
-          {  
-            console.log(results['documents'][0]['results']);
-            var ret = results.documents[0].results;
-            if (mode == "autocomplete") {
-            fut.ret(_.uniq(_.map(_.pluck(ret, 'obj'), function (text) {
+
+      Meteor._RemoteCollectionDriver.mongo.db.executeDbCommand({
+        "text": "annotations",
+        search: searchterm,
+        limit: 10
+      }, function(error, results) {
+        if (results && results.documents[0].ok === 1) {
+          console.log(results['documents'][0]['results']);
+          var ret = results.documents[0].results;
+          if (mode == "autocomplete") {
+            fut.ret(_.uniq(_.map(_.pluck(ret, 'obj'), function(text) {
               return text.comment;
             })));
-            } else {
-              fut.ret(_.uniq(_.map(_.pluck(ret, 'obj'), function (text) {
+          } else {
+            fut.ret(_.uniq(_.map(_.pluck(ret, 'obj'), function(text) {
               return text._id;
             })));
 
-            }
           }
         }
-      );
+      });
       return fut.wait();
     },
-    createAnnotation : function (startFrame, endFrame, comment, image) {
+    createAnnotation: function(startFrame, endFrame, comment, image) {
       var user = Meteor.user();
       if (startFrame <= endFrame) {
         //maybe run some comment validation here
-        if (comment =="") {
+        if (comment == "") {
           return "The input cannot be blank";
         } else {
-          Annotations.insert({startFrame: startFrame, endFrame: endFrame, comment: comment, userId: user._id, imageId: image});
+          Annotations.insert({
+            startFrame: startFrame,
+            endFrame: endFrame,
+            comment: comment,
+            userId: user._id,
+            imageId: image
+          });
           return "Success";
         }
-      }
-      else {
+      } else {
         return "The start frame must be less than or equal to the end frame";
       }
     },
-    removeAnnotation: function (annotationId) {
+    removeAnnotation: function(annotationId) {
       if (Meteor.call('isAdmin')) {
         Annotations.remove(annotationId);
         return "Success";
       }
     },
-    makeFolder: function (folderName) {
+    makeFolder: function(folderName) {
       if (Meteor.call('isAdmin')) {
-        Folders.insert({name: folderName});
+        Folders.insert({
+          name: folderName
+        });
         return "Success";
-      }
-      else {
+      } else {
         return "You must be an administrator to create folders.";
       }
     },
-    deleteFolder: function (folderId) {
+    deleteFolder: function(folderId) {
       //TODO: move all files in the folder to the top level
       if (Meteor.call('isAdmin')) {
         Folders.remove(folderId);
@@ -627,22 +630,28 @@ if (Meteor.isServer) {
       }
       return "There was an error removing the folder";
     },
-    moveFileToFolder: function (file,folder) {
-      if (Meteor.call('isAdmin')){
-        Images.update(file, {$set: {folderId: folder}});
+    moveFileToFolder: function(file, folder) {
+      if (Meteor.call('isAdmin')) {
+        Images.update(file, {
+          $set: {
+            folderId: folder
+          }
+        });
         return "Success";
-      }
-      else
-      {
+      } else {
         return "You must be an administrator to move files.";
       }
     },
-    moveFolderToFolder: function (movingFolder, destinationFolder) {
+    moveFolderToFolder: function(movingFolder, destinationFolder) {
       if (Meteor.call('isAdmin')) {
         //Transverse destination folder parents to see if folder is contained within the source folder
         var invalidOperation = false;
         if (destinationFolder == null) {
-          Folders.update(movingFolder, {$set: {parent: null}});
+          Folders.update(movingFolder, {
+            $set: {
+              parent: null
+            }
+          });
           return "Success";
         }
         if (destinationFolder == movingFolder) {
@@ -655,8 +664,7 @@ if (Meteor.isServer) {
             console.log("Yay");
             invalidOperation = true;
             break;
-          }
-          else {
+          } else {
             currentTransversalFolderId = Folders.findOne(currentTransversalFolderId);
             console.log(typeof(currentTransversalFolderId));
             if (typeof(currentTransversalFolderId) !== "undefined") {
@@ -668,30 +676,35 @@ if (Meteor.isServer) {
         //check if invalid bool is set
         if (invalidOperation) {
           return "You cannot move a parent folder into any of it's children";
+        } else {
+          Folders.update(movingFolder, {
+            $set: {
+              parent: destinationFolder
+            }
+          });
+          return "Success";
         }
-        else {
-          Folders.update(movingFolder, {$set: {parent: destinationFolder}});
-          return "Success";        
-        }
-      }
-      else {
+      } else {
         return "You must be an administrator to move folders."
       }
     },
     //Utility function which provides quick access to make users administrators
-    makeUserAdmin: function (userId) {
+    makeUserAdmin: function(userId) {
       if (Meteor.call('isAdmin')) {
-        Meteor.users.update({_id: userId}, { $set : { "profile.type": "admin" } }, function (err) {
-          if (err) {
-            return err;          
+        Meteor.users.update({
+          _id: userId
+        }, {
+          $set: {
+            "profile.type": "admin"
           }
-          else {
+        }, function(err) {
+          if (err) {
+            return err;
+          } else {
             return "The user was successfully updated.";
           }
         });
-      }
-      else
-      {
+      } else {
         return "You must be an admin to do that.";
       }
     }

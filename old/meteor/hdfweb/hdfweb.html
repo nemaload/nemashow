@@ -1,37 +1,44 @@
 <head>
-  <title>HDFWeb</title>
+  <title>
+    HDFWeb
+  </title>
 </head>
-
 <body>
-      
-	{{> header}}
-    <div class="container-fluid">
-      <div class="row-fluid">
-        <div class="span3">
-          <div class="well sidebar-nav" style="height: 400px;">
-            
-            {{> folders}}
-          </div><!--/.well -->
-        </div><!--/span-->
-        <div class="span9">
-          {{> mainView}}
-          <div class="row-fluid">
-          </div><!--/row-->
-        </div><!--/span-->
-      </div><!--/row-->
-      <hr>
-      {{> imageView}}
-      {{#if isAdmin}}
-      <p> BLAH </p>
-      {{/if}}
-      <footer>
-        <p>NEMALOAD 2013</p>
-      </footer>
-
-    </div><!--/.fluid-container-->
-<!-- WebGL script elements for rendering -->
-<script id="image-vertex-shader" type="x-shader/x-vertex">
-attribute vec2 a_canvCoord;
+  {{> header}}
+  <div class="container-fluid">
+    <div class="row-fluid">
+      <div class="span3">
+        <div class="well sidebar-nav" style="height: 400px;">
+          {{> folders}}
+        </div>
+        <!--/.well -->
+      </div>
+      <!--/span-->
+      <div class="span9">
+        {{> mainView}}
+        <div class="row-fluid">
+        </div>
+        <!--/row-->
+      </div>
+      <!--/span-->
+    </div>
+    <!--/row-->
+    <hr>
+    {{> imageView}} {{#if isAdmin}}
+    <p>
+      BLAH
+    </p>
+    {{/if}}
+    <footer>
+      <p>
+        NEMALOAD 2013
+      </p>
+    </footer>
+  </div>
+  <!--/.fluid-container-->
+  <!-- WebGL script elements for rendering -->
+  <script id="image-vertex-shader" type="x-shader/x-vertex">
+  attribute vec2 a_canvCoord;
 attribute vec2 a_texCoord;
 
 uniform vec2 u_canvSize;
@@ -47,10 +54,9 @@ void main() {
   // The GPU will interpolate this value between points.
   v_texCoord = a_texCoord;
 }
-</script>
-
-<script id="image-fragment-shader" type="x-shader/x-fragment">
-precision mediump float;
+  </script>
+  <script id="image-fragment-shader" type="x-shader/x-fragment">
+  precision mediump float;
 
 // our texture
 uniform sampler2D u_image;
@@ -59,16 +65,14 @@ uniform sampler2D u_image;
 varying vec2 v_texCoord;
 
 uniform vec2 u_gammaGain; // display parameters
-
 void main() {
   vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, u_gammaGain.x);
   vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, u_gammaGain.y);
   gl_FragColor = pow(texture2D(u_image, v_texCoord) * gain, gamma);
 }
-</script>
-
-<script id="lightfield-pinhole-fragment-shader" type="x-shader/x-fragment">
-precision mediump float;
+  </script>
+  <script id="lightfield-pinhole-fragment-shader" type="x-shader/x-fragment">
+  precision mediump float;
 
 // our texture
 uniform sampler2D u_image;
@@ -82,9 +86,7 @@ uniform vec2 u_UVCoord;
 uniform vec2 u_gridSize; // number of lens
 uniform vec2 u_rectOffset; // center of grid in texCoords
 uniform mat2 u_rectLinear; // grid intervals in texCoords
-
 uniform vec2 u_gammaGain; // display parameters
-
 void main(void) {
   vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, u_gammaGain.x);
   vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, u_gammaGain.y);
@@ -98,365 +100,407 @@ void main(void) {
   // The interesting in-lens pixel
   coord0 = floor(coord) + u_UVCoord.xy;
   // Examine the four nearest lens, interpolating the final color
-  coord1 = u_rectOffset +  coord0                  * u_rectLinear;
-  coord2 = u_rectOffset + (coord0 + vec2(0.0,1.0)) * u_rectLinear;
-  coord3 = u_rectOffset + (coord0 + vec2(1.0,1.0)) * u_rectLinear;
-  coord4 = u_rectOffset + (coord0 + vec2(1.0,0.0)) * u_rectLinear;
+  coord1 = u_rectOffset + coord0 * u_rectLinear;
+  coord2 = u_rectOffset + (coord0 + vec2(0.0, 1.0)) * u_rectLinear;
+  coord3 = u_rectOffset + (coord0 + vec2(1.0, 1.0)) * u_rectLinear;
+  coord4 = u_rectOffset + (coord0 + vec2(1.0, 0.0)) * u_rectLinear;
   // Interpolation color based on the surrounding lens distance
-  fracts = vec4(coord - floor(coord), floor(coord)+vec2(1.0,1.0) - coord);
-  color = fracts.z * (fracts.w * texture2D(u_image, coord1) +
-          fracts.y * texture2D(u_image, coord2)) +
-    fracts.x * (fracts.y * texture2D(u_image, coord3) +
-          fracts.w * texture2D(u_image, coord4));
+  fracts = vec4(coord - floor(coord), floor(coord) + vec2(1.0, 1.0) - coord);
+  color = fracts.z * (fracts.w * texture2D(u_image, coord1) + fracts.y * texture2D(u_image, coord2)) + fracts.x * (fracts.y * texture2D(u_image, coord3) + fracts.w * texture2D(u_image, coord4));
 
   gl_FragColor = pow(vec4(color.rgb, color.a) * gain, gamma);
 }
-</script>
-
-<script id="grid-vertex-shader" type="x-shader/x-vertex">
-attribute vec2 a_canvCoord;
+  </script>
+  <script id="grid-vertex-shader" type="x-shader/x-vertex">
+  attribute vec2 a_canvCoord;
 uniform vec2 u_canvSize;
 void main() {
   // convert the rectangle from pixels to -1.0 to 1.0
   vec2 clipSpace = a_canvCoord / u_canvSize * 1.0 - 1.0;
   gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
 }
-</script>
-
-<script id="grid-fragment-shader" type="x-shader/x-fragment">
-precision mediump float;
+  </script>
+  <script id="grid-fragment-shader" type="x-shader/x-fragment">
+  precision mediump float;
 
 void main() {
   gl_FragColor = vec4(0.0, 1.0, 0.0, 0.2);
 }
-</script>
-
-
+  </script>
 </body>
-
 <template name="mainView">
-	<div class="hero-unit"  style="height:300px;" overflow="auto">
+  <div class="hero-unit" style="height:300px;" overflow="auto">
     <!--Stuff that everyone sees -->
     {{#if isViewing "viewingAbout"}}
-
-      <p> This is the about screen </p>
-
-    {{/if}}
-
-    {{#if isViewing "viewingHelp"}}
-
-      <p> This is the Help screen </p>
-
+    <p>
+      This is the about screen
+    </p>
+    {{/if}} {{#if isViewing "viewingHelp"}}
+    <p>
+      This is the Help screen
+    </p>
     {{/if}}
     <!-- Stuff that logged in users can see -->
-    {{#if currentUser}}
-
-      {{#if isViewing "viewingFirstScreen"}}
-      
-        <p> Please choose a dataset to explore from the list to the left. </p>
-      
-      {{/if}}
-      
-      {{#if isViewing "fileListing"}}
-      
-      {{> fileView}}
-      
-      {{/if}}
-
-      {{#if isViewing "searchResults"}}
-      {{> searchResults}}
-      {{/if}}
+    {{#if currentUser}} {{#if isViewing "viewingFirstScreen"}}
+    <p>
+      Please choose a dataset to explore from the list to the left.
+    </p>
+    {{/if}} {{#if isViewing "fileListing"}} {{> fileView}} {{/if}} {{#if isViewing "searchResults"}}
+    {{> searchResults}} {{/if}}
     <!--Stuff that people who aren't logged in see -->
-    {{else}}
-      
-      {{#if isViewing "viewingFirstScreen"}}
-      
-        <h1> Welcome to HDFWeb </h1>
-        HDFWeb allows both NEMALOAD researchers and the public to interactively view
-        the project data.
-        <p><a href="http://nemaload.github.io/HDFWeb" class="btn btn-primary btn-large">Learn more &raquo;</a></p>
-      
-      {{/if}}
-      
-      {{#if isViewing "fileListing"}}
-        
-        <p> You need to log in to view files. </p>
-      
-      {{/if}}
-    
-    {{/if}}
-
-            
+    {{else}} {{#if isViewing "viewingFirstScreen"}}
+    <h1>
+      Welcome to HDFWeb
+    </h1>
+    HDFWeb allows both NEMALOAD researchers and the public to interactively view the
+    project data.
+    <p>
+      <a href="http://nemaload.github.io/HDFWeb" class="btn btn-primary btn-large">Learn more &raquo;</a>
+    </p>
+    {{/if}} {{#if isViewing "fileListing"}}
+    <p>
+      You need to log in to view files.
+    </p>
+    {{/if}} {{/if}}
   </div>
 </template>
-
-
 <template name="fileView">
-
-  <h3> {{getFolderName}}  <i class="icon-remove-sign" style="float: right; cursor:pointer;" id="removeFolder"></i></h3>
-<div style="height: 300px; overflow: auto;">
-<table class="table table-striped" >
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Name</th>
-      <th>Size</th>
-    </tr>
-  </thead>
-  <tbody>
-{{#each filesWithId}}
-<tr class="fileViewRow" fileId={{_id}} draggable="true">
-<td> {{_id}} </td>
-<td> {{baseName}} </td>
-<td> {{size}} </td>
-</tr>
-{{/each}}
-</tbody>
-</table>
-</div>
+  <h3>
+    {{getFolderName}}
+    <i class="icon-remove-sign" style="float: right; cursor:pointer;" id="removeFolder">
+    </i>
+  </h3>
+  <div style="height: 300px; overflow: auto;">
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>
+            ID
+          </th>
+          <th>
+            Name
+          </th>
+          <th>
+            Size
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each filesWithId}}
+        <tr class="fileViewRow" fileId={{_id}} draggable="true">
+          <td>
+            {{_id}}
+          </td>
+          <td>
+            {{baseName}}
+          </td>
+          <td>
+            {{size}}
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
 </template>
-
-
-
-
-
 <template name="header">
   <div class="navbar navbar-inverse navbar-fixed-top">
     <div class="navbar-inner">
-        <div class="container-fluid">
-            <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-              <a class="brand" id="triggerFirstScreen">HDFWeb</a>
-              <div class="nav-collapse collapse">
-                <div class="navbar-text pull-right">
-                  {{loginButtons align="right"}}
-                </div>
-                <form class="navbar-search pull-right" style="margin-right: 10px;">
-                  <input type="text" class="search-query" id="annotationSearch" placeholder="Search annotations...">
-                </form>
-              <ul class="nav">
-                <li><a id="triggerAbout">About</a></li>       
-                <li><a id="triggerHelp">Help</a></li>
-                <li><a href="http://nemaload.com" target="_blank">NEMALOAD</a></li>
-                <li><p id="databaseConnection"><i class="icon-cloud"></i> Status: {{connectionStatus}}</p></li>
-              </ul>
-            </div><!--/.nav-collapse -->
+      <div class="container-fluid">
+        <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar">
+          </span>
+          <span class="icon-bar">
+          </span>
+          <span class="icon-bar">
+          </span>
+        </button>
+        <a class="brand" id="triggerFirstScreen">HDFWeb</a>
+        <div class="nav-collapse collapse">
+          <div class="navbar-text pull-right">
+            {{loginButtons align="right"}}
+          </div>
+          <form class="navbar-search pull-right" style="margin-right: 10px;">
+            <input type="text" class="search-query" id="annotationSearch" placeholder="Search annotations...">
+          </form>
+          <ul class="nav">
+            <li>
+              <a id="triggerAbout">About</a>
+            </li>
+            <li>
+              <a id="triggerHelp">Help</a>
+            </li>
+            <li>
+              <a href="http://nemaload.com" target="_blank">NEMALOAD</a>
+            </li>
+            <li>
+              <p id="databaseConnection">
+                <i class="icon-cloud">
+                </i>
+                Status: {{connectionStatus}}
+              </p>
+            </li>
+          </ul>
         </div>
+        <!--/.nav-collapse -->
+      </div>
     </div>
   </div>
 </template>
-
 <!-- Folder related templates -->
-
 <!-- The folder nav list -->
-<template name="folders"> <!-- initial nav -->
-  <ul class="nav nav-list" >
-  <li class="nav-header" id="topLevelFolder"><i class="icon-folder-close"></i> Folders</li>
-  {{#each foldersTop}}
-    {{#if isCurrentFolder _id}}
-    <li class="folderLi" draggable="true"><a id="{{_id}}" ><i class="icon-folder-open-alt"></i>{{> folders_sub}}</a></li>
+<template name="folders">
+  <!-- initial nav -->
+  <ul class="nav nav-list">
+    <li class="nav-header" id="topLevelFolder">
+      <i class="icon-folder-close">
+      </i>
+      Folders
+    </li>
+    {{#each foldersTop}} {{#if isCurrentFolder _id}}
+    <li class="folderLi" draggable="true">
+      <a id="{{_id}}"><i class="icon-folder-open-alt"></i>{{> folders_sub}}</a>
+    </li>
     {{else}}
-    <li class="folderLi" draggable="true"><a id="{{_id}}" ><i class="icon-folder-close-alt"></i>{{> folders_sub}}</a></li>
-    {{/if}}
-  {{/each}}
-</ul>
-<li class="nav-header" style="cursor:pointer;" id="addFolder"><i class="icon-plus-sign-alt"></i> Add a folder </li>
+    <li class="folderLi" draggable="true">
+      <a id="{{_id}}"><i class="icon-folder-close-alt"></i>{{> folders_sub}}</a>
+    </li>
+    {{/if}} {{/each}}
+  </ul>
+  <li class="nav-header" style="cursor:pointer;" id="addFolder">
+    <i class="icon-plus-sign-alt">
+    </i>
+    Add a folder
+  </li>
 </template>
-<template name="folders_main"> <!-- each lower level, for children -->
-
-<ul class="nav nav-list" >
-    {{#each children _id}}
-      {{#if isCurrentFolder _id}}
-        <li class="folderLi" draggable="true"><a id="{{_id}}"><i class="icon-folder-open-alt"></i>{{> folders_sub}}</a></li>
-      {{else}}
-        <li class="folderLi" draggable="true"><a id="{{_id}}"><i class="icon-folder-close-alt"></i>{{> folders_sub}}</a></li>
-      {{/if}}
-    {{/each}}
-</ul>
+<template name="folders_main">
+  <!-- each lower level, for children -->
+  <ul class="nav nav-list">
+    {{#each children _id}} {{#if isCurrentFolder _id}}
+    <li class="folderLi" draggable="true">
+      <a id="{{_id}}"><i class="icon-folder-open-alt"></i>{{> folders_sub}}</a>
+    </li>
+    {{else}}
+    <li class="folderLi" draggable="true">
+      <a id="{{_id}}"><i class="icon-folder-close-alt"></i>{{> folders_sub}}</a>
+    </li>
+    {{/if}} {{/each}}
+  </ul>
 </template>
-
-<template name="folders_sub"> <!-- the display for each folder -->
-  {{name}}
-  {{> folders_main}}
+<template name="folders_sub">
+  <!-- the display for each folder -->
+  {{name}} {{> folders_main}}
 </template>
-
-
-
 <!-- The new folder input -->
 <template name="newFolderInput">
   <input id="new_folder_name" type="text" />
   <input type="button" value="Add Folder" />
 </template>
-
 <template name="imageInformation">
   <div class="row-fluid">
-    
     <div class="span3 webglstuff">
       {{#with imageObject}}
-      <h1>{{baseName}} </h1>
+      <h1>
+        {{baseName}}
+      </h1>
       <div id="imageOptions">
-      <h3 style="letter-spacing: 0.2em;">
-      <a href="#"><i class="icon-magnet"></i></a>
-      <a href="#"><i class="icon-picture"></i></a>
-      <a href="#"><i class="icon-twitter-sign"></i></a>
-      </h3>
+        <h3 style="letter-spacing: 0.2em;">
+          <a href="#"><i class="icon-magnet"></i></a>
+          <a href="#"><i class="icon-picture"></i></a>
+          <a href="#"><i class="icon-twitter-sign"></i></a>
+        </h3>
       </div>
       <table id="imageAttributeTable" class="table table-striped">
         <thead>
           <tr>
-            <th align="left"> Attribute </th>
-            <th align="left"> Value </th>
+            <th align="left">
+              Attribute
+            </th>
+            <th align="left">
+              Value
+            </th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td> Name: </td>
-            <td> {{baseName}}</td>
+            <td>
+              Name:
+            </td>
+            <td>
+              {{baseName}}
+            </td>
           </tr>
           <tr>
-            <td>Frames: </td>
-            <td> 50 </td>
+            <td>
+              Frames:
+            </td>
+            <td>
+              50
+            </td>
           </tr>
           <tr>
-            <td>Size: </td> 
-            <td>{{size}} bytes</td>
+            <td>
+              Size:
+            </td>
+            <td>
+              {{size}} bytes
+            </td>
           </tr>
           <tr>
-            <td>ID </td> 
-            <td> {{_id}}</td>
+            <td>
+              ID
+            </td>
+            <td>
+              {{_id}}
+            </td>
           </tr>
         </tbody>
       </table>
-
-
-      {{> imageAnnotations}}
-      {{/with}}
+      {{> imageAnnotations}} {{/with}}
     </div>
     <div class="span9">
       {{> webgl}}
     </div>
   </div>
 </template>
-
 <template name="imageView">
-  {{#unless isViewing "viewingNothing"}}
-    {{> imageInformation}}
-  {{/unless}}
+  {{#unless isViewing "viewingNothing"}} {{> imageInformation}} {{/unless}}
 </template>
-
 <template name="searchResults">
-  <h3> Search Results for {{currentSearchTerm}}</h3>
+  <h3>
+    Search Results for {{currentSearchTerm}}
+  </h3>
 </template>
 <template name="imageAnnotations">
-<h5> <i class="icon-comments"></i> Annotations</h5>
-
-<div class="accordion" id="accordion2">
-{{#unless noAnnotations}}
-  {{#each annotationsForImage}}
-  <div class="accordion-group">
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseOne">
+  <h5>
+    <i class="icon-comments">
+    </i>
+    Annotations
+  </h5>
+  <div class="accordion" id="accordion2">
+    {{#unless noAnnotations}} {{#each annotationsForImage}}
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseOne">
         <p>{{_id}}</p>
       </a>
-    </div>
-    <div id="collapseOne" class="accordion-body collapse in">
-      <div class="accordion-inner">
-        <div class="annotation">
-
-<i class="icon-remove-sign" style="float: right; cursor:pointer;" id="{{_id}}"></i>
-
-<h6>Concerning frames {{startFrame}} to {{endFrame}}, {{creator userId}} said: </h6>
-<p> {{comment}} <p>
-</div>
+      </div>
+      <div id="collapseOne" class="accordion-body collapse in">
+        <div class="accordion-inner">
+          <div class="annotation">
+            <i class="icon-remove-sign" style="float: right; cursor:pointer;" id="{{_id}}">
+            </i>
+            <h6>
+              Concerning frames {{startFrame}} to {{endFrame}}, {{creator userId}} said:
+            </h6>
+            <p>
+              {{comment}}
+              <p>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-  {{/each}}
-{{/unless}}
-{{#if noAnnotations}}
-<p> There are no annotations for this image. <br /> Why don't you write one?</p>
-{{/if}}
-  <div class="accordion-group">
-    <div class="accordion-heading">
-      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
+    {{/each}} {{/unless}} {{#if noAnnotations}}
+    <p>
+      There are no annotations for this image.
+      <br />
+      Why don't you write one?
+    </p>
+    {{/if}}
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
         <h5> <i class="icon-pencil"></i> Write an annotation</h5> 
       </a>
-    </div>
-    <div id="collapseTwo" class="accordion-body collapse">
-      <div class="accordion-inner">
-        
-        <button id="startButton" type="button" class="btn btn-success" rel="tooltip" title="Select your start frame using the slider.">Start</button><b id="startFrame"style="padding: 10px;">{{startFrame}}</b> <button id="endButton" type="button" class="btn btn-danger" rel="tooltip" title="Select your end frame using the slider.">End</button> <b style="padding: 10px;" id="endFrame">{{endFrame}}</b>
-        <h5 style="margin-top: 10px; margin-bottom: 10px;"> Comment: <h5>
-        <textarea type="text" class="commentInput" id="commentInput"></textarea><br />
-        <button class="btn" id="submitAnnotation">Add Annotation</button>
+      </div>
+      <div id="collapseTwo" class="accordion-body collapse">
+        <div class="accordion-inner">
+          <button id="startButton" type="button" class="btn btn-success" rel="tooltip" title="Select your start frame using the slider.">
+            Start
+          </button>
+          <b id="startFrame" style="padding: 10px;">
+            {{startFrame}}
+          </b>
+          <button id="endButton" type="button" class="btn btn-danger" rel="tooltip" title="Select your end frame using the slider.">
+            End
+          </button>
+          <b style="padding: 10px;" id="endFrame">
+            {{endFrame}}
+          </b>
+          <h5 style="margin-top: 10px; margin-bottom: 10px;">
+            Comment:
+            <h5>
+              <textarea type="text" class="commentInput" id="commentInput">
+              </textarea>
+              <br />
+              <button class="btn" id="submitAnnotation">
+                Add Annotation
+              </button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 </template>
-
-
-
 <!-- WebGL stuff -->
 <template name="webgl">
-<div class="webglstuff">
-<div class="controls">
-
-<p class="ui-state-default ui-corner-all ui-helper-clearfix" style="padding: 4px;">
-  Image slider
-</p>
-
-<div id="imageSlider" style="width: 96%; margin-left: 2%;"></div> 
-<div id="sliders" class="span6">
-Gain: <span id="gain_current">replace with default gain</span>
-<div id="gainSlider" style="width: 96%; margin: 2%; display:inline-block;"></div>
-Gamma:<span id="gamma_current" style="width: 5em">Replace with default gamma</span> <div id="gammaSlider" style="width: 96%; margin: 2%; display:inline-block;"></div>
-</div>
-
-<div id="otherControls" style="margin-top: 2%;">
-<div id="imageTypeSelect" >
-<select id="rendermode">
-  <option value="image">Image</option>
-  <option value="lightfield">Light field</option>
-</select>
-</div>
-</div>
-
-
-
-
-
-{{#if needsGridBox}}
-<button type="button" class="btn" id="grid">Grid</button>
-<button type="button" class="btn" id="setDefaults">Set defaults(not functional)</button>
-{{/if}}
-
-<p id="controls-lightfield" class="controlbox">
-<input type="button" value="U-" onClick="updateUV(-1.0, 0);">
-<input type="button" value="U+" onClick="updateUV(+1.0, 0);">
-<span id="U_current" style="width: 5em"></span>
-<br />
-<input type="button" value="V-" onClick="updateUV(0, -1.0);">
-<input type="button" value="V+" onClick="updateUV(0, +1.0);">
-<span id="V_current" style="width: 5em"></span>
-</p>
-
-</div>
-<!--<canvas id="canvas-image" width="1080" height="1280"></canvas>
+  <div class="webglstuff">
+    <div class="controls">
+      <p class="ui-state-default ui-corner-all ui-helper-clearfix" style="padding: 4px;">
+        Image slider
+      </p>
+      <div id="imageSlider" style="width: 96%; margin-left: 2%;">
+      </div>
+      <div id="sliders" class="span6">
+        Gain:
+        <span id="gain_current">
+          replace with default gain
+        </span>
+        <div id="gainSlider" style="width: 96%; margin: 2%; display:inline-block;">
+        </div>
+        Gamma:
+        <span id="gamma_current" style="width: 5em">
+          Replace with default gamma
+        </span>
+        <div id="gammaSlider" style="width: 96%; margin: 2%; display:inline-block;">
+        </div>
+      </div>
+      <div id="otherControls" style="margin-top: 2%;">
+        <div id="imageTypeSelect">
+          <select id="rendermode">
+            <option value="image">
+              Image
+            </option>
+            <option value="lightfield">
+              Light field
+            </option>
+          </select>
+        </div>
+      </div>
+      {{#if needsGridBox}}
+      <button type="button" class="btn" id="grid">
+        Grid
+      </button>
+      <button type="button" class="btn" id="setDefaults">
+        Set defaults(not functional)
+      </button>
+      {{/if}}
+      <p id="controls-lightfield" class="controlbox">
+        <input type="button" value="U-" onClick="updateUV(-1.0, 0);">
+        <input type="button" value="U+" onClick="updateUV(+1.0, 0);">
+        <span id="U_current" style="width: 5em">
+        </span>
+        <br />
+        <input type="button" value="V-" onClick="updateUV(0, -1.0);">
+        <input type="button" value="V+" onClick="updateUV(0, +1.0);">
+        <span id="V_current" style="width: 5em">
+        </span>
+      </p>
+    </div>
+    <!--<canvas id="canvas-image" width="1080" height="1280"></canvas>
 <canvas id="canvas-lightfield" width="432" height="512"></canvas> -->
-<canvas id="canvas-image" width="540" height="640"></canvas>
-<canvas id="canvas-lightfield" width="432" height="512"></canvas>
-</div>
-
-
- 
-
+    <canvas id="canvas-image" width="540" height="640">
+    </canvas>
+    <canvas id="canvas-lightfield" width="432" height="512">
+    </canvas>
+  </div>
 </template>
-
-
-		
-			  
-      
