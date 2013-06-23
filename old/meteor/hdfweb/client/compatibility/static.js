@@ -232,7 +232,7 @@ function render_lightfield_pinhole(image, canvas, gl) {
 	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
 	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
-	gl.uniform2f(gammaGainLocation, $('#gamma').val(), Math.pow(10, $('#gain').val()));
+	gl.uniform2f(gammaGainLocation, parseFloat($('#gammaSlider').slider("value")), Math.pow(10, parseFloat($('#gainSlider').slider("value"))));
 
 	var gridSizeLocation = gl.getUniformLocation(program, "u_gridSize");
 	gl.uniform2f(gridSizeLocation, gridSize.width, gridSize.height);

@@ -401,21 +401,30 @@ void main() {
 <p class="ui-state-default ui-corner-all ui-helper-clearfix" style="padding: 4px;">
   Image slider
 </p>
- 
-<div id="imageSlider" style="width: 96%; margin: 2%;"></div>Gain <span id="gain_current" style="width: 5em"></span>
-<span id="gamma_current" style="width: 5em"></span>
-<div id="gainSlider" style="width: 46%; margin: 2%"></div> <div id="gammaSlider" style="width: 46%; margin: 2%;"></div>
 
-<div class="controlbox">
+<div id="imageSlider" style="width: 96%; margin-left: 2%;"></div> 
+<div id="sliders" class="span6">
+Gain: <span id="gain_current">replace with default gain</span>
+<div id="gainSlider" style="width: 96%; margin: 2%; display:inline-block;"></div>
+Gamma:<span id="gamma_current" style="width: 5em">Replace with default gamma</span> <div id="gammaSlider" style="width: 96%; margin: 2%; display:inline-block;"></div>
+</div>
+
+<div id="otherControls" style="margin-top: 2%;">
+<div id="imageTypeSelect" >
 <select id="rendermode">
   <option value="image">Image</option>
   <option value="lightfield">Light field</option>
 </select>
 </div>
+</div>
+
+
+
 
 
 {{#if needsGridBox}}
 <button type="button" class="btn" id="grid">Grid</button>
+<button type="button" class="btn" id="setDefaults">Set defaults(not functional)</button>
 {{/if}}
 
 <p id="controls-lightfield" class="controlbox">

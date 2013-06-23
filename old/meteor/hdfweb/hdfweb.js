@@ -386,11 +386,16 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
       value: 0,
       orientation: "horizontal",
       range: "min",
-      animate: true
+      animate: true,
+      change : function () {
+        //insert code to change Session variable with image URL and call loadImage
+        //change loadimage to get autorectification parameters from database
+
+      }
     });
     // setup interface
     $("#grid").button();
-
+    $('.btn-group').button();
     $("#gainSlider").slider({
       value: 0,
       min: -1,
@@ -495,6 +500,36 @@ if (Meteor.isServer) {
         return false;
       }
       return true;
+    },
+    testMongo: function (searchterm) {
+      //this is the shadiest hack ever, even mongo documentation warns against using this in production
+      //meh, i'll look for security holes later
+      //thanks Thimo Brinkmann! https://groups.google.com/forum/#!topic/meteor-talk/x9kYnO52Btg
+      var searchterm_mod = '';
+    
+      var searchterms = searchterm.trim().split(" ");
+      for (var i = 0; i < searchterms.length; i++) {
+        searchterm_mod+= '\"' + searchterms[i] + '\"' + ' ';
+      }
+    
+      searchterm_mod = searchterm_mod.replace(/\.\*|\(|\)/g,"").trim();
+      
+      Future = Npm.require('fibers/future');
+    
+      var fut = new Future();
+    
+      Meteor._RemoteCollectionDriver.mongo.db.executeDbCommand({"text":"annotations",search: searchterm_mod, limit:10, project:{_id:0, name:1}},
+        function (error,results){       
+          if (results && results.documents[0].ok === 1)
+          { 
+            var ret = results.documents[0].results;
+            fut.ret(_.uniq(_.map(_.pluck(ret, 'obj'), function (text) {
+              return text.name;
+            })));
+          }
+        }
+      );
+      return fut.wait();
     },
     createAnnotation : function (startFrame, endFrame, comment, image) {
       var user = Meteor.user();
