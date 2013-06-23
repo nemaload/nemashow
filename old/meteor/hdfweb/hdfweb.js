@@ -72,6 +72,9 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
   Session.setDefault("currentImageView", "viewingNothing");
   Session.setDefault("currentWebGLMode", "image");
   Session.setDefault("currentFrameIndex", 0); //frameindex
+  Session.setDefault("currentFrameURL", null);
+  Session.setDefault("startFrameIndex", 0);
+  Session.setDefault("endFrameIndex",0);
 
   //Folder related functions
   Template.folders.foldersTop = function () {
@@ -292,6 +295,57 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
     $('[rel=tooltip]').tooltip();
   }
 
+  Template.imageAnnotations.startFrame = function () {
+    return Session.get("startFrameIndex");
+  }
+
+  Template.imageAnnotations.creator = function (userId) {
+    return Meteor.users.findOne(userId).emails[0].address;
+  }
+
+  Template.imageAnnotations.endFrame = function () {
+    return Session.get("endFrameIndex");
+  }
+
+  Template.imageAnnotations.events = {
+    'click #submitAnnotation' : function (e) {
+      e.preventDefault();
+      var startFrame = Session.get('startFrameIndex');
+      var endFrame = Session.get('endFrameIndex');
+      var comment = $('textarea#commentInput').val();
+      alert(comment);
+      Meteor.call('createAnnotation', startFrame, endFrame, comment, Session.get("currentImageId"), function (err, result) {
+        if (err) {
+          alert(err);
+        }
+        else if (result != "Success") {
+          alert(result);
+        }
+        else {
+          $('.commmentInput').val('');
+        }
+      });
+    },
+    'click #endButton' : function (e) {
+      //get input from slider here
+      //merge these two events into one, getting target to set proper value
+
+    },
+    'click #startButton' : function (e) {
+      //get input from slider here
+    },
+    'click .icon-remove-sign' : function (e) {
+      Meteor.call('removeAnnotation', $(e.target).attr('id'), function (err, result) {
+        if (err) {
+          alert(err);
+        }
+        else if (result != "Success") {
+          alert(result);
+        }
+      });
+    }
+  }
+
   //webgl related stuff
   Template.webgl.renderImage = function () {
     var imageObject = Images.findOne(Session.get("currentImageId"));
@@ -323,6 +377,14 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
     updateUV_display();
 
     //set up jquery UI slider here
+    $( "#master" ).slider({
+      value: 60,
+      orientation: "horizontal",
+      range: "min",
+      animate: true
+    });
+    // setup interface
+    $("#grid").button();
 
   }
   //WebGL related stuff
@@ -360,9 +422,9 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
       render_if_ready(image,0);
     }, 
     //this might cause some problems, not having the .change(), also check spelling
-    'change #grid' : function() {
-      console.log("Grid changed");
-      render_if_ready(image, 0);
+    'click #grid' : function() {
+      $("#grid").toggleClass('active');
+      render_if_ready(image,0);
     }
   }
 
@@ -390,6 +452,27 @@ if (Meteor.isServer) {
         return false;
       }
       return true;
+    },
+    createAnnotation : function (startFrame, endFrame, comment, image) {
+      var user = Meteor.user();
+      if (startFrame <= endFrame) {
+        //maybe run some comment validation here
+        if (comment =="") {
+          return "The input cannot be blank";
+        } else {
+          Annotations.insert({startFrame: startFrame, endFrame: endFrame, comment: comment, userId: user._id, imageId: image});
+          return "Success";
+        }
+      }
+      else {
+        return "The start frame must be less than or equal to the end frame";
+      }
+    },
+    removeAnnotation: function (annotationId) {
+      if (Meteor.call('isAdmin')) {
+        Annotations.remove(annotationId);
+        return "Success";
+      }
     },
     makeFolder: function (folderName) {
       if (Meteor.call('isAdmin')) {

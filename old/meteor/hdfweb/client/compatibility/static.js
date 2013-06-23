@@ -1,3 +1,4 @@
+
 var mouseSensitivity = 4.0;
 
 var ofs_U = 0.0, ofs_V = 0.0; // in OpenGL coordinate system
@@ -160,7 +161,8 @@ function render(image, is_new_image) {
 
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-	if (mode == "image" && $('#grid').prop('checked'))
+	//if (mode == "image" && $('#grid').prop('checked'))
+	if (mode == "image" && $('#grid').hasClass('active'))
 		render_grid(canvas, gl);
 }
 

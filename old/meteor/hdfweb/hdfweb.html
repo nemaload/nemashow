@@ -345,15 +345,45 @@ void main() {
 
 <template name="imageAnnotations">
 <h5> <i class="icon-comments"></i> Annotations</h5>
-{{#each annotationsForImage}}
-<h6> {{creator}} said: </h6>
-<p> {{content}} <p>
-{{/each}}
-<h5> <i class="icon-pencil"></i> Write an annotation:</h5> 
-<button type="button" class="btn btn-success" rel="tooltip" title="Select your start frame using the slider.">Start</button><b id="startFrame"style="padding: 10px;">5</b> <button type="button" class="btn btn-danger" rel="tooltip" title="Select your end frame using the slider.">End</button> <b style="padding: 10px;" id="endFrame">10 </b>
-<h5 style="margin-top: 10px; margin-bottom: 10px;"> Comment: <h5>
-<textarea type="text" class="commentInput"></textarea><br />
-<button class="btn">Add Annotation</button>
+
+<div class="accordion" id="accordion2">
+  {{#each annotationsForImage}}
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseOne">
+        <p>{{_id}}</p>
+      </a>
+    </div>
+    <div id="collapseOne" class="accordion-body collapse in">
+      <div class="accordion-inner">
+        <div class="annotation">
+
+<i class="icon-remove-sign" style="float: right; cursor:pointer;" id={{_id}}></i>
+
+<h6>Concerning frames {{startFrame}} to {{endFrame}}, {{creator userId}} said: </h6>
+<p> {{comment}} <p>
+</div>
+      </div>
+    </div>
+  </div>
+  {{/each}}
+  <div class="accordion-group">
+    <div class="accordion-heading">
+      <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
+        <h5> <i class="icon-pencil"></i> Write an annotation:</h5> 
+      </a>
+    </div>
+    <div id="collapseTwo" class="accordion-body collapse">
+      <div class="accordion-inner">
+        
+        <button id="startButton" type="button" class="btn btn-success" rel="tooltip" title="Select your start frame using the slider.">Start</button><b id="startFrame"style="padding: 10px;">{{startFrame}}</b> <button id="endButton" type="button" class="btn btn-danger" rel="tooltip" title="Select your end frame using the slider.">End</button> <b style="padding: 10px;" id="endFrame">{{endFrame}}</b>
+        <h5 style="margin-top: 10px; margin-bottom: 10px;"> Comment: <h5>
+        <textarea type="text" class="commentInput" id="commentInput"></textarea><br />
+        <button class="btn" id="submitAnnotation">Add Annotation</button>
+      </div>
+    </div>
+  </div>
+</div>
 </template>
 
 
@@ -362,6 +392,12 @@ void main() {
 <template name="webgl">
 <div class="webglstuff">
 <div class="controls">
+
+<p class="ui-state-default ui-corner-all ui-helper-clearfix" style="padding: 4px;">
+  Image slider
+</p>
+ 
+<div id="master" style="width: 96%; margin: 2%;"></div>
 
 <div class="controlbox">
 <select id="rendermode">
@@ -375,9 +411,7 @@ void main() {
   <tr><td>Gamma:</td><td><input type="range" id="gamma" value="1" min="0.5" max="1.5" step="0.01" /></td><td><span id="gamma_current" style="width: 5em"></span></td></tr>
 </table>
 {{#if needsGridBox}}
-<p class="controlbox">
-<input type="checkbox" id="grid" value="1" /> Grid
-</p>
+<button type="button" class="btn" id="grid">Grid</button>
 {{/if}}
 
 <p id="controls-lightfield" class="controlbox">
@@ -394,6 +428,10 @@ void main() {
 <canvas id="canvas-image" width="1080" height="1280"></canvas>
 <canvas id="canvas-lightfield" width="432" height="512"></canvas>
 </div>
+
+
+ 
+
 </template>
 
 
