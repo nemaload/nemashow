@@ -347,6 +347,7 @@ void main() {
 <h5> <i class="icon-comments"></i> Annotations</h5>
 
 <div class="accordion" id="accordion2">
+{{#unless noAnnotations}}
   {{#each annotationsForImage}}
   <div class="accordion-group">
     <div class="accordion-heading">
@@ -358,7 +359,7 @@ void main() {
       <div class="accordion-inner">
         <div class="annotation">
 
-<i class="icon-remove-sign" style="float: right; cursor:pointer;" id={{_id}}></i>
+<i class="icon-remove-sign" style="float: right; cursor:pointer;" id="{{_id}}"></i>
 
 <h6>Concerning frames {{startFrame}} to {{endFrame}}, {{creator userId}} said: </h6>
 <p> {{comment}} <p>
@@ -367,10 +368,14 @@ void main() {
     </div>
   </div>
   {{/each}}
+{{/unless}}
+{{#if noAnnotations}}
+<p> There are no annotations for this image. <br /> Why don't you write one?</p>
+{{/if}}
   <div class="accordion-group">
     <div class="accordion-heading">
       <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
-        <h5> <i class="icon-pencil"></i> Write an annotation:</h5> 
+        <h5> <i class="icon-pencil"></i> Write an annotation</h5> 
       </a>
     </div>
     <div id="collapseTwo" class="accordion-body collapse">
@@ -397,7 +402,9 @@ void main() {
   Image slider
 </p>
  
-<div id="master" style="width: 96%; margin: 2%;"></div>
+<div id="imageSlider" style="width: 96%; margin: 2%;"></div>Gain 
+
+<div id="gainSlider" style="width: 46%; margin: 2%"></div> <div id="gammaSlider" style="width: 46%; margin: 2%;"></div>
 
 <div class="controlbox">
 <select id="rendermode">
@@ -425,7 +432,9 @@ void main() {
 </p>
 
 </div>
-<canvas id="canvas-image" width="1080" height="1280"></canvas>
+<!--<canvas id="canvas-image" width="1080" height="1280"></canvas>
+<canvas id="canvas-lightfield" width="432" height="512"></canvas> -->
+<canvas id="canvas-image" width="540" height="640"></canvas>
 <canvas id="canvas-lightfield" width="432" height="512"></canvas>
 </div>
 

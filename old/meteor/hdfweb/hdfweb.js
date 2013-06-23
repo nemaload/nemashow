@@ -295,6 +295,12 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
     $('[rel=tooltip]').tooltip();
   }
 
+  Template.imageAnnotations.noAnnotations = function () {
+    if (Annotations.find({imageId: Session.get("currentImageId")}).count() == 0) {
+      return true;
+    }
+    return false;
+  }
   Template.imageAnnotations.startFrame = function () {
     return Session.get("startFrameIndex");
   }
@@ -313,7 +319,6 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
       var startFrame = Session.get('startFrameIndex');
       var endFrame = Session.get('endFrameIndex');
       var comment = $('textarea#commentInput').val();
-      alert(comment);
       Meteor.call('createAnnotation', startFrame, endFrame, comment, Session.get("currentImageId"), function (err, result) {
         if (err) {
           alert(err);
@@ -377,14 +382,30 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
     updateUV_display();
 
     //set up jquery UI slider here
-    $( "#master" ).slider({
-      value: 60,
+    $( "#imageSlider" ).slider({
+      value: 50,
       orientation: "horizontal",
       range: "min",
       animate: true
     });
     // setup interface
     $("#grid").button();
+
+    $("#gainSlider").slider({
+      value: 50,
+      orientation: "horizontal",
+      range: "min",
+      animate: true
+    });
+
+    $("#gammaSlider").slider({
+      value: 50,
+      orientation: "horizontal",
+      range: "min",
+      animate: true
+    });
+
+
 
   }
   //WebGL related stuff
