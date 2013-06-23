@@ -402,8 +402,8 @@ void main() {
   Image slider
 </p>
  
-<div id="imageSlider" style="width: 96%; margin: 2%;"></div>Gain 
-
+<div id="imageSlider" style="width: 96%; margin: 2%;"></div>Gain <span id="gain_current" style="width: 5em"></span>
+<span id="gamma_current" style="width: 5em"></span>
 <div id="gainSlider" style="width: 46%; margin: 2%"></div> <div id="gammaSlider" style="width: 46%; margin: 2%;"></div>
 
 <div class="controlbox">
@@ -413,10 +413,7 @@ void main() {
 </select>
 </div>
 
-<table class="controlbox">
-  <tr><td>Gain:</td><td><input type="range" id="gain" value="0" min="-1" max="1" step="0.05" /></td><td><span id="gain_current" style="width: 5em"></span></td></tr>
-  <tr><td>Gamma:</td><td><input type="range" id="gamma" value="1" min="0.5" max="1.5" step="0.01" /></td><td><span id="gamma_current" style="width: 5em"></span></td></tr>
-</table>
+
 {{#if needsGridBox}}
 <button type="button" class="btn" id="grid">Grid</button>
 {{/if}}

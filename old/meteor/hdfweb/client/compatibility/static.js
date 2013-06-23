@@ -1,4 +1,8 @@
+//UI stuff
+//Slider
 
+
+//End UI stuff
 var mouseSensitivity = 4.0;
 
 var ofs_U = 0.0, ofs_V = 0.0; // in OpenGL coordinate system
@@ -177,7 +181,7 @@ function render_image(image, canvas, gl) {
 	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
 	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
-	gl.uniform2f(gammaGainLocation, parseFloat($('#gamma').val()), Math.pow(10, parseFloat($('#gain').val())));
+	gl.uniform2f(gammaGainLocation, parseFloat($('#gammaSlider').slider("value")), Math.pow(10, parseFloat($('#gainSlider').slider("value"))));
 
 	var texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);

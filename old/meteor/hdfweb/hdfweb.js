@@ -383,7 +383,7 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
 
     //set up jquery UI slider here
     $( "#imageSlider" ).slider({
-      value: 50,
+      value: 0,
       orientation: "horizontal",
       range: "min",
       animate: true
@@ -392,21 +392,36 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
     $("#grid").button();
 
     $("#gainSlider").slider({
-      value: 50,
+      value: 0,
+      min: -1,
+      max: 1,
+      step: 0.05,
       orientation: "horizontal",
       range: "min",
-      animate: true
+      animate: true,
+      change: function () {
+        $('#gain_current').html(Math.pow(10, $("#gainSlider").slider("value")).toFixed(2));
+        render_if_ready(image,0);
+      }
     });
+
 
     $("#gammaSlider").slider({
-      value: 50,
+      value: 1,
+      min: 0.5,
+      max: 1.5,
+      step: 0.01,
       orientation: "horizontal",
       range: "min",
-      animate: true
+      animate: true,
+      change: function () {
+        $('#gamma_current').html(parseFloat($("#gammaSlider").slider("value")).toFixed(2));
+        render_if_ready(image,0);
+      }
     });
 
 
-
+    //$("#gainSlider").slider("value");
   }
   //WebGL related stuff
   Template.webgl.events = {
@@ -437,11 +452,18 @@ Handlebars.registerHelper('labelBranch', function (label, options) {
         $(window).unbind("mouseup");
       });
     },
-    'change #gain' : function (e) {
+    //NOTE, GAMMA AND GAIN WERE CHANGED IN STATIC.JS
+    /*'change #gain' : function (e) {
       console.log("Gain changed");
       $('#gain_current').html(Math.pow(10, $(e.target).val()).toFixed(2));
       render_if_ready(image,0);
-    }, 
+    }, */
+    /*'mouseleave #gainSlider' : function (e) {
+      console.log("Gain changed");
+      $('#gain_current').html(Math.pow(10, $("#gainSlider").slider("value")).toFixed(2));
+      render_if_ready(image,0);
+    },*/
+    //Slider callback is set above
     //this might cause some problems, not having the .change(), also check spelling
     'click #grid' : function() {
       $("#grid").toggleClass('active');
