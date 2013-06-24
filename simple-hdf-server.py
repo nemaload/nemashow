@@ -339,10 +339,11 @@ class LightsheetFile:
         ls = {}
         channel_list = [i for (i, node) in self.h5file.get_node('/', '/images')._v_children.items()]
         for ch in channel_list:
-            group_list = [i for (i, node) in self.h5file.get_node('/', '/images/' + ch)._v_children.items()]
+            ch = ch[len(".ch"):]
+            group_list = [i for (i, node) in self.h5file.get_node('/', '/images/.ch' + ch)._v_children.items()]
             group_list = map(int, group_list)
             group_list.sort()
-            ls[ch] = group_list
+            ls[int(ch)] = group_list
         return ls
 
     def get_subgroup(self, objpath):
