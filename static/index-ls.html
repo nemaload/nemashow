@@ -112,9 +112,9 @@ function newmode(newmode) {
 	document.getElementById("canvas-slice").style.display = mode == "slice" ? 'block' : 'none';
 	document.getElementById("controls-slice").style.display = mode == "slice" ? 'block' : 'none';
 	document.getElementById("info-slice").style.display = mode == "slice" ? 'block' : 'none';
-	document.getElementById("canvas-lightsheet").style.display = mode == "lightsheet" ? 'block' : 'none';
-	document.getElementById("controls-lightsheet").style.display = mode == "lightsheet" ? 'block' : 'none';
-	document.getElementById("boundingbox-lightsheet").style.display = mode == "lightsheet" ? 'block' : 'none';
+	document.getElementById("canvas-3d").style.display = mode == "3d" ? 'block' : 'none';
+	document.getElementById("controls-3d").style.display = mode == "3d" ? 'block' : 'none';
+	document.getElementById("boundingbox-3d").style.display = mode == "3d" ? 'block' : 'none';
 }
 
 function setupZ() {
@@ -221,7 +221,7 @@ function render(image, is_new_image) {
 
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 
-	if (mode == "lightsheet" && $('#box').prop('checked'))
+	if (mode == "3d" && $('#box').prop('checked'))
 		render_box(canvas, gl);
 }
 
@@ -279,7 +279,7 @@ function render_slice(image, canvas, gl) {
 function render_lightsheet(image, canvas, gl) {
 	// compile shaders
 	vertexShader = createShaderFromScriptElement(gl, "image-vertex-shader");
-	fragmentShader = createShaderFromScriptElement(gl, "lightsheet-fragment-shader");
+	fragmentShader = createShaderFromScriptElement(gl, "3d-fragment-shader");
 	program = createProgram(gl, [vertexShader, fragmentShader]);
 	gl.useProgram(program);
 
@@ -468,7 +468,7 @@ void main() {
 }
 </script>
 
-<script id="lightsheet-fragment-shader" type="x-shader/x-fragment">
+<script id="3d-fragment-shader" type="x-shader/x-fragment">
 precision mediump float;
 
 // our texture
@@ -585,7 +585,7 @@ group
 <div class="controlbox">
 <select id="rendermode" size="2">
 	<option value="slice" selected="1">Slice</option>
-	<option value="lightsheet">Light sheet</option>
+	<option value="3d">3D</option>
 </select>
 </div>
 
@@ -594,7 +594,7 @@ group
 	<tr><td>Gamma:</td><td><input type="range" id="gamma" value="1" min="0.5" max="1.5" step="0.01" /></td><td><span id="gamma_current"></span></td></tr>
 </table>
 
-<div id="controls-lightsheet" class="controlbox">
+<div id="controls-3d" class="controlbox">
 <table>
 <tr><td>
 <input type="button" value="U-" onClick="updateUV(-ofs_UV_step, 0);">
@@ -629,7 +629,7 @@ group
 </table>
 </div>
 
-<div id="boundingbox-lightsheet" class="controlbox">
+<div id="boundingbox-3d" class="controlbox">
 <input type="checkbox" id="box" value="1" /> Bounding box<br />
 [<input type="text" id="box-x0" value="40.0" size="4" />,
  <input type="text" id="box-y0" value="40.0" size="4" />,
@@ -642,7 +642,7 @@ group
 </div>
 
 <canvas id="canvas-slice" width="512" height="512"></canvas>
-<canvas id="canvas-lightsheet" width="512" height="512"></canvas>
+<canvas id="canvas-3d" width="512" height="512"></canvas>
 
 <script>
 $('#fileselect').change(function () {
@@ -665,7 +665,7 @@ $('#rendermode').change(function () {
 });
 
 // mouse dragging hack
-$('#canvas-lightsheet').mousedown(function() {
+$('#canvas-3d').mousedown(function() {
 	console.log("mousedown");
 	mousedrag_X = event.pageX
 	mousedrag_Y = event.pageY
