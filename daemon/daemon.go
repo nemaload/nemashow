@@ -154,10 +154,10 @@ func ConvertHDF5ToPNG(inputPath string, newRootDirectory string, session *mgo.Se
 
 	//find path here
 	//result := HDF5Image{}
-	c := session.DB("test").C("files")
+	c := session.DB("meteor").C("images")
 
-	colQuerier := bson.M{"path": inputPath}
-	change := bson.M{"$set": bson.M{"pngpath": basePath}}
+	colQuerier := bson.M{"originalPath": inputPath}
+	change := bson.M{"$set": bson.M{"webPath": basePath}}
 	fmt.Println("Set PNG path to", basePath)
 	newErr := c.Update(colQuerier, change)
 	if newErr != nil {
