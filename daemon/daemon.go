@@ -13,27 +13,41 @@ import (
 	"strings"
 )
 
-//Holds details about an HDF5 file(replace this with separate objects later.
+//Holds details about an HDF5 file(comments are equivalent in original go program)
+//after the demo convert this to work with S3, no file transfers from local machine
 type HDF5Image struct {
-	Id           bson.ObjectId "_id"
-	Path         string        //path to file
-	PNGPath      string
-	Name         string //basename
-	FileSize     int64  // length in bytes
-	NumFrames    uint16 // number of image frames
-	CreatedAt    string //when the image was creatd
-	OriginalName string //the original name of the image
-	Pitch        float64
-	Flen         float64
-	Mag          float64
-	Abbe         bool
-	Na           float64
-	Medium       float64
+	//Id           bson.ObjectId "_id" //letting mongo handle this
+	//Path         string //originalPath
+	originalPath string
+	//PNGPath      string //webPath
+	webPath string
+	// Name         string //baseName
+	baseName string
+	// FileSize     int64 //size
+	size int64
+	// NumFrames    uint16 //numFrames
+	numFrames uint16
+	// CreatedAt    string //creationDate
+	creationDate string
+	// OriginalName string //originalName
+	originalName string
+	// Pitch        float64 //op_pitch
+	op_pitch float64
+	// Flen         float64 //op_flen
+	op_flen float64
+	// Mag          float64 //op_mag
+	op_mag float64
+	// Abbe         bool //op_abbe
+	op_abbe bool
+	// Na           float64 //op_na
+	op_na float64
+	// Medium       float64 //op_medium
+	op_medium float64
 }
 
 func RunS3Sync(repoAddress, localFolder string) {
 	//for us this is s3://nemaload.data
-	fmt.Println("Starting sync from S3 to local machine...(this takes a bit!)")
+	fmt.Println("Starting sync from S3 to local machine...(this takes a LONG time, do not run until optimized)")
 	exec.Command("s3cmd", "sync", repoAddress, localFolder)
 	fmt.Println("Completed sync!")
 }
@@ -84,38 +98,45 @@ func RemoveInvalidFiles(pathList []string) []string {
 	return pathList
 }
 func InsertImageIntoDatabase(path string, session *mgo.Session) {
-	c := session.DB("test").C("files")
+	c := session.DB("meteor").C("images")
 	//gather image data into object here
 	newImage := HDF5Image{}
-	newImage.Path = path
-	newImage.Id = bson.NewObjectId()
-	newImage.Name = filepath.Base(path)
-	newImage.OriginalName = GetHDF5Attribute("originalName", "images", path)
-	fi, _ := os.Stat(path)
-	newImage.FileSize = fi.Size()
-	number, _ := strconv.Atoi(GetHDF5Attribute("numFrames", "images", path))
-	newImage.NumFrames = uint16(number)
-	newImage.CreatedAt = GetHDF5Attribute("createdAt", "images", path)
-	//inserting default parameters for optics for now, CHANGE THIS
-	newImage.Pitch = 150
-	newImage.Flen = 3000
-	newImage.Mag = 60
-	newImage.Abbe = false
-	newImage.Na = 1.4
-	newImage.Medium = 1.515
-	//end default parameters
-	err := c.Insert(&newImage)
-	if err != nil {
-		panic(err)
+	newImage.originalPath = path
+	//newImage.Id = bson.NewObjectId() // let's let mongo set this to avoid collisions, also commented out in schema
+	newImage.baseName = filepath.Base(path)
+	newImage.originalName = GetHDF5Attribute("originalName", "images", path)
+	//check for uniquness here, will not add any files which have a basename already in the database
+	result = HDF5Image{}
+	err := c.Find(bson.M{"originalName": newImage.originalName}).One(&result)
+	if err == nil {
+		print "File already exists in database according to baseName, skipping..."
+	}else {
+		print err
+		fi, _ := os.Stat(path)
+		newImage.size = fi.Size()
+		number, _ := strconv.Atoi(GetHDF5Attribute("numFrames", "images", path))
+		newImage.numFrames = uint16(number)
+		newImage.creationDate = GetHDF5Attribute("createdAt", "images", path)
+		//inserting default parameters for optics for now, CHANGE THIS
+		newImage.op_pitch = 150
+		newImage.op_flen = 3000
+		newImage.op_mag = 60
+		newImage.op_abbe = false
+		newImage.op_na = 1.4
+		newImage.op_medium = 1.515
+		//end default parameters
+		err := c.Insert(&newImage)
+		if err != nil {
+			panic(err)
+		}
 	}
-	//TODO: In future, add uniqueness checks
 
 }
 func ConvertHDF5ToPNG(inputPath string, newRootDirectory string, session *mgo.Session) {
 
 	newPath := strings.Join([]string{inputPath, ":/images/0"}, "")
 	fmt.Println("Saving to", newPath)
-	_, err := exec.Command("h5topng", "-r", newPath).Output()
+	_, err := exec.Command("h5topng", "-r","-8", newPath).Output() //WARNING CHECK OUTPUT, 8 MIGHT BE A PROBLEM
 	if err != nil {
 		panic(err)
 	}
