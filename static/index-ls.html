@@ -14,28 +14,75 @@ var ofs_Z = 0.0, ofs_U = 0.0, ofs_V = 0.0; // in OpenGL coordinate system
 var imageTexture = {}, zTexture = {}; // indexed by mode name
 var mode;
 
+var files, filedata;
 var image, metadata;
 var loaded = {}; // indexed by variable name
 
 window.onload = main;
 function main() {
-	loadimage("rawls.png"); // asynchronous
+	loadList(); // asynchronous
 	newmode("slice");
 }
 
-function loadimage(imagepath) {
+function loadList(onload) {
+	$.getJSON("/lightsheet/", function(data) {
+		files = data;
+
+		// populate file select
+		fileselect = $('#fileselect');
+		$.each(files, function() {
+			fileselect.append($("<option />").val(this).text(this));
+		});
+
+		loadFile(files[0]); // asynchronous
+	})
+}
+
+function loadFile(filename) {
+	$.getJSON("/lightsheet/" + filename, function(data) {
+		filedata = data;
+
+		// populate channel select
+		var channel = $('#channel');
+		var channel_list = Object.keys(filedata).sort();
+		$.each(channel_list, function() {
+			channel.append($("<option />").val(this).text(this));
+		});
+
+		setChannel("0");
+	})
+}
+
+function setChannel(channel) {
+	document.getElementById("channel").value = channel;
+	var maxg = filedata[channel].length - 1;
+	document.getElementById("group").max = maxg;
+	if ($("#group").val() > maxg)
+		document.getElementById("group").val = maxg;
+	setGroup(filedata[channel][0]);
+}
+
+function setGroup(group) {
+	document.getElementById("group").value = group;
+	var channel = $('#channel').val();
+	var path = ["/lightsheet", $("#fileselect").val(), $("#channel").val(), filedata[channel][group]].join("/");
+	loadimage(path);
+}
+
+function loadimage(path) {
 	// This method of asynchronous loading may be problematic if there
 	// is still an outstanding request from previous loadimage(); FIXME
 	loaded = { "image": 0, "metadata": 0 };
 
-	image = new Image();
-	image.src = imagepath; // MUST BE SAME DOMAIN!!!
-	image.onload = function() {
+	var image_loading = new Image();
+	image_loading.src = path + "/png"; // MUST BE SAME DOMAIN!!!
+	image_loading.onload = function() {
+		image = image_loading;
 		loaded.image = 1;
 		render_if_ready();
 	}
 
-	metadatapath = imagepath.replace(/\.[^/.]+$/, ".json");
+	metadatapath = path + "/json";
 	$.getJSON(metadatapath, function(data) {
 		metadata = data;
 		loaded.metadata = 1;
@@ -518,93 +565,11 @@ canvas, .controls {
 <div class="controls">
 
 <p class="controlbox">
-Please select an image to view.<br />
-<!-- These are generated with a Python script for now due to cross-domain limitations I violated while half-awake -->
-<select id="imageselect">
-	<option value="/images/lensgrid.hdf5.png">lensgrid</option>
-	<option value="/images/beads_w_lenses.hdf5.png">beads_w_lenses</option>
-	<option value="/images/beads_w_lenses2.hdf5.png">beads_w_lenses2</option>
-	<option value="/images/beads_w_lenses3.hdf5.png">beads_w_lenses3</option>
-	<option value="/images/beads_wo_lenses.hdf5.png">beads_wo_lenses</option>
-	<option value="/images/beads_wo_lenses2.hdf5.png">beads_wo_lenses2</option>
-	<option value="/images/beads_wo_lenses3.hdf5.png">beads_wo_lenses3</option>
-	<option value="/images/beads_w_lenses.hdf5.png">beads_w_lenses</option>
-	<option value="/images/beads_w_lenses2.hdf5.png">beads_w_lenses2</option>
-	<option value="/images/2D_beads_w_lenses.hdf5.png">2D_beads_w_lenses</option>
-	<option value="/images/MT21063_1.hdf5.png">MT21063_1</option>
-	<option value="/images/MT21063_video1.hdf5.png">MT21063_video1</option>
-	<option value="/images/MT21063_video10.hdf5.png">MT21063_video10</option>
-	<option value="/images/MT21063_video11.hdf5.png">MT21063_video11</option>
-	<option value="/images/Epi_63xZeiss_1.4_3beads_w_lenses1.hdf5.png">Epi_63xZeiss_1.4_3beads_w_lenses1</option>
-	<option value="/images/Epi_63xZeiss_1.4_3beads_w_lenses2.hdf5.png">Epi_63xZeiss_1.4_3beads_w_lenses2</option>
-	<option value="/images/Epi_63xZeiss_1.4_3beads_wo_lenses.hdf5.png">Epi_63xZeiss_1.4_3beads_wo_lenses</option>
-	<option value="/images/Epi_63xZeiss_1.4_pollen_w_lenses.hdf5.png">Epi_63xZeiss_1.4_pollen_w_lenses</option>
-	<option value="/images/Epi_63xZeiss_1.4_pollen_wo_lenses.hdf5.png">Epi_63xZeiss_1.4_pollen_wo_lenses</option>
-	<option value="/images/Kohler_63xZeiss_1.4_pollen_w_lenses.hdf5.png">Kohler_63xZeiss_1.4_pollen_w_lenses</option>
-	<option value="/images/Kohler_63xZeiss_1.4_pollen_wo_lenses.hdf5.png">Kohler_63xZeiss_1.4_pollen_wo_lenses</option>
-	<option value="/images/Drosophila_brain_w_lenses.hdf5.png">Drosophila_brain_w_lenses</option>
-	<option value="/images/Drosophila_brain_w_lenses2.hdf5.png">Drosophila_brain_w_lenses2</option>
-	<option value="/images/Drosophila_brain_w_lenses.hdf5.png">Drosophila_brain_w_lenses</option>
-	<option value="/images/Drosophila_brain_w_lenses2.hdf5.png">Drosophila_brain_w_lenses2</option>
-	<option value="/images/Drosophila_brain_wo_lenses.hdf5.png">Drosophila_brain_wo_lenses</option>
-	<option value="/images/Drosophila_brain_wo_lenses2.hdf5.png">Drosophila_brain_wo_lenses2</option>
-	<option value="/images/Olympus_60x_1.45_beads_w_lenses.hdf5.png">Olympus_60x_1.45_beads_w_lenses</option>
-	<option value="/images/Olympus_60x_1.45_beads_wo_lenses.hdf5.png">Olympus_60x_1.45_beads_wo_lenses</option>
-	<option value="/images/beads_wo_lenses.hdf5.png">beads_wo_lenses</option>
-	<option value="/images/beads_wo_lenses2.hdf5.png">beads_wo_lenses2</option>
-	<option value="/images/larger_beads_w_lenses.hdf5.png">larger_beads_w_lenses</option>
-	<option value="/images/larger_beads_w_lenses2.hdf5.png">larger_beads_w_lenses2</option>
-	<option value="/images/larger_beads_w_lenses2_180rot.hdf5.png">larger_beads_w_lenses2_180rot</option>
-	<option value="/images/larger_beads_wo_lenses.hdf5.png">larger_beads_wo_lenses</option>
-	<option value="/images/larger_beads_wo_lenses2.hdf5.png">larger_beads_wo_lenses2</option>
-	<option value="/images/2D_beads_w_lenses_diff_z1.hdf5.png">2D_beads_w_lenses_diff_z1</option>
-	<option value="/images/2D_beads_w_lenses_diff_z2.hdf5.png">2D_beads_w_lenses_diff_z2</option>
-	<option value="/images/2D_beads_w_lenses_diff_z3.hdf5.png">2D_beads_w_lenses_diff_z3</option>
-	<option value="/images/2D_beads_wo_lenses.hdf5.png">2D_beads_wo_lenses</option>
-	<option value="/images/beads_3D_w_lenses.hdf5.png">beads_3D_w_lenses</option>
-	<option value="/images/beads_3D_w_lenses_diff_z1.hdf5.png">beads_3D_w_lenses_diff_z1</option>
-	<option value="/images/beads_3D_w_lenses_diff_z2.hdf5.png">beads_3D_w_lenses_diff_z2</option>
-	<option value="/images/beads_3D_w_lenses_diff_z3.hdf5.png">beads_3D_w_lenses_diff_z3</option>
-	<option value="/images/beads_3D_w_lenses_diff_z4.hdf5.png">beads_3D_w_lenses_diff_z4</option>
-	<option value="/images/beads_3D_w_lenses_diff_z5.hdf5.png">beads_3D_w_lenses_diff_z5</option>
-	<option value="/images/beads_3D_w_lenses_diff_z6.hdf5.png">beads_3D_w_lenses_diff_z6</option>
-	<option value="/images/beads_3D_wo_lenses.hdf5.png">beads_3D_wo_lenses</option>
-	<option value="/images/dense_2D_beads_w_lenses.hdf5.png">dense_2D_beads_w_lenses</option>
-	<option value="/images/dense_2D_beads_w_lenses_diff_z1.hdf5.png">dense_2D_beads_w_lenses_diff_z1</option>
-	<option value="/images/dense_2D_beads_w_lenses_diff_z2.hdf5.png">dense_2D_beads_w_lenses_diff_z2</option>
-	<option value="/images/dense_2D_beads_w_lenses_diff_z3.hdf5.png">dense_2D_beads_w_lenses_diff_z3</option>
-	<option value="/images/dense_2D_beads_wo_lenses.hdf5.png">dense_2D_beads_wo_lenses</option>
-	<option value="/images/MT21063_video12.hdf5.png">MT21063_video12</option>
-	<option value="/images/MT21063_video13.hdf5.png">MT21063_video13</option>
-	<option value="/images/MT21063_video14.hdf5.png">MT21063_video14</option>
-	<option value="/images/MT21063_video2.hdf5.png">MT21063_video2</option>
-	<option value="/images/MT21063_video3.hdf5.png">MT21063_video3</option>
-	<option value="/images/MT21063_video4.hdf5.png">MT21063_video4</option>
-	<option value="/images/MT21063_video15.hdf5.png">MT21063_video15</option>
-	<option value="/images/MT21063_video16_rolling.hdf5.png">MT21063_video16_rolling</option>
-	<option value="/images/MT21063_video17_rolling.hdf5.png">MT21063_video17_rolling</option>
-	<option value="/images/MT21063_video18_rolling_dz_ml.hdf5.png">MT21063_video18_rolling_dz_ml</option>
-	<option value="/images/cell_layer_pawel_blue.hdf5.png">cell_layer_pawel_blue</option>
-	<option value="/images/cell_layer_pawel_blue_2.hdf5.png">cell_layer_pawel_blue_2</option>
-	<option value="/images/cell_layer_pawel_green.hdf5.png">cell_layer_pawel_green</option>
-	<option value="/images/cell_layer_pawel_green_2.hdf5.png">cell_layer_pawel_green_2</option>
-	<option value="/images/cell_layer_pawel_red.hdf5.png">cell_layer_pawel_red</option>
-	<option value="/images/cells2_pawel_blue.hdf5.png">cells2_pawel_blue</option>
-	<option value="/images/cells2_pawel_blue_2.5x.hdf5.png">cells2_pawel_blue_2.5x</option>
-	<option value="/images/cells2_pawel_green.hdf5.png">cells2_pawel_green</option>
-	<option value="/images/cells2_pawel_green_2.5x.hdf5.png">cells2_pawel_green_2.5x</option>
-	<option value="/images/cells2_pawel_red.hdf5.png">cells2_pawel_red</option>
-	<option value="/images/cells2_pawel_red_2.5x.hdf5.png">cells2_pawel_red_2.5x</option>
-	<option value="/images/pflp18gCAMP5_mCherry_video20_global_dz_ml.hdf5.png">pflp18gCAMP5_mCherry_video20_global_dz_ml</option>
-	<option value="/images/pflp18gCAMP5_mCherry_video21_global.hdf5.png">pflp18gCAMP5_mCherry_video21_global</option>
-	<option value="/images/punc31_gCAMP5_td_snapshot_1.6x_gfpfilter.hdf5.png">punc31_gCAMP5_td_snapshot_1.6x_gfpfilter</option>
-	<option value="/images/punc31_gCAMP5_td_snapshot_1.6x_gfpfilter_2.hdf5.png">punc31_gCAMP5_td_snapshot_1.6x_gfpfilter_2</option>
-	<option value="/images/punc31_gCAMP5_td_snapshot_1.6x_gfpfilter_4.hdf5.png">punc31_gCAMP5_td_snapshot_1.6x_gfpfilter_4</option>
-	<option value="/images/punc31_gCAMP5_td_video22_global.hdf5.png">punc31_gCAMP5_td_video22_global</option>
-	<option value="/images/punc31_gCAMP5_td_video23_global_gfpfilter.hdf5.png">punc31_gCAMP5_td_video23_global_gfpfilter</option>
-	<option value="/images/punc31_gCAMP5_td_video24_global_gfpfilter_tail.hdf5.png">punc31_gCAMP5_td_video24_global_gfpfilter_tail</option>
-	<option value="/images/punc31_gCAMP5_td_video25_global_gfpfilter.hdf5.png">punc31_gCAMP5_td_video25_global_gfpfilter</option>
+<select id="fileselect"> <!-- populated by loadList() -->
 </select>
+ch#<select id="channel"> <!-- populated by loadFile() -->
+</select><br />
+<input type="range" id="group" value="0" min="0" max="0" /> <!-- populated by setChannel() -->
 </p>
 
 <div class="controlbox">
@@ -670,10 +635,19 @@ Please select an image to view.<br />
 <canvas id="canvas-lightsheet" width="512" height="512"></canvas>
 
 <script>
-$('#imageselect').change(function () {
-	console.log("Image changed");
-	loadimage($(this).val());
+$('#fileselect').change(function () {
+	console.log("File changed");
+	loadFile($(this).val());
 });
+$('#channel').change(function () {
+	console.log("Channel changed");
+	setChannel($(this).val());
+});
+$('#group').change(function () {
+	console.log("Group changed");
+	setGroup($(this).val());
+});
+
 $('#rendermode').change(function () {
 	console.log("Mode changed");
 	newmode($(this).val());
