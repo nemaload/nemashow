@@ -63,8 +63,13 @@ function setChannel(channel) {
 }
 
 function setGroup(group) {
-	document.getElementById("group").value = group;
 	var channel = $('#channel').val();
+	var maxg = filedata[channel].length - 1;
+	if (group > maxg || group < 0)
+		return; // ignore
+
+	document.getElementById("group").value = group;
+	$('#group_current').html(group);
 	var path = ["/lightsheet", $("#fileselect").val(), $("#channel").val(), filedata[channel][group]].join("/");
 	loadimage(path);
 }
@@ -567,9 +572,13 @@ canvas, .controls {
 <p class="controlbox">
 <select id="fileselect"> <!-- populated by loadList() -->
 </select>
-ch#<select id="channel"> <!-- populated by loadFile() -->
+channel <select id="channel"> <!-- populated by loadFile() -->
 </select><br />
+group
+<input type="button" value="-" onClick="setGroup(parseInt($('#group').val()) - 1);">
 <input type="range" id="group" value="0" min="0" max="0" /> <!-- populated by setChannel() -->
+<input type="button" value="+" onClick="setGroup(parseInt($('#group').val()) + 1);">
+<span id="group_current"></span>
 </p>
 
 <div class="controlbox">
