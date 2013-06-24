@@ -74,7 +74,7 @@ if (Meteor.isClient) {
   Session.setDefault("startFrameIndex", 0);
   Session.setDefault("endFrameIndex", 0);
   Session.setDefault("currentSearchTerm", "");
-
+  Session.setDefault("searchJSON", ""); //biggest hack ever
   //Folder related functions
   Template.folders.foldersTop = function() {
 
@@ -274,7 +274,6 @@ if (Meteor.isClient) {
       },
       source: function(query, process) {
         Meteor.call('search', ".*" + query.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1") + ".*", "autocomplete", function(err, result) {
-          console.log(result);
           if (result && result.length) {
             result.unshift(query.trim());
           } else if (result.length == 0) {
@@ -291,10 +290,23 @@ if (Meteor.isClient) {
     return Session.get("currentSearchTerm");
   }
 
-  Template.searchResults.rendered = function() {
-    //redo search here to get more results
+  Template.searchResults.searchResultsIntermediate = function () {
+    var query = Session.get("currentSearchTerm");
+    Meteor.call("search", ".*" + query.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1") + ".*", "full", function(err, result) {
+      if (result.length == 0) {
+            result = [];
+          }
+          var json_result = JSON.stringify(result);
+          Session.set("searchJSON", json_result);
+          //string to session variable to frontend which parses it FUCK YES
+    });
   }
 
+  Template.searchResults.searchResults = function () {
+    Template.searchResults.searchResultsIntermediate();
+    console.log( JSON.parse(Session.get("searchJSON")));
+    return JSON.parse(Session.get("searchJSON"));
+  }
 
 
   Template.mainView.isViewing = function(view) {
@@ -570,7 +582,6 @@ if (Meteor.isServer) {
         limit: 10
       }, function(error, results) {
         if (results && results.documents[0].ok === 1) {
-          console.log(results['documents'][0]['results']);
           var ret = results.documents[0].results;
           if (mode == "autocomplete") {
             fut.ret(_.uniq(_.map(_.pluck(ret, 'obj'), function(text) {
@@ -578,7 +589,7 @@ if (Meteor.isServer) {
             })));
           } else {
             fut.ret(_.uniq(_.map(_.pluck(ret, 'obj'), function(text) {
-              return text._id;
+              return text;
             })));
 
           }

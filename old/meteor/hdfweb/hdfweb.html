@@ -370,6 +370,39 @@ void main() {
   <h3>
     Search Results for {{currentSearchTerm}}
   </h3>
+  {{#each searchResults}}
+      <p>{{comment}}d</p>
+  {{/each}}
+   <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>
+            ID
+          </th>
+          <th>
+            Name
+          </th>
+          <th>
+            blah
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        
+        <tr class="fileViewRow" fileId={{_id}} draggable="true">
+          <td>
+            ID template
+          </td>
+          <td>
+           Basename template
+          </td>
+          <td>
+          Size template
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 </template>
 <template name="imageAnnotations">
   <h5>
