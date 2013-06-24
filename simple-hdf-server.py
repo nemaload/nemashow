@@ -103,6 +103,7 @@ class HDFHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.send_header("Content-Length", reply_size)
         if last_modified is not None:
             self.send_header("Last-Modified", self.date_time_string(last_modified))
+        self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         return (handler, o)
 
