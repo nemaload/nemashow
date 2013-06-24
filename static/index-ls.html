@@ -92,7 +92,8 @@ function loadimage(path) {
 		metadata = data;
 		loaded.metadata = 1;
 
-		setupZ();
+		if (ofs_Z < 0.01) // i.e., unset yet
+			setupZ();
 
 		render_if_ready();
 	});
