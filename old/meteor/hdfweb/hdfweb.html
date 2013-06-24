@@ -221,7 +221,7 @@ void main() {
             {{loginButtons align="right"}}
           </div>
           <form class="navbar-search pull-right" style="margin-right: 10px;">
-            <input type="text" class="search-query" id="annotationSearch" placeholder="Search annotations...">
+            <input type="text" class="search-query" id="annotationSearch" placeholder="Search annotations..." autocomplete="off">
           </form>
           <ul class="nav">
             <li>
@@ -367,45 +367,49 @@ void main() {
   {{#unless isViewing "viewingNothing"}} {{> imageInformation}} {{/unless}}
 </template>
 <template name="searchResults">
-  <h3>
-    Search Results for {{currentSearchTerm}}
+  <h3 class="truncate">
+    Search Results for "{{currentSearchTerm}}"
   </h3>
-  {{#each searchResults}}
-      <p>{{comment}}d</p>
-  {{/each}}
+  
    <table class="table table-striped">
       <thead>
         <tr>
           <th>
-            ID
+            User
           </th>
           <th>
-            Name
+            Comment
           </th>
           <th>
-            blah
+            Image Name
+          </th>
+          <th> 
+            Range
           </th>
         </tr>
       </thead>
       <tbody>
-        
-        <tr class="fileViewRow" fileId={{_id}} draggable="true">
+        {{#each searchResults}}
+        <tr class="fileViewRow" annotationID={{_id}}>
           <td>
-            ID template
+            {{user}}
           </td>
           <td>
-           Basename template
+           {{comment}}
           </td>
           <td>
-          Size template
+          {{imageName}}
           </td>
+          <td>
+          {{startFrame}}-{{endFrame}}
         </tr>
+        {{/each}}
       </tbody>
     </table>
   </div>
 </template>
 <template name="imageAnnotations">
-  <h5>
+  <h5 id="annotationsTitle">
     <i class="icon-comments">
     </i>
     Annotations

@@ -74,7 +74,7 @@ if (Meteor.isClient) {
   Session.setDefault("startFrameIndex", 0);
   Session.setDefault("endFrameIndex", 0);
   Session.setDefault("currentSearchTerm", "");
-  Session.setDefault("searchJSON", ""); //biggest hack ever
+  Session.setDefault("searchJSON", "{}"); //biggest hack ever
   //Folder related functions
   Template.folders.foldersTop = function() {
 
@@ -298,14 +298,40 @@ if (Meteor.isClient) {
           }
           var json_result = JSON.stringify(result);
           Session.set("searchJSON", json_result);
-          //string to session variable to frontend which parses it FUCK YES
     });
   }
 
   Template.searchResults.searchResults = function () {
     Template.searchResults.searchResultsIntermediate();
-    console.log( JSON.parse(Session.get("searchJSON")));
-    return JSON.parse(Session.get("searchJSON"));
+    var searchObject = JSON.parse(Session.get("searchJSON"));
+    if (typeof(searchObject) == "undefined") {
+      return;
+    }
+    var returnObject = [];
+    for(var i=0; i < searchObject.length; i++) {
+      var id = searchObject[i]._id;
+      var userName = Meteor.users.findOne(searchObject[i].userId).emails[0].address;
+      var comment = searchObject[i].comment;
+      var imageName = Images.findOne(searchObject[i].imageId).baseName;
+      if (typeof(imageName) == "undefined") {
+        imageName = "undefined";
+      }
+      var startFrame = searchObject[i].startFrame;
+      var endFrame = searchObject[i].endFrame;
+      returnObject.push({_id: id, user: userName, comment: comment, imageName: imageName, startFrame: startFrame, endFrame: endFrame});
+    }
+    console.log(returnObject);
+    return returnObject;
+  }
+
+  Template.searchResults.events = {
+    'click .fileViewRow': function(e) {
+      var image = Images.findOne(Annotations.findOne($(e.target).parent().attr("annotationId")).imageId)._id;
+      console.log(image);
+      Session.set("currentImageId", image);
+      Session.set("currentImageView", "viewingImage");
+      $("body").animate({ scrollTop: $(document).height() }, 1000); //perhaps make this more sophisticated with a callback later
+    }
   }
 
 

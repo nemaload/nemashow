@@ -63,3 +63,13 @@ padding: 10px;
 .dragover {
   color: red;
 }
+
+.typeahead > li > a {
+  white-space: normal;
+}
+
+.truncate {
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
