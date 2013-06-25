@@ -25,6 +25,8 @@ function main() {
 }
 
 function loadList(onload) {
+	updateLoading(+1);
+
 	$.getJSON("/lightsheet/", function(data) {
 		files = data;
 
@@ -35,10 +37,12 @@ function loadList(onload) {
 		});
 
 		loadFile(files[0]); // asynchronous
+		updateLoading(-1);
 	})
 }
 
 function loadFile(filename) {
+	updateLoading(+1);
 	$.getJSON("/lightsheet/" + filename, function(data) {
 		filedata = data;
 
@@ -51,6 +55,7 @@ function loadFile(filename) {
 		});
 
 		setChannel("0");
+		updateLoading(-1);
 	})
 }
 
@@ -80,14 +85,17 @@ function loadimage(path) {
 	// is still an outstanding request from previous loadimage(); FIXME
 	loaded = { "image": 0, "metadata": 0 };
 
+	updateLoading(+1);
 	var image_loading = new Image();
 	image_loading.src = path + "/png"; // MUST BE SAME DOMAIN!!!
 	image_loading.onload = function() {
 		image = image_loading;
 		loaded.image = 1;
+		updateLoading(-1);
 		render_if_ready();
 	}
 
+	updateLoading(+1);
 	metadatapath = path + "/json";
 	$.getJSON(metadatapath, function(data) {
 		metadata = data;
@@ -96,6 +104,7 @@ function loadimage(path) {
 		if (ofs_Z < 0.01) // i.e., unset yet
 			setupZ();
 
+		updateLoading(-1);
 		render_if_ready();
 	});
 }
@@ -105,6 +114,13 @@ function render_if_ready() {
 		return;
 	// we finally have everything, proceed!
 	render(image, 1);
+}
+
+var loading_count = 0;
+function updateLoading(loadingDelta) {
+	loading_count += loadingDelta;
+	document.getElementById("loader").className = loading_count == 0 ? "loaded" : "loading";
+	console.log("loading " + (loading_count == 0 ? "loaded" : "loading") + " count " + loading_count);
 }
 
 function newmode(newmode) {
@@ -560,6 +576,17 @@ canvas, .controls {
 	display: inline-block;
 	width: 6em; /* "1000" x2 */
 }
+
+#loader {
+	width: 16px; height: 16px;
+	display: inline-block;
+}
+#loader.loading {
+	background: url(loading.gif) no-repeat center center;
+}
+#loader.loaded {
+	background: none;
+}
 </style>
 
 </head>
@@ -572,10 +599,10 @@ canvas, .controls {
 <div class="controls">
 
 <p class="controlbox">
-<select id="fileselect"> <!-- populated by loadList() -->
-</select>
-channel <select id="channel"> <!-- populated by loadFile() -->
-</select><br />
+<select id="fileselect"> <!-- populated by loadList() --> </select>
+channel <select id="channel"> <!-- populated by loadFile() --> </select>
+<span id="loader" class="loading"></span>
+<br />
 group
 <input type="button" value="-" onClick="setGroup(parseInt($('#group').val()) - 1);">
 <input type="range" id="group" value="0" min="0" max="0" /> <!-- populated by setChannel() -->
@@ -707,6 +734,8 @@ $('#box-z1').change(box_changed);
 
 $('#U_current').html(parseFloat(ofs_U).toFixed(2));
 $('#V_current').html(parseFloat(ofs_V).toFixed(2));
+
+updateLoading(0);
 </script>
 	</body>
 </html>
