@@ -74,7 +74,7 @@ if (Meteor.isClient) {
   Session.setDefault("startFrameIndex", 0);
   Session.setDefault("endFrameIndex", 0);
   Session.setDefault("currentSearchTerm", "");
-  Session.setDefault("searchJSON", "{}"); //biggest hack ever
+  Session.setDefault("searchJSON", "{}"); 
   //Folder related functions
   Template.folders.foldersTop = function() {
 
@@ -434,6 +434,7 @@ if (Meteor.isClient) {
   Template.webgl.renderImage = function() {
     var imageObject = Images.findOne(Session.get("currentImageId"));
     //var imagePath = imageObject.path;
+    //rewrite so path is a session variable handled by the UI instead of here
     imagePath = "/images/lensgrid.png";
 
     loadimage(imagePath);
@@ -589,6 +590,7 @@ if (Meteor.isServer) {
       //> db.annotations.ensureIndex({comment:"text"})
       // sample search
       //> db.annotations.runCommand("text",{search:"test"})
+      console.log("Ran search");
       var searchterm_mod = '';
 
       var searchterms = searchterm.trim().split(" ");
