@@ -45,6 +45,7 @@ function loadFile(filename) {
 		// populate channel select
 		var channel = $('#channel');
 		var channel_list = Object.keys(filedata).sort();
+		channel.find('option').remove();
 		$.each(channel_list, function() {
 			channel.append($("<option />").val(this).text(this));
 		});
