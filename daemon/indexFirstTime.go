@@ -49,7 +49,7 @@ type HDF5Image struct {
 	//Path         string //originalPath
 	OriginalPath string "originalPath"
 	//PNGPath      string //webPath
-	WebPath string "webPath"
+	WebPath []string "webPath"
 	// Name         string //baseName
 	BaseName string "baseName"
 	// FileSize     int64 //size
@@ -72,6 +72,13 @@ type HDF5Image struct {
 	Op_na float64 "op_na"
 	// Medium       float64 //op_medium
 	Op_medium float64 "op_medium"
+	//These are autorectification parameters
+	Op_x_offset float64 "op_x_offset"
+	Op_y_offset float64 "op_y_offset"
+	Op_right_dx float64 "op_right_dx"
+	Op_right_dy float64 "op_right_dy"
+	Op_down_dx  float64 "op_down_dx"
+	Op_down_dy  float64 "op_down_dy"
 }
 
 func RunS3Sync(repoAddress, localFolder string) {
@@ -79,6 +86,43 @@ func RunS3Sync(repoAddress, localFolder string) {
 	fmt.Println("Starting sync from S3 to local machine...(this takes a LONG time, do not run until optimized)")
 	exec.Command("s3cmd", "sync", repoAddress, localFolder)
 	fmt.Println("Completed sync!")
+}
+
+func GetHDF5Autorectify(filepath string, session *mgo.Session) {
+	c := session.DB("meteor").C("dbtest")
+	//modify filepath to have -autorectify after name but before hdf5
+	newFilePath := filepath
+	newFilePath = strings.Replace(newFilePath, ".hdf5", "-autorectify.hdf5", -1)
+	//now that it's properly formatted, we can check if it exists
+	var op_x_offset, op_y_offset, op_right_dx, op_right_dy, op_down_dx, op_down_dy float64
+	//default values
+
+	if _, err := os.Stat(newFilePath); err != nil {
+		if os.IsNotExist(err) {
+			//maintains sample values
+			return
+		} else {
+			panic(err)
+		}
+	} else {
+		//file exists, get the correct attributes from it
+		//CONVERT FROM STRING TO FLOAT
+		op_x_offset, _ = strconv.ParseFloat(GetHDF5Attribute("x_offset", "autorectification", newFilePath), 64)
+		op_y_offset, _ = strconv.ParseFloat(GetHDF5Attribute("y_offset", "autorectification", newFilePath), 64)
+		op_right_dx, _ = strconv.ParseFloat(GetHDF5Attribute("right_dx", "autorectification", newFilePath), 64)
+		op_right_dy, _ = strconv.ParseFloat(GetHDF5Attribute("right_dy", "autorectification", newFilePath), 64)
+		op_down_dx, _ = strconv.ParseFloat(GetHDF5Attribute("down_dx", "autorectification", newFilePath), 64)
+		op_down_dy, _ = strconv.ParseFloat(GetHDF5Attribute("down_dy", "autorectification", newFilePath), 64)
+	}
+	//now update the database record for filepath, which is originalPath
+	colQuerier := bson.M{"originalPath": filepath}
+	change := bson.M{"$set": bson.M{"op_x_offset": op_x_offset, "op_y_offset": op_y_offset, "op_right_dx": op_right_dx, "op_right_dy": op_right_dy, "op_down_dx": op_down_dx, "op_down_dy": op_down_dy}}
+	newErr := c.Update(colQuerier, change)
+	if newErr != nil {
+		if newErr != mgo.ErrNotFound {
+			panic(newErr)
+		}
+	}
 }
 
 func GetHDF5Attribute(attribute string, group string, filepath string) string {
@@ -127,7 +171,6 @@ func RemoveInvalidFiles(pathList []string) []string {
 	return pathList
 }
 func InsertImageIntoDatabase(path string, session *mgo.Session) {
-	session.SetMode(mgo.Monotonic, true)
 	c := session.DB("meteor").C("dbtest")
 
 	//gather image data into object here
@@ -154,6 +197,12 @@ func InsertImageIntoDatabase(path string, session *mgo.Session) {
 		newImage.Op_abbe = false
 		newImage.Op_na = 1.4
 		newImage.Op_medium = 1.515
+		newImage.Op_x_offset = 1071.093000
+		newImage.Op_y_offset = 1272.69700
+		newImage.Op_right_dx = 23.3
+		newImage.Op_right_dy = 0.42
+		newImage.Op_down_dx = -0.4000
+		newImage.Op_down_dy = 23.3
 		fmt.Println(newImage.BaseName)
 		//end default parameters
 		err := c.Insert(&newImage)
@@ -192,9 +241,9 @@ func ConvertHDF5ToPNG(inputPath string, newRootDirectory string, session *mgo.Se
 		}
 		fmt.Println("Just converted", newPath)
 	}
-	fmt.Println(inputPath)
+	fmt.Println(webPath)
 	colQuerier := bson.M{"originalPath": inputPath}
-	change := bson.M{"$set": bson.M{"webPath": basePath}}
+	change := bson.M{"$set": bson.M{"webPath": webPath}}
 	newErr := c.Update(colQuerier, change)
 	if newErr != nil {
 		if newErr != mgo.ErrNotFound {
@@ -202,6 +251,7 @@ func ConvertHDF5ToPNG(inputPath string, newRootDirectory string, session *mgo.Se
 		}
 	}
 	fmt.Println("Successfully converted", inputPath)
+	GetHDF5Autorectify(inputPath, session)
 
 	//incorporate file number, and have each file appended to an array which then is pushed into webpath
 	/*pngPath := strings.Join([]string{inputPath, ".png"}, "")
