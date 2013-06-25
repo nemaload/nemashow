@@ -15,8 +15,7 @@ var imageTexture = {}, zTexture = {}; // indexed by mode name
 var mode;
 
 var files, filedata;
-var image, metadata;
-var loaded = {}; // indexed by variable name
+var group;
 
 window.onload = main;
 function main() {
@@ -68,52 +67,67 @@ function setChannel(channel) {
 	setGroup(filedata[channel][0]);
 }
 
-function setGroup(group) {
+function setGroup(num) {
 	var channel = $('#channel').val();
 	var maxg = filedata[channel].length - 1;
-	if (group > maxg || group < 0)
+	if (num > maxg || num < 0)
 		return; // ignore
 
-	document.getElementById("group").value = group;
-	$('#group_current').html(group);
-	var path = ["/lightsheet", $("#fileselect").val(), $("#channel").val(), filedata[channel][group]].join("/");
-	loadimage(path);
+	document.getElementById("group").value = num;
+	$('#group_current').html(num);
+	var path = ["/lightsheet", $("#fileselect").val(), $("#channel").val(), filedata[channel][num]].join("/");
+
+	group = new GroupImage(path);
 }
 
-function loadimage(path) {
-	// This method of asynchronous loading may be problematic if there
-	// is still an outstanding request from previous loadimage(); FIXME
-	loaded = { "image": 0, "metadata": 0 };
+function GroupImage(path) {
+	this.path = path;
 
-	updateLoading(+1);
-	var image_loading = new Image();
-	image_loading.src = path + "/png"; // MUST BE SAME DOMAIN!!!
-	image_loading.onload = function() {
-		image = image_loading;
-		loaded.image = 1;
-		updateLoading(-1);
-		render_if_ready();
-	}
+	// Loaded asynchronously
+	this.image = null
+	this.metadata = null
 
-	updateLoading(+1);
-	metadatapath = path + "/json";
-	$.getJSON(metadatapath, function(data) {
-		metadata = data;
-		loaded.metadata = 1;
+	this.load = function(path) {
+		var g = this;
 
-		if (ofs_Z < 0.01) // i.e., unset yet
-			setupZ();
+		updateLoading(+1);
+		var image_loading = new Image();
+		image_loading.src = path + "/png"; // MUST BE SAME DOMAIN!!!
+		image_loading.onload = function() {
+			g.image = image_loading;
+			updateLoading(-1);
+			g.render_if_ready();
+		}
 
-		updateLoading(-1);
-		render_if_ready();
-	});
-}
-function render_if_ready() {
-	console.log("loadimage " + loaded.image + " " + loaded.metadata);
-	if (!loaded.image || !loaded.metadata)
-		return;
-	// we finally have everything, proceed!
-	render(image, 1);
+		updateLoading(+1);
+		var metadatapath = path + "/json";
+		$.getJSON(metadatapath, function(data) {
+			g.metadata = data;
+
+			if (ofs_Z < 0.01) // i.e., unset yet
+				g.setupZ();
+
+			updateLoading(-1);
+			g.render_if_ready();
+		});
+	};
+	this.render_if_ready = function() {
+		if (!this.image || !this.metadata)
+			return;
+		// we finally have everything, proceed!
+		this.render(1);
+	};
+	this.render = function(is_new_image) {
+		render(this.image, this.metadata, is_new_image);
+	};
+	this.setupZ = function() {
+		/* After loading metadata, update a variety of stuff related
+		 * to the Z-coordinate. */
+		ofs_Z = this.metadata.framedata[Math.floor(this.metadata.framedata.length / 2)].z;
+		$('#Z_current').html(parseFloat(ofs_Z).toFixed(2));
+	};
+
+	this.load(path);
 }
 
 var loading_count = 0;
@@ -134,22 +148,15 @@ function newmode(newmode) {
 	document.getElementById("boundingbox-3d").style.display = mode == "3d" ? 'block' : 'none';
 }
 
-function setupZ() {
-	/* After loading metadata, update a variety of stuff related
-	 * to the Z-coordinate. */
-	ofs_Z = metadata.framedata[Math.floor(metadata.framedata.length / 2)].z;
-	$('#Z_current').html(parseFloat(ofs_Z).toFixed(2));
-}
-
 function updateZ(delta_Z) {
 	newofs_Z = ofs_Z + delta_Z;
-	if (newofs_Z < metadata.framedata[0].z || newofs_Z >= metadata.framedata[metadata.framedata.length - 1].z)
+	if (newofs_Z < group.metadata.framedata[0].z || newofs_Z >= group.metadata.framedata[group.metadata.framedata.length - 1].z)
 		return;
 
 	ofs_Z = newofs_Z;
 	$('#Z_current').html(parseFloat(ofs_Z).toFixed(2));
 
-	render(image, 0);
+	group.render(0);
 }
 
 function updateUV(delta_U, delta_V) {
@@ -160,7 +167,7 @@ function updateUV(delta_U, delta_V) {
 	$('#U_current').html(parseFloat(ofs_U).toFixed(2));
 	$('#V_current').html(parseFloat(ofs_V).toFixed(2));
 
-	render(image, 0);
+	group.render(0);
 }
 
 var mousedrag_X, mousedrag_Y;
@@ -172,7 +179,7 @@ function mousedrag(new_X, new_Y) {
 
 
 // Get A WebGL context
-function render(image, is_new_image) {
+function render(image, metadata, is_new_image) {
 	//grabs the canvas element
 	var canvas = document.getElementById("canvas-" + mode);
 	//gets the WebGL context
@@ -190,9 +197,9 @@ function render(image, is_new_image) {
 
 	var program;
 	if (mode == "slice") {
-		program = render_slice(image, canvas, gl);
+		program = render_slice(image, metadata, canvas, gl);
 	} else {
-		program = render_lightsheet(image, canvas, gl);
+		program = render_lightsheet(image, metadata, canvas, gl);
 	}
 
 	if (is_new_image) {
@@ -239,10 +246,10 @@ function render(image, is_new_image) {
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 	if (mode == "3d" && $('#box').prop('checked'))
-		render_box(canvas, gl);
+		render_box(image, metadata, canvas, gl);
 }
 
-function render_slice(image, canvas, gl) {
+function render_slice(image, metadata, canvas, gl) {
 	// compile shaders
 	vertexShader = createShaderFromScriptElement(gl, "image-vertex-shader");
 	fragmentShader = createShaderFromScriptElement(gl, "slice-fragment-shader");
@@ -293,7 +300,7 @@ function render_slice(image, canvas, gl) {
 	return program;
 }
 
-function render_lightsheet(image, canvas, gl) {
+function render_lightsheet(image, metadata, canvas, gl) {
 	// compile shaders
 	vertexShader = createShaderFromScriptElement(gl, "image-vertex-shader");
 	fragmentShader = createShaderFromScriptElement(gl, "3d-fragment-shader");
@@ -333,7 +340,7 @@ function render_lightsheet(image, canvas, gl) {
 	return program;
 }
 
-function render_box(canvas, gl) {
+function render_box(image, metadata, canvas, gl) {
 	console.log("box render");
 
 	var vertexShader = createShaderFromScriptElement(gl, "box-vertex-shader");
@@ -689,7 +696,7 @@ $('#group').change(function () {
 $('#rendermode').change(function () {
 	console.log("Mode changed");
 	newmode($(this).val());
-	render(image, 1);
+	if (group) group.render_if_ready(1);
 });
 
 // mouse dragging hack
@@ -711,18 +718,18 @@ $('#canvas-3d').mousedown(function() {
 $('#gain').change(function () {
 	console.log("Gain changed");
 	$('#gain_current').html(Math.pow(10, this.value).toFixed(2));
-	render_if_ready(image, 0);
+	if (group) group.render_if_ready(0);
 }).change();
 
 $('#gamma').change(function () {
 	console.log("Gamma changed");
 	$('#gamma_current').html(parseFloat(this.value).toFixed(2));
-	render_if_ready(image, 0);
+	if (group) group.render_if_ready(0);
 }).change();
 
 function box_changed() {
 	console.log("Box changed");
-	render_if_ready(image, 0);
+	if (group) group.render_if_ready(0);
 }
 $('#box').change(box_changed).change();
 $('#box-x0').change(box_changed);
