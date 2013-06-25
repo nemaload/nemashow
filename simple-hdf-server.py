@@ -110,6 +110,7 @@ class HDFHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         if last_modified is not None:
             self.send_header("Last-Modified", self.date_time_string(last_modified))
         self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Cache-Control", "Public, max-age=99936000")
         self.end_headers()
         return (handler, o)
 
