@@ -452,7 +452,7 @@ if (Meteor.isClient) {
     //rewrite so path is a session variable handled by the UI instead of here
     //imagePath = "/images/lensgrid.png";
     imagePath = Session.get("currentFrameURL");
-    alert("Loading frame" + imagePath);
+    //alert(Session.get("currentFrameURL"));
     loadimage(imagePath);
     if (Session.get("currentWebGLMode") === "image") {
       newmode("lightfield");
@@ -481,23 +481,28 @@ if (Meteor.isClient) {
     //load image with ID stored in current session variable
     Template.webgl.renderImage();
     updateUV_display();
-
-    //set up jquery UI slider here
-    $("#imageSlider").slider({
+    if (Session.get("currentImageNumFrames") > 1) {
+      $("#imageSlider").slider({
       value: 0,
       orientation: "horizontal",
       range: "min",
       min: 0,
-      max: 5,
+      max: Session.get("currentImageNumFrames")-1,
       step: 1,
       //max: Session.get("currentImageNumFrames") -1,
       animate: true,
       change: function() {
         //insert code to change Session variable with image URL and call loadImage
         //change loadimage to get autorectification parameters from database
-        alert("Should change image");
+        var newURL = Images.findOne(Session.get("currentImageId")).webPath[$("#imageSlider").slider("value")];
+        Session.set("currentFrameURL", newURL);
+        loadimage(newURL);
       }
     });
+
+    }
+    //set up jquery UI slider here
+    
     // setup interface
     $("#grid").button();
     $('.btn-group').button();

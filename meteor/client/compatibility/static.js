@@ -21,13 +21,15 @@ function loadimage(imagepath) {
 		loaded.image = 1;
 		render_if_ready();
 	}
-	opticspath = imagepath.replace(/\.[^/.]+$/, "-optics.json");
+	//opticspath = imagepath.replace(/\.[^/.]+$/, "-optics.json");
+	opticspath = "/images/lensgrid-optics.json"
 	$.getJSON(opticspath, function(data) {
 		optics = data;
 		loaded.optics = 1;
 		render_if_ready();
 	});
-	lensletspath = imagepath.replace(/\.[^/.]+$/, "-lenslets.json");
+	//lensletspath = imagepath.replace(/\.[^/.]+$/, "-lenslets.json");
+	lensletspath = "/images/lensgrid-lenslets.json"
 	$.getJSON(lensletspath, function(data) {
 		lenslets = data;
 		loaded.lenslets = 1;
