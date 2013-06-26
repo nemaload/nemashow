@@ -17,7 +17,13 @@ var mode;
 var files, filedata;
 var group;
 
+// group loading lifetime: last_group (init) -> group_load_queue (queued) -> loading_group (loading) -> group (loaded)
+// queue of group loads to run after current group finishes loading
 var group_load_queue = [];
+// last group requested by the user
+var last_group;
+// group currently being loaded
+var loading_group;
 
 window.onload = main;
 function main() {
@@ -79,13 +85,16 @@ function setGroup(num) {
 	$('#group_current').html(num);
 	var path = ["/lightsheet", $("#fileselect").val(), $("#channel").val(), filedata[channel][num]].join("/");
 
-	// TODO: Cancel loading of current group
-	group = new GroupImage(path);
+	if (last_group && !last_group.loaded())
+		last_group.cancel_queued_load();
+	console.log("new group to load: " + path);
+	last_group = new GroupImage(path);
 }
 
 function runGroupLoadQueue() {
-	if (group_load_queue.length == 0)
-		return; // nothing to run
+	console.log(group_load_queue.length + " group loads to run, current group " + (group && group.path) + " loading_group " + (loading_group && loading_group.path) + " loading = " + !!(loading_group && !loading_group.loaded()));
+	if (group_load_queue.length == 0 || (loading_group && !loading_group.loaded()))
+		return; // nothing to run or we should wait still
 	var toload = group_load_queue.shift();
 	toload.load();
 }
@@ -100,8 +109,10 @@ function GroupImage(path) {
 	this.load = function(path) {
 		var g = this;
 
-		updateLoading(+2);
 		group_load_queue.push({'path': path, 'load': function() {
+			loading_group = g;
+			updateLoading(+2);
+
 			var image_loading = new Image();
 			image_loading.src = path + "/png"; // MUST BE SAME DOMAIN!!!
 			image_loading.onload = function() {
@@ -121,20 +132,31 @@ function GroupImage(path) {
 				g.render_if_ready();
 			});
 		}});
-		if (group_load_queue.length == 1) // just us?
-			runGroupLoadQueue();
+		runGroupLoadQueue(); // try loading if it's the right moment
 	};
 	this.render_if_ready = function() {
-		if (!this.image || !this.metadata)
+		if (!this.loaded())
 			return;
 
-		// we have everything, continue in the queue
+		// this is the currently displayed group!
+		group = this;
+		// we have everything here, continue processing the queue
 		runGroupLoadQueue();
 
-		if (group != this)
-			return; // too late to the party
 		// we finally have everything, proceed!
 		this.render(1);
+	};
+	this.loaded = function() {
+		return this.image && this.metadata;
+	}
+	this.cancel_queued_load = function() {
+		// Loading us is not needed anymore if we are still waiting
+		// for that.
+		var g = this;
+		console.log("cancelling load of " + g.path);
+		group_load_queue = group_load_queue.filter(function(e,i,a) {
+			return e.path != g.path;
+		});
 	};
 	this.render = function(is_new_image) {
 		render(this.image, this.metadata, is_new_image);
