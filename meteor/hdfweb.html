@@ -427,9 +427,15 @@ void main() {
           <div class="annotation">
             <i class="icon-remove-sign" style="float: right; cursor:pointer;" id="{{_id}}">
             </i>
+            {{#if sameFrame startFrame endFrame}}
+            <h6>
+              Concerning frame {{startFrame}}, {{creator userId}} said:
+            </h6>
+            {{else}}
             <h6>
               Concerning frames {{startFrame}} to {{endFrame}}, {{creator userId}} said:
             </h6>
+            {{/if}}
             <p>
               {{comment}}
               <p>

@@ -403,6 +403,13 @@ if (Meteor.isClient) {
     });
   }
 
+  Template.imageAnnotations.sameFrame = function (startFrame, endFrame) {
+    if (startFrame == endFrame) {
+      return true;
+    }
+    return false;
+  }
+
   Template.imageAnnotations.writingComment = function () {
     if (Session.get("writingComment")) {
       return "in";
