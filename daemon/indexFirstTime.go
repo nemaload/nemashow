@@ -123,6 +123,7 @@ func GetHDF5Autorectify(filepath string, session *mgo.Session) {
 			panic(newErr)
 		}
 	}
+	fmt.Println("Successfully inserted custom autorectify values for", newFilePath)
 }
 
 func GetHDF5Attribute(attribute string, group string, filepath string) string {
@@ -150,7 +151,7 @@ func GetHDFFileList(rootDirectory string) []string {
 	var hdf5files []string
 
 	err := filepath.Walk(rootDirectory, func(path string, file os.FileInfo, err error) error {
-		if !file.IsDir() && filepath.Ext(path) == ".hdf5" {
+		if !file.IsDir() && filepath.Ext(path) == ".hdf5" && !strings.Contains(path, "autorectify") {
 			hdf5files = append(hdf5files, path)
 		}
 		return nil
@@ -164,7 +165,7 @@ func GetHDFFileList(rootDirectory string) []string {
 
 func RemoveInvalidFiles(pathList []string) []string {
 	for i, filepath := range pathList {
-		if !hdf5.IsHdf5(filepath) {
+		if !hdf5.IsHdf5(filepath) || strings.Contains(filepath, "autorectify") {
 			pathList = pathList[:i+copy(pathList[i:], pathList[i+1:])] // that's a fun delete function
 		}
 	}
@@ -178,6 +179,7 @@ func InsertImageIntoDatabase(path string, session *mgo.Session) {
 	newImage.OriginalPath = path
 	newImage.Id = bson.NewObjectId() // let's let mongo set this to avoid collisions, also commented out in schema
 	newImage.BaseName = filepath.Base(path)
+	fmt.Println(path)
 	newImage.OriginalName = GetHDF5Attribute("originalName", "images", path)
 	fi, _ := os.Stat(path)
 	newImage.Size = fi.Size()
