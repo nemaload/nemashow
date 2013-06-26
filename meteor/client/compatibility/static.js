@@ -22,19 +22,35 @@ function loadimage(imagepath) {
 		render_if_ready();
 	}
 	//opticspath = imagepath.replace(/\.[^/.]+$/, "-optics.json");
-	opticspath = "/images/lensgrid-optics.json"
-	$.getJSON(opticspath, function(data) {
+	//opticspath = "/images/lensgrid-optics.json"
+	optics = {
+		"pitch": Session.get("op_pitch"), 
+		"flen": Session.get("op_flen"),
+		"mag": Session.get("op_mag"),
+		"abbe": Session.get("op_abbe"),
+		"na": Session.get("op_na"),
+		"medium": Session.get("op_medium")
+	};
+	loaded.optics = 1;
+	/*$.getJSON(opticspath, function(data) {
 		optics = data;
 		loaded.optics = 1;
 		render_if_ready();
-	});
+	});*/
 	//lensletspath = imagepath.replace(/\.[^/.]+$/, "-lenslets.json");
-	lensletspath = "/images/lensgrid-lenslets.json"
-	$.getJSON(lensletspath, function(data) {
+	//lensletspath = "/images/lensgrid-lenslets.json"
+	lenslets = {
+		"offset": [Session.get("op_x_offset"), Session.get("op_y_offset")],
+		"right": [Session.get("op_right_dx"), Session.get("op_right_dy")],
+		"down": [Session.get("op_down_dx"), Session.get("op_down_dy")]
+	};
+	loaded.lenslets = 1;
+	render_if_ready();
+	/*$.getJSON(lensletspath, function(data) {
 		lenslets = data;
 		loaded.lenslets = 1;
 		render_if_ready();
-	});
+	});*/
 }
 
 function render_if_ready() {
