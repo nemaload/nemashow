@@ -568,6 +568,7 @@ if (Meteor.isClient) {
       animate: true,
       change: function() {
         $('#gain_current').html(Math.pow(10, $("#gainSlider").slider("value")).toFixed(2));
+        Session.set("currentImageGain", $("#gainSlider").slider("value"));
         render_if_ready(image, 0);
       }
     });
@@ -583,6 +584,7 @@ if (Meteor.isClient) {
       animate: true,
       change: function() {
         $('#gamma_current').html(parseFloat($("#gammaSlider").slider("value")).toFixed(2));
+        Session.set("currentImageGamma", $("#gammaSlider").slider("value"));
         render_if_ready(image, 0);
       }
     });
@@ -635,6 +637,17 @@ if (Meteor.isClient) {
     'click #grid': function() {
       $("#grid").toggleClass('active');
       render_if_ready(image, 0);
+    },
+    'click #setDefaults': function (e) {
+      e.preventDefault();
+
+      Meteor.call('changeDefaultGainAndGamma', Session.get("currentImageGain"), Session.get("currentImageGamma"), Session.get("currentImageId"), function(err, result) {
+        if (err) {
+          alert(err);
+        } else if (result != "Success") {
+          alert(result);
+        } 
+      });
     }
   }
 
@@ -740,6 +753,13 @@ if (Meteor.isServer) {
         Annotations.remove(annotationId);
         return "Success";
       }
+    },
+    changeDefaultGainAndGamma: function(defaultGain, defaultGamma, imageId) {
+      if (Meteor.call('isAdmin')) {
+        Images.update(imageId, {$set:{"defaultGain": defaultGain, "defaultGamma": defaultGamma}});
+        return "Success";
+      }
+      return "You must be an administrator to do that."
     },
     makeFolder: function(folderName) {
       if (Meteor.call('isAdmin')) {
