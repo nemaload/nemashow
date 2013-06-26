@@ -8,7 +8,6 @@ Folders = new Meteor.Collection('folders');
 Annotations = new Meteor.Collection('annotations');
 Admins = new Meteor.Collection('admins'); //all administrator user IDs go in here
 
-
 //User permission levels?
 
 /*Annotations.allow({
@@ -593,6 +592,9 @@ if (Meteor.isClient) {
 if (Meteor.isServer) {
 
   Meteor.startup(function() {
+    var fs = Npm.require('fs');
+    fs.symlinkSync('../../../../data', '.meteor/local/build/static/data')
+    //put the commands to enable search here
 
     //FileCollections.insert({name:"Light-field Microscopy"});
     //FileCollections.insert({name:"Light-sheet Microscopy"});
@@ -600,6 +602,7 @@ if (Meteor.isServer) {
   });
   //add some dummy data
   Meteor.methods({
+
     isAdmin: function() {
       var user = Meteor.user();
       if (!("string" === typeof(user.admin) && "admin" == (user.admin))) {
