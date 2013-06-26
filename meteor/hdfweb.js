@@ -6,7 +6,7 @@
 Images = new Meteor.Collection('images');
 Folders = new Meteor.Collection('folders');
 Annotations = new Meteor.Collection('annotations');
-Admins = new Meteor.Collection('admins'); //all administrator user IDs go in here
+//Admins = new Meteor.Collection('admins'); //all administrator user IDs go in here
 //User permission levels?
 /*Annotations.allow({
   insert: function (userId, doc) {
@@ -37,7 +37,7 @@ Accounts.config({
 
 if (Meteor.isClient) {
   //handlebars helper functions
-  Handlebars.registerHelper('isAdmin', function() { //DO NOT RELY ON THIS FOR SECURITY, USE ALLOW
+  Handlebars.registerHelper('isAdmin', function() { 
     return Meteor.call('isAdmin');
   });
 
@@ -277,6 +277,9 @@ if (Meteor.isClient) {
       //set image related things here
       Template.fileView.setImageSessionVars();
       Session.set("currentImageView", "viewingImage");
+      Session.set("currentWebGLMode", "image");
+      newmode("image");
+      render(image, 1);
     },
     'dragstart .fileViewRow': function(e) {
       e.dataTransfer.effectAllowed = 'move';
@@ -677,15 +680,12 @@ if (Meteor.isClient) {
       render(image, 1);
     },
     'mousedown #canvas-lightfield': function(e) {
-      console.log("mousedown" + e.pageX);
       mousedrag_X = e.pageX;
       mousedrag_Y = e.pageY;
       $(window).mousemove(function() {
-        console.log("mousedrag" + e);
-        mousedrag(e.pageX, e.pageY);
+        mousedrag(event.pageX, event.pageY);
       });
       $(window).mouseup(function() {
-        console.log("mouseup");
         $(window).unbind("mousemove");
         $(window).unbind("mouseup");
       });
@@ -756,7 +756,9 @@ if (Meteor.isServer) {
   });
   //add some dummy data
   Meteor.methods({
-
+    //to promote a user to admin, just find the user's ID, and in the mongo console, update the admin
+    //record to "admin"
+    //for example, db.users.update({_id:"PFmfFFMhe9H99Bfo9"},{$set:{admin:"admin"}})
     isAdmin: function() {
       var user = Meteor.user();
       if (!("string" === typeof(user.admin) && "admin" == (user.admin))) {
