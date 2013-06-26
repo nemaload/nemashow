@@ -281,7 +281,7 @@ function render(image, metadata, is_new_image) {
 		var z_focal = (metadata.framedata[0].z + z_max) / 2;
 		var z_data = new Array;
 		for (var i = 0; i < metadata.framedata.length; i++)
-			z_data[i] = (metadata.framedata[i].z - z_focal) / z_max;
+			z_data[i] = -(metadata.framedata[i].z - z_focal) / z_max;
 
 		/* Alas, TEXTURE_1D is not supported by WebGL. */
 		if (zTexture[mode]) {
