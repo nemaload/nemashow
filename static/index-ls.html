@@ -380,11 +380,10 @@ function render_lightsheet(image, metadata, canvas, gl) {
 	var zSlicesLocation = gl.getUniformLocation(program, "u_zSlices");
 	gl.uniform2f(zSlicesLocation, 0 /* TODO */, n_slices);
 
-	// compute angle-slope to the z=0 plane based on U,V coordinates
-	var U_slope = ofs_U / observerDistance;
-	var V_slope = ofs_V / observerDistance;
-	var UVSlopeLocation = gl.getUniformLocation(program, "u_UVSlope");
-	gl.uniform2f(UVSlopeLocation, U_slope, V_slope);
+	var UVOCoordLocation = gl.getUniformLocation(program, "u_UVOCoord");
+	gl.uniform3f(UVOCoordLocation, ofs_U, ofs_V, observerDistance);
+	var perspectiveLocation = gl.getUniformLocation(program, "u_perspective");
+	gl.uniform1f(perspectiveLocation, $('#perspective').prop('checked') ? 1.0 : 0.0);
 
 	var texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
@@ -473,11 +472,10 @@ function render_box(image, metadata, canvas, gl) {
 	gl.enableVertexAttribArray(lineCoordLocation);
 	gl.vertexAttribPointer(lineCoordLocation, 3, gl.FLOAT, false, 0, 0);
 
-	// compute angle-slope to the z=0 plane based on U,V coordinates
-	var U_slope = ofs_U / observerDistance;
-	var V_slope = ofs_V / observerDistance;
-	var UVSlopeLocation = gl.getUniformLocation(program, "u_UVSlope");
-	gl.uniform2f(UVSlopeLocation, U_slope, V_slope);
+	var UVOCoordLocation = gl.getUniformLocation(program, "u_UVOCoord");
+	gl.uniform3f(UVOCoordLocation, ofs_U, ofs_V, observerDistance);
+	var perspectiveLocation = gl.getUniformLocation(program, "u_perspective");
+	gl.uniform1f(perspectiveLocation, $('#perspective').prop('checked') ? 1.0 : 0.0);
 
 	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
 	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
@@ -565,8 +563,9 @@ uniform sampler2D u_zdata;
 
 // the texCoords passed in from the vertex shader
 varying vec2 v_texCoord;
-// the viewing angle-slope
-uniform vec2 u_UVSlope;
+// the camera coordinate
+uniform vec3 u_UVOCoord;
+uniform float u_perspective;
 
 uniform vec2 u_gammaGain; // display parameters
 uniform vec2 u_zSlices; // slicing parameters
@@ -582,8 +581,13 @@ void main() {
 	for (float z = 0.0; z < 1000.0; z++) {
 		if (z >= n_slices)
 			break;
+
+		// compute angle-slope to the z=0 plane based on U,V coordinates
+		vec2 UV_slope = vec2((u_UVOCoord[0] - u_perspective * v_texCoord[0]) / u_UVOCoord[2],
+				     (u_UVOCoord[1] - u_perspective * v_texCoord[1]) / u_UVOCoord[2]);
+
 		float zOffset = texture2D(u_zdata, vec2(z / n_slices, 0))[0];
-		vec2 planeCoord = v_texCoord + u_UVSlope * vec2(zOffset, zOffset);
+		vec2 planeCoord = v_texCoord + UV_slope * vec2(zOffset, zOffset);
 		if (!any(bvec4(lessThan(planeCoord, vec2(0.0, 0.0)), lessThan(vec2(1.0, 1.0), planeCoord)))) {
 			vec2 texCoord = vec2(planeCoord[0], sliceStep * (z + planeCoord[1]));
 			color = color + texture2D(u_image, texCoord) * sliceStep;
@@ -598,10 +602,16 @@ void main() {
 attribute vec3 a_lineCoord;
 varying vec3 v_lineCoord;
 uniform vec2 u_canvSize;
-uniform vec2 u_UVSlope;
+uniform vec3 u_UVOCoord;
+uniform float u_perspective;
 void main() {
+	// compute angle-slope to the z=0 plane based on U,V coordinates
+	vec2 UV_slope = vec2((u_UVOCoord[0] - u_perspective * a_lineCoord[0]) / u_UVOCoord[2],
+			     (u_UVOCoord[1] - u_perspective * a_lineCoord[1]) / u_UVOCoord[2]);
+
+	vec2 planeCoord = vec2(a_lineCoord[0], a_lineCoord[1]) + (UV_slope * vec2(a_lineCoord[2], a_lineCoord[2]));
+
 	// convert the rectangle from [0.0,1.0] to [-1.0, 1.0]
-	vec2 planeCoord = vec2(a_lineCoord[0], a_lineCoord[1]) - (u_UVSlope * vec2(a_lineCoord[2], a_lineCoord[2]));
 	vec2 clipSpace = planeCoord * 2.0 - 1.0;
 	gl_Position = vec4(clipSpace, a_lineCoord[2], 1);
 
@@ -714,6 +724,7 @@ group
 </td><td>
 <span id="V_current" class="UV_value"></span>
 </td></tr></table>
+<p style="margin: 0em"><input type="checkbox" id="perspective" value="1" checked="1" /> Perspective</p>
 </div>
 
 <div id="controls-slice" class="controlbox">
@@ -797,6 +808,11 @@ $('#gamma').change(function () {
 	$('#gamma_current').html(parseFloat(this.value).toFixed(2));
 	if (group) group.render_if_ready(0);
 }).change();
+
+$('#perspective').change(function () {
+	console.log("Perspective changed");
+	if (group) group.render_if_ready(0);
+});
 
 function box_changed() {
 	console.log("Box changed");
