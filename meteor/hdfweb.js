@@ -7,9 +7,7 @@ Images = new Meteor.Collection('images');
 Folders = new Meteor.Collection('folders');
 Annotations = new Meteor.Collection('annotations');
 Admins = new Meteor.Collection('admins'); //all administrator user IDs go in here
-
 //User permission levels?
-
 /*Annotations.allow({
   insert: function (userId, doc) {
     return (userId && annotation.creator === userId);
@@ -73,11 +71,15 @@ if (Meteor.isClient) {
   Session.setDefault("startFrameIndex", 0);
   Session.setDefault("endFrameIndex", 0);
   Session.setDefault("currentSearchTerm", "");
-  Session.setDefault("searchJSON", "{}"); 
+  Session.setDefault("searchJSON", "{}");
   //image slider related things
   Session.setDefault("currentImageNumFrames", 1);
+  Session.setDefault("imageSliderMin", 0);
+  Session.setDefault("imageSliderMax",0);
+  Session.set("currentAnnotationId", "");
   //Annotation related functions
   Session.setDefault("writingComment", false);
+  Session.setDefault("viewingAnnotation", false);
   //rendering related things
   Session.setDefault("currentImageGain", 0);
   Session.setDefault("currentImageGamma", 1);
@@ -232,13 +234,15 @@ if (Meteor.isClient) {
     }
   }
 
-  Template.fileView.setImageSessionVars = function () {
+  Template.fileView.setImageSessionVars = function() {
     var imageObject = Images.findOne(Session.get("currentImageId"));
     Session.set("currentImageNumFrames", imageObject.numFrames);
     Session.set("currentFrameIndex", 0);
-    Session.set("currentFrameURL", imageObject.webPath[0]); 
+    Session.set("currentFrameURL", imageObject.webPath[0]);
     Session.set("startFrameIndex", 0);
     Session.set("endFrameIndex", 0);
+    Session.set("imageSliderMax", imageObject.numFrames - 1);
+    Session.set("imageSliderMin", 0);
     //optics
     Session.set("op_pitch", imageObject.op_pitch);
     Session.set("op_flen", imageObject.op_flen);
@@ -271,7 +275,7 @@ if (Meteor.isClient) {
       //var idArrayString = idArray[1]
       Session.set("currentImageId", $(e.target).parent().attr("fileid"));
       //set image related things here
-      Template.fileView.setImageSessionVars();      
+      Template.fileView.setImageSessionVars();
       Session.set("currentImageView", "viewingImage");
     },
     'dragstart .fileViewRow': function(e) {
@@ -326,25 +330,25 @@ if (Meteor.isClient) {
     return Session.get("currentSearchTerm");
   }
 
-  Template.searchResults.searchResultsIntermediate = function () {
+  Template.searchResults.searchResultsIntermediate = function() {
     var query = Session.get("currentSearchTerm");
     Meteor.call("search", ".*" + query.replace(/([.?*+^$[\]\\(){}|-])/g, "\\$1") + ".*", "full", function(err, result) {
       if (result.length == 0) {
-            result = [];
-          }
-          var json_result = JSON.stringify(result);
-          Session.set("searchJSON", json_result);
+        result = [];
+      }
+      var json_result = JSON.stringify(result);
+      Session.set("searchJSON", json_result);
     });
   }
 
-  Template.searchResults.searchResults = function () {
+  Template.searchResults.searchResults = function() {
     Template.searchResults.searchResultsIntermediate();
     var searchObject = JSON.parse(Session.get("searchJSON"));
     if (typeof(searchObject) == "undefined") {
       return;
     }
     var returnObject = [];
-    for(var i=0; i < searchObject.length; i++) {
+    for (var i = 0; i < searchObject.length; i++) {
       var id = searchObject[i]._id;
       var userName = Meteor.users.findOne(searchObject[i].userId).emails[0].address;
       var comment = searchObject[i].comment;
@@ -354,7 +358,14 @@ if (Meteor.isClient) {
       }
       var startFrame = searchObject[i].startFrame;
       var endFrame = searchObject[i].endFrame;
-      returnObject.push({_id: id, user: userName, comment: comment, imageName: imageName, startFrame: startFrame, endFrame: endFrame});
+      returnObject.push({
+        _id: id,
+        user: userName,
+        comment: comment,
+        imageName: imageName,
+        startFrame: startFrame,
+        endFrame: endFrame
+      });
     }
     console.log(returnObject);
     return returnObject;
@@ -367,7 +378,10 @@ if (Meteor.isClient) {
       Session.set("currentImageId", image);
       Template.fileView.setImageSessionVars();
       Session.set("currentImageView", "viewingImage");
-      $("body").animate({ scrollTop: $(document).height() }, 1000); //perhaps make this more sophisticated with a callback later
+      Session.set("viewingAnnotation", false);
+      $("body").animate({
+        scrollTop: $(document).height()
+      }, 1000); //perhaps make this more sophisticated with a callback later
     }
   }
 
@@ -395,17 +409,24 @@ if (Meteor.isClient) {
   };
 
   Template.imageInformation.events = {
-    'click #magnetLink' : function (e) {
+    'click #magnetLink': function(e) {
       e.preventDefault();
       alert("This feature is not available at this time.");
     },
-    'click #frameLink' : function (e) {
+    'click #frameLink': function(e) {
       e.preventDefault();
       window.open(Session.get("currentFrameURL"));
     },
-    'click #shareTwitter' : function (e) {
+    'click #shareTwitter': function(e) {
       e.preventDefault();
       alert("This feature is not available at this time.");
+    },
+    'click #imageFullView' : function (e) {
+      Session.set("currentFrameIndex", 0);
+      Session.set("viewingAnnotation", false);
+      Session.set("imageSliderMin",0);
+      Session.set("imageSliderMax",Images.findOne(Session.get("currentImageId")).numFrames -1);
+      Template.webgl.setupSliders();
     }
   }
 
@@ -424,14 +445,14 @@ if (Meteor.isClient) {
     });
   }
 
-  Template.imageAnnotations.sameFrame = function (startFrame, endFrame) {
+  Template.imageAnnotations.sameFrame = function(startFrame, endFrame) {
     if (startFrame == endFrame) {
       return true;
     }
     return false;
   }
 
-  Template.imageAnnotations.writingComment = function () {
+  Template.imageAnnotations.writingComment = function() {
     if (Session.get("writingComment")) {
       return "in";
     }
@@ -494,12 +515,20 @@ if (Meteor.isClient) {
         }
       });
     },
-    'click #writeCommentLink' : function (e) {
+    'click .icon-eye-open' : function (e) {
+      e.preventDefault();
+      var annotation = Annotations.findOne($(e.target).attr('annotationid'));
+      Session.set("imageSliderMin", annotation.startFrame);
+      Session.set("currentFrameIndex", annotation.startFrame);
+      Session.set("imageSliderMax", annotation.endFrame);
+      Session.set("viewingAnnotation", true);
+      Session.set("currentAnnotationId", annotation._id);
+    },
+
+    'click #writeCommentLink': function(e) {
       var writingState = Session.get("writingComment");
-      if (!writingState)
-        Session.set("writingComment", true);
-      else
-        Session.set("writingComment", false);
+      if (!writingState) Session.set("writingComment", true);
+      else Session.set("writingComment", false);
     }
   }
 
@@ -521,6 +550,26 @@ if (Meteor.isClient) {
 
   }
 
+  Template.webgl.annotationNote = function () {
+    if (Session.get("viewingAnnotation")) {
+      var currentAnnotation = Annotations.findOne(Session.get("currentAnnotationId"));
+      return "Currently viewing annotation by " + Meteor.users.findOne(currentAnnotation.userId).emails[0].address;
+    }
+
+  }
+
+  Template.webgl.currentFrameIndex = function () {
+    return Session.get("currentFrameIndex");
+  }
+
+  Template.webgl.maxFrame = function () {
+    return Session.get("imageSliderMax");
+  }
+
+  Template.webgl.minFrame = function () {
+    return Session.get("imageSliderMin");
+  }
+
   Template.webgl.needsGridBox = function() {
     if (Session.get("currentWebGLMode") === "image") {
       return true;
@@ -529,47 +578,44 @@ if (Meteor.isClient) {
     }
   }
 
-  Template.webgl.shouldShowSlider = function () {
+  Template.webgl.shouldShowSlider = function() {
     if (Session.get("currentImageNumFrames") == 1) {
       return false;
     }
     return true;
   }
 
-  Template.webgl.currentImageGain = function () {
+  Template.webgl.currentImageGain = function() {
     return Session.get("currentImageGain");
   }
 
-  Template.webgl.currentImageGamma = function () {
+  Template.webgl.currentImageGamma = function() {
     return Session.get("currentImageGamma");
   }
-  Template.webgl.rendered = function() {
-    //load image with ID stored in current session variable
-    Template.webgl.renderImage();
-    updateUV_display();
+
+  Template.webgl.setupSliders = function () {
     if (Session.get("currentImageNumFrames") > 1) {
       $("#imageSlider").slider({
-      value: 0,
-      orientation: "horizontal",
-      range: "min",
-      min: 0,
-      max: Session.get("currentImageNumFrames")-1,
-      step: 1,
-      //max: Session.get("currentImageNumFrames") -1,
-      animate: true,
-      change: function() {
-        //insert code to change Session variable with image URL and call loadImage
-        //change loadimage to get autorectification parameters from database
-        var newURL = Images.findOne(Session.get("currentImageId")).webPath[$("#imageSlider").slider("value")];
-        Session.set("currentFrameURL", newURL);
-        Session.set("currentFrameIndex", $("#imageSlider").slider("value"));
-        loadimage(newURL);
-      }
-    });
+        value: Session.get("currentFrameIndex"),
+        orientation: "horizontal",
+        range: "min",
+        min: Session.get("imageSliderMin"),
+        max: Session.get("imageSliderMax"),
+        step: 1,
+        //max: Session.get("currentImageNumFrames") -1,
+        animate: true,
+        change: function() {
+          //insert code to change Session variable with image URL and call loadImage
+          //change loadimage to get autorectification parameters from database
+          var newURL = Images.findOne(Session.get("currentImageId")).webPath[$("#imageSlider").slider("value")];
+          Session.set("currentFrameURL", newURL);
+          Session.set("currentFrameIndex", $("#imageSlider").slider("value"));
+          loadimage(newURL);
+        }
+      });
 
     }
     //set up jquery UI slider here
-    
     // setup interface
     $("#grid").button();
     $('.btn-group').button();
@@ -603,6 +649,14 @@ if (Meteor.isClient) {
         render_if_ready(image, 0);
       }
     });
+
+  }
+  Template.webgl.rendered = function() {
+    //load image with ID stored in current session variable
+    Template.webgl.renderImage();
+    updateUV_display();
+    Template.webgl.setupSliders();
+    
 
 
     //$("#gainSlider").slider("value");
@@ -653,7 +707,7 @@ if (Meteor.isClient) {
       $("#grid").toggleClass('active');
       render_if_ready(image, 0);
     },
-    'click #setDefaults': function (e) {
+    'click #setDefaults': function(e) {
       e.preventDefault();
 
       Meteor.call('changeDefaultGainAndGamma', Session.get("currentImageGain"), Session.get("currentImageGamma"), Session.get("currentImageId"), function(err, result) {
@@ -661,7 +715,7 @@ if (Meteor.isClient) {
           alert(err);
         } else if (result != "Success") {
           alert(result);
-        } 
+        }
       });
     }
   }
@@ -680,23 +734,23 @@ if (Meteor.isServer) {
     var fs = Npm.require('fs');
     var cp = Npm.require('child_process');
     console.log("Configuring MongoDB...");
-    var mongoConfigure = cp.exec('mongo --host 127.0.0.1:3002 admin --eval "db.runCommand({setParameter:1, textSearchEnabled: true})"', function (error, stdout, stderr) {
+    var mongoConfigure = cp.exec('mongo --host 127.0.0.1:3002 admin --eval "db.runCommand({setParameter:1, textSearchEnabled: true})"', function(error, stdout, stderr) {
       if (error) {
         console.log(error.stack);
-        console.log('Error code: '+error.code);
-        console.log('Signal received: '+error.signal);
+        console.log('Error code: ' + error.code);
+        console.log('Signal received: ' + error.signal);
       }
-     cp.exec("mongo --host 127.0.0.1:3002 meteor --eval 'db.annotations.ensureIndex({comment:\"text\"})'", function (error, stdout, stderr) {
-      if (error) {
-        console.log(error.stack);
-        console.log('Error code: '+error.code);
-        console.log('Signal received: '+error.signal);
-      }
-     console.log("MongoDB Configuration done!")
+      cp.exec("mongo --host 127.0.0.1:3002 meteor --eval 'db.annotations.ensureIndex({comment:\"text\"})'", function(error, stdout, stderr) {
+        if (error) {
+          console.log(error.stack);
+          console.log('Error code: ' + error.code);
+          console.log('Signal received: ' + error.signal);
+        }
+        console.log("MongoDB Configuration done!")
+      });
     });
-    });
-    
-    
+
+
 
     fs.symlinkSync('../../../../data', '.meteor/local/build/static/data')
   });
@@ -784,7 +838,12 @@ if (Meteor.isServer) {
     },
     changeDefaultGainAndGamma: function(defaultGain, defaultGamma, imageId) {
       if (Meteor.call('isAdmin')) {
-        Images.update(imageId, {$set:{"defaultGain": defaultGain, "defaultGamma": defaultGamma}});
+        Images.update(imageId, {
+          $set: {
+            "defaultGain": defaultGain,
+            "defaultGamma": defaultGamma
+          }
+        });
         return "Success";
       }
       return "You must be an administrator to do that."

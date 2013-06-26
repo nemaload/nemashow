@@ -308,6 +308,7 @@ void main() {
           <a href="#" id="magnetLink"><i class="icon-magnet"></i></a>
           <a href="#" id="frameLink"><i class="icon-picture"></i></a>
           <a href="#" id="shareTwitter"><i class="icon-twitter-sign"></i></a>
+          <a href="#" id="imageFullView"><i class="icon-eye-open"></i></a>
         </h3>
       </div>
       <table id="imageAttributeTable" class="table table-striped">
@@ -335,7 +336,7 @@ void main() {
               Frames:
             </td>
             <td>
-              50
+              {{numFrames}}
             </td>
           </tr>
           <tr>
@@ -419,14 +420,15 @@ void main() {
     <div class="accordion-group">
       <div class="accordion-heading">
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseOne">
-        <p>{{_id}}</p>
+         {{_id}}
       </a>
       </div>
       <div id="collapseOne" class="accordion-body collapse in">
         <div class="accordion-inner">
           <div class="annotation">
-            <i class="icon-remove-sign" style="float: right; cursor:pointer;" id="{{_id}}">
-            </i>
+            
+            <i class="icon-remove-sign" style="float: right; cursor:pointer;" id="{{_id}}"></i>
+            <i class="icon-eye-open" annotationid="{{_id}}" style="float: right; margin-right:10px;cursor:pointer;"></i>
             {{#if sameFrame startFrame endFrame}}
             <h6>
               Concerning frame {{startFrame}}, {{creator userId}} said:
@@ -488,9 +490,8 @@ void main() {
   <div class="webglstuff">
     <div class="controls">
       {{#if shouldShowSlider}}
-      <p class="ui-state-default ui-corner-all ui-helper-clearfix" style="padding: 4px;">
-        Image slider
-      </p>
+      {{annotationNote}}
+      <p> Current Frame: {{currentFrameIndex}}, Range: {{minFrame}} - {{maxFrame}} </p>
       <div id="imageSlider" style="width: 96%; margin-left: 2%;">
       </div>
       {{/if}}
