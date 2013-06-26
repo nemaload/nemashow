@@ -10,6 +10,7 @@ var playGroups_delay = 500; // [ms]
 var ofs_Z_step = 0.05; // TODO: recomputed later for particular metadata
 var ofs_UV_step = 1.0;
 var observerDistance = 50.0; // distance of the observer from the z=0 plane
+// note that the z=0 plane is placed in the middle of the image z-coords
 
 var ofs_Z = 0.0, ofs_U = 0.0, ofs_V = 0.0; // in OpenGL coordinate system
 var imageTexture = {}, zTexture = {}; // indexed by mode name
@@ -277,9 +278,10 @@ function render(image, metadata, is_new_image) {
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
 
 		var z_max = metadata.framedata[metadata.framedata.length - 1].z;
+		var z_focal = (metadata.framedata[0].z + z_max) / 2;
 		var z_data = new Array;
 		for (var i = 0; i < metadata.framedata.length; i++)
-			z_data[i] = metadata.framedata[i].z / z_max;
+			z_data[i] = (metadata.framedata[i].z - z_focal) / z_max;
 
 		/* Alas, TEXTURE_1D is not supported by WebGL. */
 		if (zTexture[mode]) {
@@ -410,13 +412,14 @@ function render_box(image, metadata, canvas, gl) {
 
 	var n_slices = metadata.framedata.length;
 	var z_max = metadata.framedata[n_slices - 1].z;
+	var z_focal = (metadata.framedata[0].z + z_max) / 2;
 	var boxCorners =
 		[[parseFloat(document.getElementById("box-x0").value) / image.width,
 		  parseFloat(document.getElementById("box-y0").value) / (image.height / n_slices),
-		  parseFloat(document.getElementById("box-z0").value) / z_max],
+		  parseFloat(document.getElementById("box-z0").value) / z_max - z_focal / z_max],
 		 [parseFloat(document.getElementById("box-x1").value) / image.width,
 		  parseFloat(document.getElementById("box-y1").value) / (image.height / n_slices),
-		  parseFloat(document.getElementById("box-z1").value) / z_max]];
+		  parseFloat(document.getElementById("box-z1").value) / z_max - z_focal / z_max]];
 	var lineList = [
 		/* corner 0,0,0 */
 		boxCorners[0][0], boxCorners[0][1], boxCorners[0][2],
