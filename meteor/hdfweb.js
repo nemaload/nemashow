@@ -76,7 +76,8 @@ if (Meteor.isClient) {
   Session.setDefault("searchJSON", "{}"); 
   //image slider related things
   Session.setDefault("currentImageNumFrames", 1);
-  //Folder related functions
+  //Annotation related functions
+  Session.setDefault("writingComment", false);
   Template.folders.foldersTop = function() {
 
     return Folders.find({
@@ -387,6 +388,12 @@ if (Meteor.isClient) {
     });
   }
 
+  Template.imageAnnotations.writingComment = function () {
+    if (Session.get("writingComment")) {
+      return "in";
+    }
+    return "";
+  }
   Template.imageAnnotations.rendered = function() {
     $('[rel=tooltip]').tooltip();
   }
@@ -399,7 +406,7 @@ if (Meteor.isClient) {
     }
     return false;
   }
-  Template.imageAnnotations.startFrame = function() {
+  Template.imageAnnotations.currentStartFrame = function() {
     return Session.get("startFrameIndex");
   }
 
@@ -407,7 +414,7 @@ if (Meteor.isClient) {
     return Meteor.users.findOne(userId).emails[0].address;
   }
 
-  Template.imageAnnotations.endFrame = function() {
+  Template.imageAnnotations.currentEndFrame = function() {
     return Session.get("endFrameIndex");
   }
 
@@ -430,9 +437,10 @@ if (Meteor.isClient) {
     'click #endButton': function(e) {
       //get input from slider here
       //merge these two events into one, getting target to set proper value
+      Session.set("endFrameIndex", Session.get("currentFrameIndex"));
     },
     'click #startButton': function(e) {
-      //get input from slider here
+      Session.set("startFrameIndex", Session.get("currentFrameIndex"));
     },
     'click .icon-remove-sign': function(e) {
       Meteor.call('removeAnnotation', $(e.target).attr('id'), function(err, result) {
@@ -442,6 +450,13 @@ if (Meteor.isClient) {
           alert(result);
         }
       });
+    },
+    'click #writeCommentLink' : function (e) {
+      var writingState = Session.get("writingComment");
+      if (!writingState)
+        Session.set("writingComment", true);
+      else
+        Session.set("writingComment", false);
     }
   }
 
@@ -496,6 +511,7 @@ if (Meteor.isClient) {
         //change loadimage to get autorectification parameters from database
         var newURL = Images.findOne(Session.get("currentImageId")).webPath[$("#imageSlider").slider("value")];
         Session.set("currentFrameURL", newURL);
+        Session.set("currentFrameIndex", $("#imageSlider").slider("value"));
         loadimage(newURL);
       }
     });

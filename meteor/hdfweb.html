@@ -446,29 +446,28 @@ void main() {
     {{/if}}
     <div class="accordion-group">
       <div class="accordion-heading">
-        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseTwo">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" id="writeCommentLink">
         <h5> <i class="icon-pencil"></i> Write an annotation</h5> 
       </a>
       </div>
-      <div id="collapseTwo" class="accordion-body collapse">
+      <div id="collapseTwo" class="accordion-body collapse {{writingComment}}">
         <div class="accordion-inner">
           <button id="startButton" type="button" class="btn btn-success" rel="tooltip" title="Select your start frame using the slider.">
             Start
           </button>
           <b id="startFrame" style="padding: 10px;">
-            {{startFrame}}
+            {{currentStartFrame}}
           </b>
           <button id="endButton" type="button" class="btn btn-danger" rel="tooltip" title="Select your end frame using the slider.">
             End
           </button>
           <b style="padding: 10px;" id="endFrame">
-            {{endFrame}}
+            {{currentEndFrame}}
           </b>
           <h5 style="margin-top: 10px; margin-bottom: 10px;">
             Comment:
-            <h5>
-              <textarea type="text" class="commentInput" id="commentInput">
-              </textarea>
+            </h5>
+              <textarea type="text" class="commentInput" id="commentInput"></textarea>
               <br />
               <button class="btn" id="submitAnnotation">
                 Add Annotation
