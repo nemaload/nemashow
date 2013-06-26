@@ -278,6 +278,7 @@ if (Meteor.isClient) {
       Template.fileView.setImageSessionVars();
       Session.set("currentImageView", "viewingImage");
       Session.set("currentWebGLMode", "image");
+      $("#rendermode").val("image");
       newmode("image");
       render(image, 1);
     },

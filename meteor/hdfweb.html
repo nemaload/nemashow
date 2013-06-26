@@ -25,6 +25,7 @@
     <!--/row-->
     <hr>
     {{> imageView}} 
+
     <footer>
       <p>
         NEMALOAD 2013. Built with <a href="http://meteor.com">Meteor</a>.
@@ -361,7 +362,8 @@ void main() {
   </div>
 </template>
 <template name="imageView">
-  {{#unless isViewing "viewingNothing"}} {{> imageInformation}} {{/unless}}
+  {{#unless isViewing "viewingNothing"}} {{> imageInformation}} <hr>{{/unless}}
+  
 </template>
 <template name="searchResults">
   <h3 class="truncate">
