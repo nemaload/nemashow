@@ -596,21 +596,27 @@ void main() {
 
 <script id="box-vertex-shader" type="x-shader/x-vertex">
 attribute vec3 a_lineCoord;
+varying vec3 v_lineCoord;
 uniform vec2 u_canvSize;
 uniform vec2 u_UVSlope;
 void main() {
 	// convert the rectangle from [0.0,1.0] to [-1.0, 1.0]
 	vec2 planeCoord = vec2(a_lineCoord[0], a_lineCoord[1]) - (u_UVSlope * vec2(a_lineCoord[2], a_lineCoord[2]));
 	vec2 clipSpace = planeCoord * 2.0 - 1.0;
-	gl_Position = vec4(clipSpace, 0, 1);
+	gl_Position = vec4(clipSpace, a_lineCoord[2], 1);
+
+	v_lineCoord = a_lineCoord;
 }
 </script>
 
 <script id="box-fragment-shader" type="x-shader/x-fragment">
 precision mediump float;
 
+// the texCoords passed in from the vertex shader
+varying vec3 v_lineCoord;
+
 void main() {
-	gl_FragColor = vec4(0.0, 1.0, 0.0, 0.2);
+	gl_FragColor = vec4(0.0, 1.0 - v_lineCoord[2] * 2.0, 0.0, 0.2);
 }
 </script>
 
