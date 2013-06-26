@@ -583,8 +583,8 @@ void main() {
 			break;
 
 		// compute angle-slope to the z=0 plane based on U,V coordinates
-		vec2 UV_slope = vec2((u_UVOCoord[0] - u_perspective * v_texCoord[0]) / u_UVOCoord[2],
-				     (u_UVOCoord[1] - u_perspective * v_texCoord[1]) / u_UVOCoord[2]);
+		vec2 UV_slope = vec2((u_UVOCoord[0] - u_perspective * (v_texCoord[0] - 0.5)) / u_UVOCoord[2],
+				     (u_UVOCoord[1] - u_perspective * (v_texCoord[1] - 0.5)) / u_UVOCoord[2]);
 
 		float zOffset = texture2D(u_zdata, vec2(z / n_slices, 0))[0];
 		vec2 planeCoord = v_texCoord + UV_slope * vec2(zOffset, zOffset);
@@ -606,8 +606,8 @@ uniform vec3 u_UVOCoord;
 uniform float u_perspective;
 void main() {
 	// compute angle-slope to the z=0 plane based on U,V coordinates
-	vec2 UV_slope = vec2((u_UVOCoord[0] - u_perspective * a_lineCoord[0]) / u_UVOCoord[2],
-			     (u_UVOCoord[1] - u_perspective * a_lineCoord[1]) / u_UVOCoord[2]);
+	vec2 UV_slope = vec2((u_UVOCoord[0] - u_perspective * (a_lineCoord[0] - 0.5)) / u_UVOCoord[2],
+			     (u_UVOCoord[1] - u_perspective * (a_lineCoord[1] - 0.5)) / u_UVOCoord[2]);
 
 	vec2 planeCoord = vec2(a_lineCoord[0], a_lineCoord[1]) + (UV_slope * vec2(a_lineCoord[2], a_lineCoord[2]));
 
