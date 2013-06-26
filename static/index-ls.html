@@ -5,11 +5,11 @@
 <script type="text/javascript" src="http://greggman.github.io/webgl-fundamentals/webgl/resources/webgl-utils.js"></script> 
 <script>
 
-var mouseSensitivity = 4.0;
+var mouseSensitivity = 100.0;
 var playGroups_delay = 500; // [ms]
 var ofs_Z_step = 0.05; // TODO: recomputed later for particular metadata
-var ofs_UV_step = 1.0;
-var observerDistance = 50.0; // distance of the observer from the z=0 plane
+var ofs_UV_step = 0.05;
+var observerDistance = 1.0; // distance of the observer from the z=0 plane
 // note that the z=0 plane is placed in the middle of the image z-coords
 
 var ofs_Z = 0.0, ofs_U = 0.0, ofs_V = 0.0; // in OpenGL coordinate system
