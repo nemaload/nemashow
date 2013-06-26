@@ -235,6 +235,8 @@ if (Meteor.isClient) {
       $(e.target).children().removeClass("fileViewRowActive");
     },
     'click .fileViewRow': function(e) {
+      //var idArray = $(e.target).parent().attr("fileid").match(/"(.*?)"/);
+      //var idArrayString = idArray[1]
       Session.set("currentImageId", $(e.target).parent().attr("fileid"));
       Session.set("currentImageView", "viewingImage");
     },
