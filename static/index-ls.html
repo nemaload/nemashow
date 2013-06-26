@@ -17,6 +17,8 @@ var mode;
 var files, filedata;
 var group;
 
+var group_load_queue = [];
+
 window.onload = main;
 function main() {
 	loadList(); // asynchronous
@@ -77,7 +79,15 @@ function setGroup(num) {
 	$('#group_current').html(num);
 	var path = ["/lightsheet", $("#fileselect").val(), $("#channel").val(), filedata[channel][num]].join("/");
 
+	// TODO: Cancel loading of current group
 	group = new GroupImage(path);
+}
+
+function runGroupLoadQueue() {
+	if (group_load_queue.length == 0)
+		return; // nothing to run
+	var toload = group_load_queue.shift();
+	toload.load();
 }
 
 function GroupImage(path) {
@@ -90,30 +100,39 @@ function GroupImage(path) {
 	this.load = function(path) {
 		var g = this;
 
-		updateLoading(+1);
-		var image_loading = new Image();
-		image_loading.src = path + "/png"; // MUST BE SAME DOMAIN!!!
-		image_loading.onload = function() {
-			g.image = image_loading;
-			updateLoading(-1);
-			g.render_if_ready();
-		}
+		updateLoading(+2);
+		group_load_queue.push({'path': path, 'load': function() {
+			var image_loading = new Image();
+			image_loading.src = path + "/png"; // MUST BE SAME DOMAIN!!!
+			image_loading.onload = function() {
+				g.image = image_loading;
+				updateLoading(-1);
+				g.render_if_ready();
+			}
 
-		updateLoading(+1);
-		var metadatapath = path + "/json";
-		$.getJSON(metadatapath, function(data) {
-			g.metadata = data;
+			var metadatapath = path + "/json";
+			$.getJSON(metadatapath, function(data) {
+				g.metadata = data;
 
-			if (ofs_Z < 0.01) // i.e., unset yet
-				g.setupZ();
+				if (ofs_Z < 0.01) // i.e., unset yet
+					g.setupZ();
 
-			updateLoading(-1);
-			g.render_if_ready();
-		});
+				updateLoading(-1);
+				g.render_if_ready();
+			});
+		}});
+		if (group_load_queue.length == 1) // just us?
+			runGroupLoadQueue();
 	};
 	this.render_if_ready = function() {
 		if (!this.image || !this.metadata)
 			return;
+
+		// we have everything, continue in the queue
+		runGroupLoadQueue();
+
+		if (group != this)
+			return; // too late to the party
 		// we finally have everything, proceed!
 		this.render(1);
 	};
