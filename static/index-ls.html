@@ -6,6 +6,7 @@
 <script>
 
 var mouseSensitivity = 4.0;
+var playGroups_delay = 500; // [ms]
 var ofs_Z_step = 0.05; // TODO: recomputed later for particular metadata
 var ofs_UV_step = 1.0;
 var observerDistance = 50.0; // distance of the observer from the z=0 plane
@@ -89,6 +90,24 @@ function setGroup(num) {
 		last_group.cancel_queued_load();
 	console.log("new group to load: " + path);
 	last_group = new GroupImage(path);
+}
+
+var playGroups_timer;
+function playGroups() {
+	playGroups_timer = window.setInterval(function() {
+			setGroup(parseInt($('#group').val()) + 1);
+		}, playGroups_delay);
+	console.log("timer" + playGroups_timer);
+	$('#groupanim_button').attr('value', '[]');
+	$('#groupanim_button').off('click').click(stopPlayGroups);
+}
+function stopPlayGroups() {
+	if (playGroups_timer != null) {
+		console.log("clearInterval" + playGroups_timer);
+		window.clearInterval(playGroups_timer);
+	}
+	$('#groupanim_button').attr('value', '>');
+	$('#groupanim_button').off('click').click(playGroups);
 }
 
 function runGroupLoadQueue() {
@@ -655,6 +674,7 @@ group
 <input type="button" value="-" onClick="setGroup(parseInt($('#group').val()) - 1);">
 <input type="range" id="group" value="0" min="0" max="0" /> <!-- populated by setChannel() -->
 <input type="button" value="+" onClick="setGroup(parseInt($('#group').val()) + 1);">
+<input type="button" id="groupanim_button">
 <span id="group_current"></span>
 </p>
 
@@ -782,6 +802,8 @@ $('#box-z1').change(box_changed);
 
 $('#U_current').html(parseFloat(ofs_U).toFixed(2));
 $('#V_current').html(parseFloat(ofs_V).toFixed(2));
+
+stopPlayGroups();
 
 updateLoading(0);
 </script>
