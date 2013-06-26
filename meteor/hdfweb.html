@@ -482,11 +482,13 @@ void main() {
 <template name="webgl">
   <div class="webglstuff">
     <div class="controls">
+      {{#if shouldShowSlider}}
       <p class="ui-state-default ui-corner-all ui-helper-clearfix" style="padding: 4px;">
         Image slider
       </p>
       <div id="imageSlider" style="width: 96%; margin-left: 2%;">
       </div>
+      {{/if}}
       <div id="sliders" class="span6">
         Gain:
         <span id="gain_current">

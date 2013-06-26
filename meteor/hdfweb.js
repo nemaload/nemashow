@@ -75,6 +75,8 @@ if (Meteor.isClient) {
   Session.setDefault("endFrameIndex", 0);
   Session.setDefault("currentSearchTerm", "");
   Session.setDefault("searchJSON", "{}"); 
+  //image slider related things
+  Session.setDefault("currentImageNumFrames", 1);
   //Folder related functions
   Template.folders.foldersTop = function() {
 
@@ -227,6 +229,15 @@ if (Meteor.isClient) {
     }
   }
 
+  Template.fileView.setImageSessionVars = function () {
+    var imageObject = Images.findOne(Session.get("currentImageId"));
+    Session.set("currentImageNumFrames", imageObject.numFrames);
+    Session.set("currentFrameIndex", 0);
+    Session.set("currentFrameURL", imageObject.webPath[0]); 
+    Session.set("startFrameIndex", 0);
+    Session.set("endFrameIndex", 0);
+  }
+
   Template.fileView.events = {
     'mouseenter .fileViewRow': function(e) {
       $(e.target).children().addClass("fileViewRowActive");
@@ -238,6 +249,8 @@ if (Meteor.isClient) {
       //var idArray = $(e.target).parent().attr("fileid").match(/"(.*?)"/);
       //var idArrayString = idArray[1]
       Session.set("currentImageId", $(e.target).parent().attr("fileid"));
+      //set image related things here
+      Template.fileView.setImageSessionVars();      
       Session.set("currentImageView", "viewingImage");
     },
     'dragstart .fileViewRow': function(e) {
@@ -331,6 +344,7 @@ if (Meteor.isClient) {
       var image = Images.findOne(Annotations.findOne($(e.target).parent().attr("annotationId")).imageId)._id;
       console.log(image);
       Session.set("currentImageId", image);
+      Template.fileView.setImageSessionVars();
       Session.set("currentImageView", "viewingImage");
       $("body").animate({ scrollTop: $(document).height() }, 1000); //perhaps make this more sophisticated with a callback later
     }
@@ -437,8 +451,9 @@ if (Meteor.isClient) {
     var imageObject = Images.findOne(Session.get("currentImageId"));
     //var imagePath = imageObject.path;
     //rewrite so path is a session variable handled by the UI instead of here
-    imagePath = "/images/lensgrid.png";
-
+    //imagePath = "/images/lensgrid.png";
+    imagePath = Session.get("currentFrameURL");
+    alert("Loading frame" + imagePath);
     loadimage(imagePath);
     if (Session.get("currentWebGLMode") === "image") {
       newmode("lightfield");
@@ -456,6 +471,13 @@ if (Meteor.isClient) {
       return false;
     }
   }
+
+  Template.webgl.shouldShowSlider = function () {
+    if (Session.get("currentImageNumFrames") == 1) {
+      return false;
+    }
+    return true;
+  }
   Template.webgl.rendered = function() {
     //load image with ID stored in current session variable
     Template.webgl.renderImage();
@@ -466,10 +488,15 @@ if (Meteor.isClient) {
       value: 0,
       orientation: "horizontal",
       range: "min",
+      min: 0,
+      max: 5,
+      step: 1,
+      //max: Session.get("currentImageNumFrames") -1,
       animate: true,
       change: function() {
         //insert code to change Session variable with image URL and call loadImage
         //change loadimage to get autorectification parameters from database
+        alert("Should change image");
       }
     });
     // setup interface
