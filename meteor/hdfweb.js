@@ -78,6 +78,9 @@ if (Meteor.isClient) {
   Session.setDefault("currentImageNumFrames", 1);
   //Annotation related functions
   Session.setDefault("writingComment", false);
+  //rendering related things
+  Session.setDefault("currentImageGain", 0);
+  Session.setDefault("currentImageGamma", 1);
   Template.folders.foldersTop = function() {
 
     return Folders.find({
@@ -249,6 +252,9 @@ if (Meteor.isClient) {
     Session.set("op_right_dy", imageObject.op_right_dy);
     Session.set("op_down_dx", imageObject.op_down_dx);
     Session.set("op_down_dy", imageObject.op_down_dy);
+    //rendering stuff
+    Session.set("currentImageGain", imageObject.defaultGain);
+    Session.set("currentImageGamma", imageObject.defaultGamma);
 
 
   }
@@ -514,6 +520,14 @@ if (Meteor.isClient) {
     }
     return true;
   }
+
+  Template.webgl.currentImageGain = function () {
+    return Session.get("currentImageGain");
+  }
+
+  Template.webgl.currentImageGamma = function () {
+    return Session.get("currentImageGamma");
+  }
   Template.webgl.rendered = function() {
     //load image with ID stored in current session variable
     Template.webgl.renderImage();
@@ -545,7 +559,7 @@ if (Meteor.isClient) {
     $("#grid").button();
     $('.btn-group').button();
     $("#gainSlider").slider({
-      value: 0,
+      value: Session.get("currentImageGain"),
       min: -1,
       max: 1,
       step: 0.05,
@@ -560,7 +574,7 @@ if (Meteor.isClient) {
 
 
     $("#gammaSlider").slider({
-      value: 1,
+      value: Session.get("currentImageGamma"),
       min: 0.5,
       max: 1.5,
       step: 0.01,
