@@ -1,7 +1,3 @@
-//UI stuff
-//Test 
-
-//End UI stuff
 var mouseSensitivity = 4.0;
 
 var ofs_U = 0.0, ofs_V = 0.0; // in OpenGL coordinate system
