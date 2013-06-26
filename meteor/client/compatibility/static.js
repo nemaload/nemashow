@@ -86,6 +86,32 @@ function updateUV_display()
 {
 	$('#U_current').html(parseFloat(ofs_U).toFixed(2));
 	$('#V_current').html(parseFloat(ofs_V).toFixed(2));
+
+	var canvas = document.getElementById("canvas-uvpos");
+	var cuvpos = canvas.getContext("2d");
+	cuvpos.clearRect(0, 0, canvas.width, canvas.height);
+
+	var cradius = (canvas.width - 2) / 2;
+	cuvpos.beginPath();
+	cuvpos.arc(cradius, cradius, cradius, 0, 2*Math.PI);
+	cuvpos.stroke();
+
+	var pos_x, pos_y;
+	if (optics != null && lenslets != null) {
+		var rel_U = ofs_U / lenslets.right[0];
+		var rel_V = ofs_V / lenslets.down[1];
+		var max_slope = maxNormalizedSlope();
+		pos_x = canvas.width/2 + cradius * rel_U / max_slope;
+		pos_y = canvas.height/2 - cradius * rel_V / max_slope;
+	} else {
+		/* UV coordinates make no sense yet, just draw a point in the middle. */
+		pos_x = canvas.width / 2;
+		pos_y = canvas.height / 2;
+	}
+	cuvpos.beginPath();
+	cuvpos.arc(pos_x, pos_y, 2, 0, Math.PI*2, true);
+	cuvpos.closePath();
+	cuvpos.fill();
 }
 
 var mousedrag_X, mousedrag_Y;
@@ -310,14 +336,3 @@ function render_grid(canvas, gl) {
 
 	gl.drawArrays(gl.LINES, 0, lineList.length / 2);
 }
-
-
-
-
-
-
-
-
-
-
-
