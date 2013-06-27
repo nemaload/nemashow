@@ -1,11 +1,7 @@
 //webgl related stuff
 Template.webgl.renderImage = function() {
   var imageObject = Images.findOne(Session.get("currentImageId"));
-  //var imagePath = imageObject.path;
-  //rewrite so path is a session variable handled by the UI instead of here
-  //imagePath = "/images/lensgrid.png";
   imagePath = Session.get("currentFrameURL");
-  //alert(Session.get("currentFrameURL"));
   loadimage(imagePath);
   if (Session.get("currentWebGLMode") === "image") {
     newmode("lightfield");
@@ -71,8 +67,6 @@ Template.webgl.setupSliders = function() {
       //max: Session.get("currentImageNumFrames") -1,
       animate: true,
       change: function() {
-        //insert code to change Session variable with image URL and call loadImage
-        //change loadimage to get autorectification parameters from database
         var newURL = Images.findOne(Session.get("currentImageId")).webPath[$("#imageSlider").slider("value")];
         Session.set("currentFrameURL", newURL);
         Session.set("currentFrameIndex", $("#imageSlider").slider("value"));
@@ -81,8 +75,6 @@ Template.webgl.setupSliders = function() {
     });
 
   }
-  //set up jquery UI slider here
-  // setup interface
   $("#rendermode").val(Session.get("currentWebGLMode"));
   $("#grid").button();
   $('.btn-group').button();
@@ -98,13 +90,12 @@ Template.webgl.setupSliders = function() {
       $('#gain_current').html(Math.pow(10, $("#gainSlider").slider("value")).toFixed(2));
       Session.set("currentImageGain", $("#gainSlider").slider("value"));
       render_if_ready(image, 0);
-    }
-/*,
+    },
       slide: function(event, ui) {
         $('#gain_current').html(Math.pow(10, ui.value).toFixed(2));
         Session.set("currentImageGain", ui.value);
         render_if_ready(image, 0);
-      }*/
+      }
   });
 
 
@@ -121,26 +112,22 @@ Template.webgl.setupSliders = function() {
       Session.set("currentImageGamma", $("#gammaSlider").slider("value"));
       render_if_ready(image, 0);
     }
-/*,
+,
       slide: function(event, ui) {
         $('#gamma_current').html(Math.pow(10, ui.value).toFixed(2));
         Session.set("currentImageGamma", ui.value);
         render_if_ready(image, 0);
-      }*/
+      }
   });
 
 }
 Template.webgl.rendered = function() {
-  //load image with ID stored in current session variable
   Template.webgl.renderImage();
   updateUV_display();
   Template.webgl.setupSliders();
 
-
-
-  //$("#gainSlider").slider("value");
 }
-//WebGL related stuff
+
 Template.webgl.events = {
   'change #imageselect': function(e) {
     console.log("Image changed");
@@ -166,19 +153,6 @@ Template.webgl.events = {
       $(window).unbind("mouseup");
     });
   },
-  //NOTE, GAMMA AND GAIN WERE CHANGED IN STATIC.JS
-/*'change #gain' : function (e) {
-      console.log("Gain changed");
-      $('#gain_current').html(Math.pow(10, $(e.target).val()).toFixed(2));
-      render_if_ready(image,0);
-    }, */
-/*'mouseleave #gainSlider' : function (e) {
-      console.log("Gain changed");
-      $('#gain_current').html(Math.pow(10, $("#gainSlider").slider("value")).toFixed(2));
-      render_if_ready(image,0);
-    },*/
-  //Slider callback is set above
-  //this might cause some problems, not having the .change(), also check spelling
   'click #grid': function() {
     $("#grid").toggleClass('active');
     render_if_ready(image, 0);

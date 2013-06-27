@@ -97,10 +97,7 @@ Template.fileView.events = {
     $(e.target).children().removeClass("fileViewRowActive");
   },
   'click .fileViewRow': function(e) {
-    //var idArray = $(e.target).parent().attr("fileid").match(/"(.*?)"/);
-    //var idArrayString = idArray[1]
     Session.set("currentImageId", $(e.target).parent().attr("fileid"));
-    //set image related things here
     Template.fileView.setImageSessionVars();
     Session.set("currentImageView", "viewingImage");
     Session.set("currentWebGLMode", "image");

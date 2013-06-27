@@ -10,17 +10,7 @@ Meteor.methods({
     return true;
   },
   search: function(searchterm, mode) {
-    //this is the shadiest hack ever, even mongo documentation warns against using this in production
-    //meh, i'll look for security holes later
     //thanks Thimo Brinkmann! https://groups.google.com/forum/#!topic/meteor-talk/x9kYnO52Btg
-    //follow these steps in mongo console to enable:
-    //> use admin
-    //> db.runCommand({setParameter:1, textSearchEnabled: true})
-    //> use meteor
-    // example for annotations
-    //> db.annotations.ensureIndex({comment:"text"})
-    // sample search
-    //> db.annotations.runCommand("text",{search:"test"})
     var searchterm_mod = '';
 
     var searchterms = searchterm.trim().split(" ");

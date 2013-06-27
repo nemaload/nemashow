@@ -55,7 +55,6 @@ Template.folders.events = {
         $(e.target).removeClass('dragover');
       });
     }
-    //edit this to make the differentiation between folders and images
   },
   'dragstart li.folderLi': function(e, t) {
     e.dataTransfer.effectAllowed = 'move';

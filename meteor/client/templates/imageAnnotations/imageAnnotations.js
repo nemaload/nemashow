@@ -1,6 +1,5 @@
-  //annotations related stuff
+
   Template.imageAnnotations.annotationsForImage = function() {
-    console.log('Found annotations for images');
     return Annotations.find({
       imageId: Session.get("currentImageId")
     });
@@ -60,8 +59,6 @@
       });
     },
     'click #endButton': function(e) {
-      //get input from slider here
-      //merge these two events into one, getting target to set proper value
       Session.set("endFrameIndex", Session.get("currentFrameIndex"));
     },
     'click #startButton': function(e) {

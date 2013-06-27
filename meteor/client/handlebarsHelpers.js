@@ -1,4 +1,3 @@
- //handlebars helper functions
  Handlebars.registerHelper('isAdmin', function() {
   return Meteor.call('isAdmin');
  });

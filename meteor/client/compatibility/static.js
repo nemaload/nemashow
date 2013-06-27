@@ -22,8 +22,6 @@ function loadimage(imagepath) {
 		loaded.image = 1;
 		render_if_ready();
 	}
-	//opticspath = imagepath.replace(/\.[^/.]+$/, "-optics.json");
-	//opticspath = "/images/lensgrid-optics.json"
 	optics = {
 		"pitch": Session.get("op_pitch"),
 		"flen": Session.get("op_flen"),
@@ -33,13 +31,6 @@ function loadimage(imagepath) {
 		"medium": Session.get("op_medium")
 	};
 	loaded.optics = 1;
-/*$.getJSON(opticspath, function(data) {
-		optics = data;
-		loaded.optics = 1;
-		render_if_ready();
-	});*/
-	//lensletspath = imagepath.replace(/\.[^/.]+$/, "-lenslets.json");
-	//lensletspath = "/images/lensgrid-lenslets.json"
 	lenslets = {
 		"offset": [Session.get("op_x_offset"), Session.get("op_y_offset")],
 		"right": [Session.get("op_right_dx"), Session.get("op_right_dy")],
@@ -47,17 +38,11 @@ function loadimage(imagepath) {
 	};
 	loaded.lenslets = 1;
 	render_if_ready();
-/*$.getJSON(lensletspath, function(data) {
-		lenslets = data;
-		loaded.lenslets = 1;
-		render_if_ready();
-	});*/
 }
 
 function render_if_ready() {
 	console.log("loadimage " + loaded.image + " " + loaded.optics + " " + loaded.lenslets);
 	if (!loaded.image || !loaded.optics || !loaded.lenslets) return;
-	// we finally have everything, proceed!
 	render(image, 1);
 }
 

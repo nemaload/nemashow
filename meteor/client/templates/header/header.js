@@ -41,7 +41,6 @@ Template.header.rendered = function() {
         } else if (result.length == 0) {
           result = ["No results were found for " + query];
         }
-        //cut down on length here, just maybe one or two words around the phrase in question
         process(result);
       });
     }
