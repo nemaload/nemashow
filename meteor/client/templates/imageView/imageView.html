@@ -1,5 +1,7 @@
 <template name="imageView">
+	{{#if currentUser}}
 	{{#unless isViewing "viewingNothing"}} {{> imageInformation}}
 	<hr>
 	{{/unless}}
+	{{/if}}
 </template>
