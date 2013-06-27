@@ -23,6 +23,20 @@ body {
   //text-shadow: 0 1px 0 #ffffff;
 }
 
+#imageAttributeTable {
+  table-layout:fixed;
+
+}
+
+.colAttribute {
+  width: 4.5em;
+}
+
+.colValue {
+  width:20em;
+
+}
+
 .fileViewRowActive {
   background-color: yellow !important;
 }

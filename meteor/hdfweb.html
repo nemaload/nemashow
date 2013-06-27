@@ -297,7 +297,7 @@ void main() {
   <div class="row-fluid">
     <div class="span3 webglstuff">
       {{#with imageObject}}
-      <h3>
+      <h3 style="word-wrap: break-word;">
         {{baseName}}
       </h3>
       <div id="imageOptions">
@@ -309,6 +309,8 @@ void main() {
         </h3>
       </div>
       <table id="imageAttributeTable" class="table table-striped">
+        <col class="colAttribute">
+        <col class="colValue">
         <thead>
           <tr>
             <th align="left">
