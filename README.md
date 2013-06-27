@@ -11,7 +11,7 @@ There are two dependencies necessary to run the Meteor application: the Meteorit
 To make a user an administrator, direct database access is required. In the users collection, simply set the "admin" field in the user document in question to "admin".
 
 ###Data
-If you wish to access the project data set, please contact us.
+If you wish to access the project data set, please contact us. It goes to a `meteor/data` directory.
 
 ##Roadmap
 HDFWeb's support for light-field visualizations is nearly complete. Our goals for the short term include integrating light-sheet visualizations, improving reusability of workflow utilities, and making the application scalable. 
