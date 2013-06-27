@@ -621,6 +621,7 @@ if (Meteor.isClient) {
     }
     //set up jquery UI slider here
     // setup interface
+    $("#rendermode").val(Session.get("currentWebGLMode"));
     $("#grid").button();
     $('.btn-group').button();
     $("#gainSlider").slider({
