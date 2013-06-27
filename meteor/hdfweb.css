@@ -25,15 +25,14 @@ body {
 
 #imageAttributeTable {
   table-layout:fixed;
-
+  word-wrap: break-word;
 }
 
 .colAttribute {
-  width: 4.5em;
+  width: 5.4em;
 }
 
 .colValue {
-  width:20em;
 
 }
 
