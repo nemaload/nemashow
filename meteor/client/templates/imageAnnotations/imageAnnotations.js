@@ -76,7 +76,7 @@
         }
       });
     },
-    'click .icon-eye-open' : function (e) {
+    'click .icon-eye-open': function(e) {
       e.preventDefault();
       var annotation = Annotations.findOne($(e.target).attr('annotationid'));
       Session.set("imageSliderMin", annotation.startFrame);

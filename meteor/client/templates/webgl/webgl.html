@@ -2,9 +2,10 @@
 <template name="webgl">
   <div class="webglstuff">
     <div class="controls">
-      {{#if shouldShowSlider}}
-      {{annotationNote}}
-      <p> Current Frame: {{currentFrameIndex}}, Range: {{minFrame}} - {{maxFrame}} </p>
+      {{#if shouldShowSlider}} {{annotationNote}}
+      <p>
+        Current Frame: {{currentFrameIndex}}, Range: {{minFrame}} - {{maxFrame}}
+      </p>
       <div id="imageSlider" style="width: 96%; margin-left: 2%;">
       </div>
       {{/if}}
@@ -22,7 +23,6 @@
         <div id="gammaSlider" style="width: 96%; margin: 2%; display:inline-block;">
         </div>
       </div>
-
       <div id="otherControls" style="margin-top: 2%;">
         <div id="imageTypeSelect">
           <select id="rendermode">
@@ -35,7 +35,6 @@
           </select>
         </div>
       </div>
-      
       {{#if needsGridBox}}
       <button type="button" class="btn" id="grid">
         Grid
@@ -44,11 +43,13 @@
         Set Default Gain and Gamma
       </button>
       <div style="display:none;float: left; margin: 0.5em auto; width: 52">
-      <canvas id="canvas-uvpos" width="52" height="52"></canvas>
+        <canvas id="canvas-uvpos" width="52" height="52">
+        </canvas>
       </div>
       {{else}}
       <div style="float: left; margin: 0.5em auto; width: 52">
-      <canvas id="canvas-uvpos" width="52" height="52"></canvas>
+        <canvas id="canvas-uvpos" width="52" height="52">
+        </canvas>
       </div>
       {{/if}}
       <p id="controls-lightfield" class="controlbox">

@@ -1,6 +1,7 @@
 var mouseSensitivity = 4.0;
 
-var ofs_U = 0.0, ofs_V = 0.0; // in OpenGL coordinate system
+var ofs_U = 0.0,
+	ofs_V = 0.0; // in OpenGL coordinate system
 var texture = {}; // indexed by mode name
 var mode;
 
@@ -10,7 +11,11 @@ var loaded = {}; // indexed by variable name
 function loadimage(imagepath) {
 	// This method of asynchronous loading may be problematic if there
 	// is still an outstanding request from previous loadimage(); FIXME
-	loaded = { "image": 0, "optics": 0, "lenslets": 0 };
+	loaded = {
+		"image": 0,
+		"optics": 0,
+		"lenslets": 0
+	};
 	image = new Image();
 	image.src = imagepath; // MUST BE SAME DOMAIN!!!
 	image.onload = function() {
@@ -20,7 +25,7 @@ function loadimage(imagepath) {
 	//opticspath = imagepath.replace(/\.[^/.]+$/, "-optics.json");
 	//opticspath = "/images/lensgrid-optics.json"
 	optics = {
-		"pitch": Session.get("op_pitch"), 
+		"pitch": Session.get("op_pitch"),
 		"flen": Session.get("op_flen"),
 		"mag": Session.get("op_mag"),
 		"abbe": Session.get("op_abbe"),
@@ -28,7 +33,7 @@ function loadimage(imagepath) {
 		"medium": Session.get("op_medium")
 	};
 	loaded.optics = 1;
-	/*$.getJSON(opticspath, function(data) {
+/*$.getJSON(opticspath, function(data) {
 		optics = data;
 		loaded.optics = 1;
 		render_if_ready();
@@ -42,7 +47,7 @@ function loadimage(imagepath) {
 	};
 	loaded.lenslets = 1;
 	render_if_ready();
-	/*$.getJSON(lensletspath, function(data) {
+/*$.getJSON(lensletspath, function(data) {
 		lenslets = data;
 		loaded.lenslets = 1;
 		render_if_ready();
@@ -51,8 +56,7 @@ function loadimage(imagepath) {
 
 function render_if_ready() {
 	console.log("loadimage " + loaded.image + " " + loaded.optics + " " + loaded.lenslets);
-	if (!loaded.image || !loaded.optics || !loaded.lenslets)
-		return;
+	if (!loaded.image || !loaded.optics || !loaded.lenslets) return;
 	// we finally have everything, proceed!
 	render(image, 1);
 }
@@ -70,20 +74,20 @@ function updateUV(delta_U, delta_V) {
 
 	var rel_U = newofs_U / lenslets.right[0];
 	var rel_V = newofs_V / lenslets.down[1];
-	var UV_dist = rel_U*rel_U + rel_V*rel_V;
+	var UV_dist = rel_U * rel_U + rel_V * rel_V;
 	var max_slope = maxNormalizedSlope();
-	if (UV_dist > max_slope*max_slope) {
-		console.log(UV_dist + " > " + max_slope*max_slope)
+	if (UV_dist > max_slope * max_slope) {
+		console.log(UV_dist + " > " + max_slope * max_slope)
 		return;
 	}
 
-	ofs_U = newofs_U; ofs_V = newofs_V;
+	ofs_U = newofs_U;
+	ofs_V = newofs_V;
 	render(image, 0);
 	updateUV_display();
 }
 
-function updateUV_display()
-{
+function updateUV_display() {
 	$('#U_current').html(parseFloat(ofs_U).toFixed(2));
 	$('#V_current').html(parseFloat(ofs_V).toFixed(2));
 
@@ -93,7 +97,7 @@ function updateUV_display()
 
 	var cradius = (canvas.width - 2) / 2;
 	cuvpos.beginPath();
-	cuvpos.arc(cradius+1, cradius+1, cradius, 0, 2*Math.PI);
+	cuvpos.arc(cradius + 1, cradius + 1, cradius, 0, 2 * Math.PI);
 	cuvpos.stroke();
 
 	var pos_x, pos_y;
@@ -101,34 +105,32 @@ function updateUV_display()
 		var rel_U = ofs_U / lenslets.right[0];
 		var rel_V = ofs_V / lenslets.down[1];
 		var max_slope = maxNormalizedSlope();
-		pos_x = canvas.width/2 + cradius * rel_U / max_slope;
-		pos_y = canvas.height/2 - cradius * rel_V / max_slope;
-	} else {
-		/* UV coordinates make no sense yet, just draw a point in the middle. */
+		pos_x = canvas.width / 2 + cradius * rel_U / max_slope;
+		pos_y = canvas.height / 2 - cradius * rel_V / max_slope;
+	} else { /* UV coordinates make no sense yet, just draw a point in the middle. */
 		pos_x = canvas.width / 2;
 		pos_y = canvas.height / 2;
 	}
 	cuvpos.beginPath();
-	cuvpos.arc(pos_x, pos_y, 2, 0, Math.PI*2, true);
+	cuvpos.arc(pos_x, pos_y, 2, 0, Math.PI * 2, true);
 	cuvpos.closePath();
 	cuvpos.fill();
 }
 
 var mousedrag_X, mousedrag_Y;
+
 function mousedrag(new_X, new_Y) {
 	updateUV((new_X - mousedrag_X) / mouseSensitivity, -(new_Y - mousedrag_Y) / mouseSensitivity);
 	mousedrag_X = new_X;
 	mousedrag_Y = new_Y;
 }
 
-function maxNormalizedSlope() {
-	/* Return the maximum slope afforded by the optical system */
+function maxNormalizedSlope() { /* Return the maximum slope afforded by the optical system */
 
 	// ???
 	image_na = optics.na / optics.mag;
-	if (image_na >= 1.0)
-		return 0.0;
-	na_slope = image_na / Math.sqrt(1.0-image_na*image_na);
+	if (image_na >= 1.0) return 0.0;
+	na_slope = image_na / Math.sqrt(1.0 - image_na * image_na);
 
 	// slope of looking at a lens neighboring with central lens
 	ulens_slope = optics.pitch / optics.flen;
@@ -164,13 +166,14 @@ function lenslets_offset2corner(lenslets) {
 }
 
 // Get A WebGL context
+
+
 function render(image, is_new_image) {
 	//grabs the canvas element
 	var canvas = document.getElementById("canvas-" + mode);
 	//gets the WebGL context
 	var gl = getWebGLContext(canvas);
 	//checks if system is WebGL compatible
-
 	if (!gl) {
 		alert("WebGL not supported in this browser, sorry");
 		return;
@@ -205,8 +208,7 @@ function render(image, is_new_image) {
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 	//if (mode == "image" && $('#grid').prop('checked'))
-	if (mode == "image" && $('#grid').hasClass('active'))
-		render_grid(canvas, gl);
+	if (mode == "image" && $('#grid').hasClass('active')) render_grid(canvas, gl);
 }
 
 function render_image(image, canvas, gl) {
@@ -238,19 +240,15 @@ function render_image(image, canvas, gl) {
 }
 
 function setRectangle(gl, x, y, width, height) {
-        var x1 = x;
-        var x2 = x + width;
-        var y1 = y;
-        var y2 = y + height;
+	var x1 = x;
+	var x2 = x + width;
+	var y1 = y;
+	var y2 = y + height;
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-		// bottom triangle
-		x1, y1,
-		x2, y1,
-		x1, y2,
-		// top triangle
-		x1, y2,
-		x2, y1,
-		x2, y2]), gl.STATIC_DRAW);
+	// bottom triangle
+	x1, y1, x2, y1, x1, y2,
+	// top triangle
+	x1, y2, x2, y1, x2, y2]), gl.STATIC_DRAW);
 }
 
 function render_lightfield_pinhole(image, canvas, gl) {
@@ -267,7 +265,6 @@ function render_lightfield_pinhole(image, canvas, gl) {
 	};
 
 	// set(up) parameters
-
 	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
 	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
@@ -279,8 +276,7 @@ function render_lightfield_pinhole(image, canvas, gl) {
 	gl.uniform2f(rectOffsetLocation, gridCorner[0] / image.width, -gridCorner[1] / image.height);
 	var rectLinearLocation = gl.getUniformLocation(program, "u_rectLinear");
 	gl.uniformMatrix2fv(rectLinearLocation, false, [
-		lenslets.right[0] / image.width, lenslets.right[1] / image.height,
-		lenslets.down[0] / image.width, lenslets.down[1] / image.height]);
+	lenslets.right[0] / image.width, lenslets.right[1] / image.height, lenslets.down[0] / image.width, lenslets.down[1] / image.height]);
 	var UVCoordLocation = gl.getUniformLocation(program, "u_UVCoord");
 	gl.uniform2f(UVCoordLocation, ofs_U / lenslets.right[0], ofs_V / lenslets.down[1]);
 

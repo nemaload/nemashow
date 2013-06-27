@@ -1,0 +1,32 @@
+<body>
+  {{> header}}
+  <div class="container-fluid">
+    <div class="row-fluid">
+      <div class="span3">
+        <div class="well sidebar-nav" style="height: 400px;">
+          {{> folders}}
+        </div>
+        <!--/.well -->
+      </div>
+      <!--/span-->
+      <div class="span9">
+        {{> mainView}}
+        <div class="row-fluid">
+        </div>
+        <!--/row-->
+      </div>
+      <!--/span-->
+    </div>
+    <!--/row-->
+    <hr>
+    {{> imageView}}
+    <footer>
+      <p>
+        NEMALOAD 2013. Built with
+        <a href="http://meteor.com">Meteor</a>
+        .
+      </p>
+    </footer>
+  </div>
+  <!--/.fluid-container-->
+</body>

@@ -2,41 +2,40 @@
   <h3 class="truncate">
     Search Results for "{{currentSearchTerm}}"
   </h3>
-  
-   <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>
-            User
-          </th>
-          <th>
-            Comment
-          </th>
-          <th>
-            Image Name
-          </th>
-          <th> 
-            Range
-          </th>
-        </tr>
-      </thead>
-      <tbody>
-        {{#each searchResults}}
-        <tr class="fileViewRow" annotationID={{_id}}>
-          <td>
-            {{user}}
-          </td>
-          <td>
-           {{comment}}
-          </td>
-          <td>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>
+          User
+        </th>
+        <th>
+          Comment
+        </th>
+        <th>
+          Image Name
+        </th>
+        <th>
+          Range
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each searchResults}}
+      <tr class="fileViewRow" annotationID={{_id}}>
+        <td>
+          {{user}}
+        </td>
+        <td>
+          {{comment}}
+        </td>
+        <td>
           {{imageName}}
-          </td>
-          <td>
+        </td>
+        <td>
           {{startFrame}}-{{endFrame}}
-        </tr>
-        {{/each}}
-      </tbody>
-    </table>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
   </div>
 </template>

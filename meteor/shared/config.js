@@ -3,8 +3,6 @@ Folders = new Meteor.Collection('folders');
 Annotations = new Meteor.Collection('annotations');
 
 Accounts.config({
-  sendVerificationEmail: true,
-  forbidClientAccountCreation: false
+	sendVerificationEmail: true,
+	forbidClientAccountCreation: false
 });
-
-

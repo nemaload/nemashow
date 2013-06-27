@@ -36,16 +36,15 @@
         </tr>
         {{/each}}
       </tbody>
-      {{/if}}
-      {{#if hasFolders}}
+      {{/if}} {{#if hasFolders}}
       <thead>
         <tr>
-          <th> 
-            Folder ID 
+          <th>
+            Folder ID
           </th>
           <th>
             Folder Name
-          <th>
+            <th>
         </tr>
       </thead>
       <tbody>
@@ -62,9 +61,10 @@
       </tbody>
       {{/if}}
     </table>
-    {{/unless}}
-    {{#if hasNothing}}
-    <h5> There's nothing here. </h5>
+    {{/unless}} {{#if hasNothing}}
+    <h5>
+      There's nothing here.
+    </h5>
     {{/if}}
   </div>
 </template>

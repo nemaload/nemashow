@@ -15,9 +15,10 @@
       <div id="collapseOne" class="accordion-body collapse in">
         <div class="accordion-inner">
           <div class="annotation">
-            
-            <i class="icon-remove-sign" style="float: right; cursor:pointer;" id="{{_id}}"></i>
-            <i class="icon-eye-open" annotationid="{{_id}}" style="float: right; margin-right:10px;cursor:pointer;"></i>
+            <i class="icon-remove-sign" style="float: right; cursor:pointer;" id="{{_id}}">
+            </i>
+            <i class="icon-eye-open" annotationid="{{_id}}" style="float: right; margin-right:10px;cursor:pointer;">
+            </i>
             {{#if sameFrame startFrame endFrame}}
             <h6>
               Concerning frame {{startFrame}}, {{creator userId}} said:
@@ -29,7 +30,7 @@
             {{/if}}
             <p>
               {{comment}}
-              <p>
+            </p>
           </div>
         </div>
       </div>
@@ -63,12 +64,13 @@
           </b>
           <h5 style="margin-top: 10px; margin-bottom: 10px;">
             Comment:
-            </h5>
-              <textarea type="text" class="commentInput" id="commentInput"></textarea>
-              <br />
-              <button class="btn" id="submitAnnotation">
-                Add Annotation
-              </button>
+          </h5>
+          <textarea type="text" class="commentInput" id="commentInput">
+          </textarea>
+          <br />
+          <button class="btn" id="submitAnnotation">
+            Add Annotation
+          </button>
         </div>
       </div>
     </div>
