@@ -93,7 +93,7 @@ function updateUV_display()
 
 	var cradius = (canvas.width - 2) / 2;
 	cuvpos.beginPath();
-	cuvpos.arc(cradius, cradius, cradius, 0, 2*Math.PI);
+	cuvpos.arc(cradius+1, cradius+1, cradius, 0, 2*Math.PI);
 	cuvpos.stroke();
 
 	var pos_x, pos_y;
