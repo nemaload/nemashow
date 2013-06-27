@@ -209,6 +209,31 @@ if (Meteor.isClient) {
     });
   }
 
+  Template.fileView.foldersWithParent = function () {
+    return Folders.find({ parent: Session.get("currentFolderId")});
+  }
+
+  Template.fileView.hasFiles = function () {
+    if (Images.find({folderId: Session.get("currentFolderId")}).count() == 0) {
+      return false;
+    }
+    return true;
+  }
+
+  Template.fileView.hasFolders = function() {
+    if (Folders.find({parent: Session.get("currentFolderId")}).count() == 0) {
+      return false;
+    }
+    return true;
+  }
+
+  Template.fileView.hasNothing = function() {
+    if (!(Template.fileView.hasFiles() || Template.fileView.hasFolders())) {
+      return true;
+    }
+    return false;
+  }
+
   Template.fileView.removeFolder = function() {
     if (confirm("Do you really want to delete this folder? Deleting a folder strands all of the files within it.")) {
       Meteor.call('deleteFolder', Session.get("currentFolderId"), function(err, result) {
@@ -289,6 +314,9 @@ if (Meteor.isClient) {
     'click #removeFolder': function(e) {
       e.preventDefault();
       Template.fileView.removeFolder();
+    },
+    'click .folderViewRow': function (e) {
+      Session.set("currentFolderId", $(e.target).parent().attr("folderId"));
     }
   }
 

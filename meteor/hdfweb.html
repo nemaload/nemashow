@@ -168,7 +168,9 @@ void main() {
     </i>
   </h3>
   <div style="height: 300px; overflow: auto;">
+    {{#unless hasNothing}}
     <table class="table table-striped">
+      {{#if hasFiles}}
       <thead>
         <tr>
           <th>
@@ -197,7 +199,36 @@ void main() {
         </tr>
         {{/each}}
       </tbody>
+      {{/if}}
+      {{#if hasFolders}}
+      <thead>
+        <tr>
+          <th> 
+            Folder ID 
+          </th>
+          <th>
+            Folder Name
+          <th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each foldersWithParent}}
+        <tr class="folderViewRow" folderId={{_id}} draggable="false">
+          <td>
+            {{_id}}
+          </td>
+          <td>
+            {{name}}
+          </td>
+        </tr>
+        {{/each}}
+      </tbody>
+      {{/if}}
     </table>
+    {{/unless}}
+    {{#if hasNothing}}
+    <h5> There's nothing here. </h5>
+    {{/if}}
   </div>
 </template>
 <template name="header">
