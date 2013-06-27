@@ -1,0 +1,44 @@
+<template name="header">
+  <div class="navbar navbar-inverse navbar-fixed-top">
+    <div class="navbar-inner">
+      <div class="container-fluid">
+        <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+          <span class="icon-bar">
+          </span>
+          <span class="icon-bar">
+          </span>
+          <span class="icon-bar">
+          </span>
+        </button>
+        <a class="brand" id="triggerFirstScreen">HDFWeb</a>
+        <div class="nav-collapse collapse">
+          <div class="navbar-text pull-right">
+            {{loginButtons align="right"}}
+          </div>
+          <form class="navbar-search pull-right" style="margin-right: 10px;">
+            <input type="text" class="search-query" id="annotationSearch" placeholder="Search annotations..." autocomplete="off">
+          </form>
+          <ul class="nav">
+            <li>
+              <a id="triggerAbout">About</a>
+            </li>
+            <li>
+              <a id="triggerHelp">Help</a>
+            </li>
+            <li>
+              <a href="http://nemaload.com" target="_blank">NEMALOAD</a>
+            </li>
+            <li>
+              <p id="databaseConnection">
+                <i class="icon-cloud">
+                </i>
+                Status: {{connectionStatus}}
+              </p>
+            </li>
+          </ul>
+        </div>
+        <!--/.nav-collapse -->
+      </div>
+    </div>
+  </div>
+</template>

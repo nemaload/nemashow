@@ -1,0 +1,70 @@
+<template name="imageInformation">
+  <div class="row-fluid">
+    <div class="span3 webglstuff">
+      {{#with imageObject}}
+      <h3 style="word-wrap: break-word;">
+        {{baseName}}
+      </h3>
+      <div id="imageOptions">
+        <h3 style="letter-spacing: 0.2em;">
+          <a href="#" id="magnetLink"><i class="icon-magnet"></i></a>
+          <a href="#" id="frameLink"><i class="icon-picture"></i></a>
+          <a href="#" id="shareTwitter"><i class="icon-twitter-sign"></i></a>
+          <a href="#" id="imageFullView"><i class="icon-eye-open"></i></a>
+        </h3>
+      </div>
+      <table id="imageAttributeTable" class="table table-striped">
+        <col class="colAttribute">
+        <col class="colValue">
+        <thead>
+          <tr>
+            <th align="left">
+              Attribute
+            </th>
+            <th align="left">
+              Value
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              Name:
+            </td>
+            <td>
+              {{baseName}}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Frames:
+            </td>
+            <td>
+              {{numFrames}}
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Size:
+            </td>
+            <td>
+              {{size}} bytes
+            </td>
+          </tr>
+          <tr>
+            <td>
+              ID
+            </td>
+            <td>
+              {{_id}}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      {{> imageAnnotations}} {{/with}}
+    </div>
+    <div class="span9">
+      {{> webgl}}
+    </div>
+  </div>
+</template>

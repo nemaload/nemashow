@@ -1,0 +1,36 @@
+<template name="mainView">
+  <div class="hero-unit" style="height:300px;" overflow="auto">
+    <!--Stuff that everyone sees -->
+    {{#if isViewing "viewingAbout"}}
+    <p>
+      This is the about screen
+    </p>
+    {{/if}} {{#if isViewing "viewingHelp"}}
+    <p>
+      This is the Help screen
+    </p>
+    {{/if}}
+    <!-- Stuff that logged in users can see -->
+    {{#if currentUser}} {{#if isViewing "viewingFirstScreen"}}
+    <p>
+      Please choose a dataset to explore from the list to the left.
+    </p>
+    {{/if}} {{#if isViewing "fileListing"}} {{> fileView}} {{/if}} {{#if isViewing "searchResults"}}
+    {{> searchResults}} {{/if}}
+    <!--Stuff that people who aren't logged in see -->
+    {{else}} {{#if isViewing "viewingFirstScreen"}}
+    <h1>
+      Welcome to HDFWeb
+    </h1>
+    HDFWeb allows both NEMALOAD researchers and the public to interactively view the
+    project data.
+    <p>
+      <a href="http://nemaload.github.io/HDFWeb" class="btn btn-primary btn-large">Learn more &raquo;</a>
+    </p>
+    {{/if}} {{#if isViewing "fileListing"}}
+    <p>
+      You need to log in to view files.
+    </p>
+    {{/if}} {{/if}}
+  </div>
+</template>

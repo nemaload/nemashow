@@ -1,0 +1,24 @@
+<template name="folders">
+  <!-- initial nav -->
+  <ul class="nav nav-list">
+    <li class="nav-header" id="topLevelFolder">
+      <i class="icon-folder-close">
+      </i>
+      Folders
+    </li>
+    {{#each foldersTop}} {{#if isCurrentFolder _id}}
+    <li class="folderLi" draggable="true">
+      <a id="{{_id}}"><i class="icon-folder-open-alt"></i>{{> folders_sub}}</a>
+    </li>
+    {{else}}
+    <li class="folderLi" draggable="true">
+      <a id="{{_id}}"><i class="icon-folder-close-alt"></i>{{> folders_sub}}</a>
+    </li>
+    {{/if}} {{/each}}
+  </ul>
+  <li class="nav-header" style="cursor:pointer;" id="addFolder">
+    <i class="icon-plus-sign-alt">
+    </i>
+    Add a folder
+  </li>
+</template>

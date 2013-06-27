@@ -1,0 +1,76 @@
+<template name="imageAnnotations">
+  <h5 id="annotationsTitle">
+    <i class="icon-comments">
+    </i>
+    Annotations
+  </h5>
+  <div class="accordion" id="accordion2">
+    {{#unless noAnnotations}} {{#each annotationsForImage}}
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" href="#collapseOne">
+         {{_id}}
+      </a>
+      </div>
+      <div id="collapseOne" class="accordion-body collapse in">
+        <div class="accordion-inner">
+          <div class="annotation">
+            
+            <i class="icon-remove-sign" style="float: right; cursor:pointer;" id="{{_id}}"></i>
+            <i class="icon-eye-open" annotationid="{{_id}}" style="float: right; margin-right:10px;cursor:pointer;"></i>
+            {{#if sameFrame startFrame endFrame}}
+            <h6>
+              Concerning frame {{startFrame}}, {{creator userId}} said:
+            </h6>
+            {{else}}
+            <h6>
+              Concerning frames {{startFrame}} to {{endFrame}}, {{creator userId}} said:
+            </h6>
+            {{/if}}
+            <p>
+              {{comment}}
+              <p>
+          </div>
+        </div>
+      </div>
+    </div>
+    {{/each}} {{/unless}} {{#if noAnnotations}}
+    <p>
+      There are no annotations for this image.
+      <br />
+      Why don't you write one?
+    </p>
+    {{/if}}
+    <div class="accordion-group">
+      <div class="accordion-heading">
+        <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" id="writeCommentLink">
+        <h5> <i class="icon-pencil"></i> Write an annotation</h5> 
+      </a>
+      </div>
+      <div id="collapseTwo" class="accordion-body collapse {{writingComment}}">
+        <div class="accordion-inner">
+          <button id="startButton" type="button" class="btn btn-success" rel="tooltip" title="Select your start frame using the slider.">
+            Start
+          </button>
+          <b id="startFrame" style="padding: 10px;">
+            {{currentStartFrame}}
+          </b>
+          <button id="endButton" type="button" class="btn btn-danger" rel="tooltip" title="Select your end frame using the slider.">
+            End
+          </button>
+          <b style="padding: 10px;" id="endFrame">
+            {{currentEndFrame}}
+          </b>
+          <h5 style="margin-top: 10px; margin-bottom: 10px;">
+            Comment:
+            </h5>
+              <textarea type="text" class="commentInput" id="commentInput"></textarea>
+              <br />
+              <button class="btn" id="submitAnnotation">
+                Add Annotation
+              </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
