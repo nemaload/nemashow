@@ -63,8 +63,8 @@ varying vec2 v_texCoord;
 
 uniform vec2 u_gammaGain; // display parameters
 void main() {
-  vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, u_gammaGain.x);
-  vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, u_gammaGain.y);
+  vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, 1.0);
+  vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, 1.0);
   gl_FragColor = pow(texture2D(u_image, v_texCoord) * gain, gamma);
 }
   </script>
@@ -85,8 +85,8 @@ uniform vec2 u_rectOffset; // center of grid in texCoords
 uniform mat2 u_rectLinear; // grid intervals in texCoords
 uniform vec2 u_gammaGain; // display parameters
 void main(void) {
-  vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, u_gammaGain.x);
-  vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, u_gammaGain.y);
+  vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, 1.0);
+  vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, 1.0);
 
   vec2 coord, coord0, coord1, coord2, coord3, coord4;
   vec4 fracts;
