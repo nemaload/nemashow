@@ -201,7 +201,7 @@ function render(image, is_new_image) {
 	} else {
 		gl.bindTexture(gl.TEXTURE_2D, texture[mode]);
 	}
-
+	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 	//if (mode == "image" && $('#grid').prop('checked'))
