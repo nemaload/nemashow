@@ -635,7 +635,12 @@ if (Meteor.isClient) {
         $('#gain_current').html(Math.pow(10, $("#gainSlider").slider("value")).toFixed(2));
         Session.set("currentImageGain", $("#gainSlider").slider("value"));
         render_if_ready(image, 0);
-      }
+      }/*,
+      slide: function(event, ui) {
+        $('#gain_current').html(Math.pow(10, ui.value).toFixed(2));
+        Session.set("currentImageGain", ui.value);
+        render_if_ready(image, 0);
+      }*/
     });
 
 
@@ -651,7 +656,12 @@ if (Meteor.isClient) {
         $('#gamma_current').html(parseFloat($("#gammaSlider").slider("value")).toFixed(2));
         Session.set("currentImageGamma", $("#gammaSlider").slider("value"));
         render_if_ready(image, 0);
-      }
+      }/*,
+      slide: function(event, ui) {
+        $('#gamma_current').html(Math.pow(10, ui.value).toFixed(2));
+        Session.set("currentImageGamma", ui.value);
+        render_if_ready(image, 0);
+      }*/
     });
 
   }
