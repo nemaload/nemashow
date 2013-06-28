@@ -78,22 +78,4 @@
     gl_FragColor = pow(vec4(color.rgb, color.a) * gain, gamma);
   }
 </script>
-
-<script id="grid-vertex-shader" type="x-shader/x-vertex">
-  attribute vec2 a_canvCoord;
-  uniform vec2 u_canvSize;
-  void main() {
-    // convert the rectangle from pixels to -1.0 to 1.0
-    vec2 clipSpace = a_canvCoord / u_canvSize * 1.0 - 1.0;
-    gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
-  }
-</script>
-
-<script id="grid-fragment-shader" type="x-shader/x-fragment">
-  precision mediump float;
-
-  void main() {
-    gl_FragColor = vec4(0.0, 1.0, 0.0, 0.2);
-  }
-</script>
 </body>
