@@ -9,11 +9,11 @@ Aside from Meteor itself (`$ curl https://install.meteor.com | sh`) and a WebGL-
 * [Meteorite](https://github.com/oortcloud/meteorite): `$ npm install -g meteorite`
 * [MongoDB](http://www.mongodb.org/downloads) command-line tools
 
-###Administration
-To make a user an administrator, direct database access is required. In the `db.users` collection, simply set a user's `admin` field to `"admin"`.
-
 ###Data
 The application expects to find data in `meteor/data` (absent from this repository). The actual dataset is many gigabytes; while we are currently working to make it publicly available, for now just contact us if you're interested.
+
+###Administration
+To make a user an administrator, direct database access is required. In the `db.users` collection, simply set a user's `admin` field to `"admin"`.
 
 ##Roadmap
 Nemashow's support for light-field visualizations is nearly complete. Our goals for the short term include integrating light-sheet visualizations, improving reusability of workflow utilities, and making the application scalable for public deployment. 
