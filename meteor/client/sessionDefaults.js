@@ -1,4 +1,5 @@
 Session.setDefault("currentFolderId", null);
+Session.setDefault("userIsAdmin", false);
 Session.setDefault("currentView", "viewingFirstScreen");
 Session.setDefault("currentImageId", null);
 Session.setDefault("currentImageView", "viewingNothing");

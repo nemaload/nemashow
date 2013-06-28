@@ -1,5 +1,13 @@
  Handlebars.registerHelper('isAdmin', function() {
-  return Meteor.call('isAdmin');
+  Meteor.call('isAdmin', function (err, result) {
+    if (err || result ==false) {
+      Session.set("isAdmin", false);
+    }
+    else if (result == true) {
+      Session.set("isAdmin", true);
+    }
+  });
+  return Session.get("isAdmin");
  });
 
  //a smarter each to retrieve children

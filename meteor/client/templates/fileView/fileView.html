@@ -1,8 +1,10 @@
 <template name="fileView">
   <h3>
     {{getFolderName}}
+    {{#if isAdmin}}
     <i class="icon-remove-sign" style="float: right; cursor:pointer;" id="removeFolder">
     </i>
+    {{/if}}
   </h3>
   <div style="height: 300px; overflow: auto;">
     {{#unless hasNothing}}
