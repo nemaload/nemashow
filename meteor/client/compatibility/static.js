@@ -1,7 +1,6 @@
 var mouseSensitivity = 4.0;
 
-var ofs_U = 0.0,
-	ofs_V = 0.0; // in OpenGL coordinate system
+var ofs_U = 0.0, ofs_V = 0.0; // in OpenGL coordinate system
 var texture = {}; // indexed by mode name
 var mode;
 
@@ -42,7 +41,8 @@ function loadimage(imagepath) {
 
 function render_if_ready() {
 	console.log("loadimage " + loaded.image + " " + loaded.optics + " " + loaded.lenslets);
-	if (!loaded.image || !loaded.optics || !loaded.lenslets) return;
+	if (!loaded.image || !loaded.optics || !loaded.lenslets)
+		return;
 	render(image, 1);
 }
 
@@ -92,7 +92,8 @@ function updateUV_display() {
 		var max_slope = maxNormalizedSlope();
 		pos_x = canvas.width / 2 + cradius * rel_U / max_slope;
 		pos_y = canvas.height / 2 - cradius * rel_V / max_slope;
-	} else { /* UV coordinates make no sense yet, just draw a point in the middle. */
+	} else {
+		/* UV coordinates make no sense yet, just draw a point in the middle. */
 		pos_x = canvas.width / 2;
 		pos_y = canvas.height / 2;
 	}
@@ -110,7 +111,8 @@ function mousedrag(new_X, new_Y) {
 	mousedrag_Y = new_Y;
 }
 
-function maxNormalizedSlope() { /* Return the maximum slope afforded by the optical system */
+function maxNormalizedSlope() {
+	/* Return the maximum slope afforded by the optical system */
 
 	// ???
 	image_na = optics.na / optics.mag;
@@ -193,7 +195,8 @@ function render(image, is_new_image) {
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 	//if (mode == "image" && $('#grid').prop('checked'))
-	if (mode == "image" && $('#grid').hasClass('active')) render_grid(canvas, gl);
+	if (mode == "image" && $('#grid').hasClass('active'))
+		render_grid(canvas, gl);
 }
 
 function render_image(image, canvas, gl) {
@@ -230,10 +233,11 @@ function setRectangle(gl, x, y, width, height) {
 	var y1 = y;
 	var y2 = y + height;
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
-	// bottom triangle
-	x1, y1, x2, y1, x1, y2,
-	// top triangle
-	x1, y2, x2, y1, x2, y2]), gl.STATIC_DRAW);
+		// bottom triangle
+		x1, y1,  x2, y1,  x1, y2,
+		// top triangle
+		x1, y2,  x2, y1,  x2, y2]),
+		gl.STATIC_DRAW);
 }
 
 function render_lightfield_pinhole(image, canvas, gl) {
