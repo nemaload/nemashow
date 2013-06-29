@@ -63,7 +63,7 @@ function render(image, is_new_image) {
 		render_lightfield_pinhole(image, canvas, gl);
 	}
 
-	if (is_new_image) {
+	if (1) { // is_new_image) { TODO: <canvas> must persist re-renders for this to work properly
 		if (texture[mode]) {
 			gl.deleteTexture(texture[mode]);
 		}

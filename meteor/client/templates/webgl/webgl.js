@@ -1,15 +1,22 @@
 //webgl related stuff
 Template.webgl.renderImage = function() {
-  var imageObject = Images.findOne(Session.get("currentImageId"));
-  imagePath = Session.get("currentFrameURL");
-  loadimage(imagePath);
   if (Session.get("currentWebGLMode") === "image") {
     newmode("lightfield");
     newmode("image");
   } else {
     newmode("lightfield");
   }
+  render_if_ready(image, 0);
+}
 
+Template.webgl.created = function() {
+  console.log("webgl created");
+  Deps.autorun(function () {
+    console.log("autorun " + Session.get("currentImageId") + " " + Session.get("currentFrameURL"));
+    var imageObject = Images.findOne(Session.get("currentImageId"));
+    imagePath = Session.get("currentFrameURL");
+    loadimage(imagePath);
+  });
 }
 
 Template.webgl.annotationNote = function() {
@@ -70,7 +77,6 @@ Template.webgl.setupSliders = function() {
         var newURL = Images.findOne(Session.get("currentImageId")).webPath[$("#imageSlider").slider("value")];
         Session.set("currentFrameURL", newURL);
         Session.set("currentFrameIndex", $("#imageSlider").slider("value"));
-        loadimage(newURL);
       }
     });
 
@@ -129,12 +135,6 @@ Template.webgl.rendered = function() {
 }
 
 Template.webgl.events = {
-  'change #imageselect': function(e) {
-    console.log("Image changed");
-    loadimage($(e.target).val());
-    //change this with session variable
-  },
-
   'change #rendermode': function(e) {
     console.log("Mode changed");
 
