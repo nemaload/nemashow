@@ -79,8 +79,8 @@ Template.webgl.setupSliders = function() {
         Session.set("currentFrameIndex", $("#imageSlider").slider("value"));
       }
     });
-
   }
+
   $("#rendermode").val(Session.get("currentWebGLMode"));
   $("#grid").button();
   $('.btn-group').button();
@@ -97,11 +97,11 @@ Template.webgl.setupSliders = function() {
       Session.set("currentImageGain", $("#gainSlider").slider("value"));
       render_if_ready(image, 0);
     },
-      slide: function(event, ui) {
-        $('#gain_current').html(Math.pow(10, ui.value).toFixed(2));
-        Session.set("currentImageGain", ui.value);
-        render_if_ready(image, 0);
-      }
+    slide: function(event, ui) {
+      $('#gain_current').html(Math.pow(10, ui.value).toFixed(2));
+      Session.set("currentImageGain", ui.value);
+      render_if_ready(image, 0);
+    }
   });
 
 
@@ -117,21 +117,19 @@ Template.webgl.setupSliders = function() {
       $('#gamma_current').html(parseFloat($("#gammaSlider").slider("value")).toFixed(2));
       Session.set("currentImageGamma", $("#gammaSlider").slider("value"));
       render_if_ready(image, 0);
+    },
+    slide: function(event, ui) {
+      $('#gamma_current').html(Math.pow(10, ui.value).toFixed(2));
+      Session.set("currentImageGamma", ui.value);
+      render_if_ready(image, 0);
     }
-,
-      slide: function(event, ui) {
-        $('#gamma_current').html(Math.pow(10, ui.value).toFixed(2));
-        Session.set("currentImageGamma", ui.value);
-        render_if_ready(image, 0);
-      }
   });
-
 }
+
 Template.webgl.rendered = function() {
   Template.webgl.renderImage();
   updateUV_display();
   Template.webgl.setupSliders();
-
 }
 
 Template.webgl.events = {
@@ -142,6 +140,7 @@ Template.webgl.events = {
     Session.set("currentWebGLMode", $('#rendermode').val());
     render(image, 1);
   },
+
   'mousedown #canvas-lightfield': function(e) {
     mousedrag_X = e.pageX;
     mousedrag_Y = e.pageY;
@@ -153,10 +152,12 @@ Template.webgl.events = {
       $(window).unbind("mouseup");
     });
   },
+
   'click #grid': function() {
     $("#grid").toggleClass('active');
     render_if_ready(image, 0);
   },
+
   'click #setDefaults': function(e) {
     e.preventDefault();
 
