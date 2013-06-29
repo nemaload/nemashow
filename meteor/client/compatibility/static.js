@@ -18,7 +18,7 @@ function loadimage(imagepath) {
 	image.src = imagepath; // MUST BE SAME DOMAIN!!!
 	image.onload = function() {
 		loaded.image = 1;
-		render_if_ready();
+		render_if_ready(1);
 	}
 	optics = {
 		"pitch": Session.get("op_pitch"),
@@ -35,14 +35,14 @@ function loadimage(imagepath) {
 		"down": [Session.get("op_down_dx"), Session.get("op_down_dy")]
 	};
 	loaded.lenslets = 1;
-	render_if_ready();
+	render_if_ready(1);
 }
 
-function render_if_ready() {
+function render_if_ready(is_new_image) {
 	console.log("loadimage " + loaded.image + " " + loaded.optics + " " + loaded.lenslets);
 	if (!loaded.image || !loaded.optics || !loaded.lenslets)
 		return;
-	render(image, 1);
+	render(image, is_new_image);
 }
 
 function newmode(newmode) {
