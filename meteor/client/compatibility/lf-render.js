@@ -97,7 +97,7 @@ function render_image(image, canvas, gl) {
 	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
 	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
-	gl.uniform2f(gammaGainLocation, parseFloat($('#gammaSlider').slider("value")), Math.pow(10, parseFloat($('#gainSlider').slider("value"))));
+	gl.uniform2f(gammaGainLocation, parseFloat(Session.get("currentImageGamma")), Math.pow(10, parseFloat(Session.get("currentImageGain"))));
 
 	var texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
@@ -144,7 +144,7 @@ function render_lightfield_pinhole(image, canvas, gl) {
 	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
 	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
-	gl.uniform2f(gammaGainLocation, parseFloat($('#gammaSlider').slider("value")), Math.pow(10, parseFloat($('#gainSlider').slider("value"))));
+	gl.uniform2f(gammaGainLocation, parseFloat(Session.get("currentImageGamma")), Math.pow(10, parseFloat(Session.get("currentImageGain"))));
 
 	var gridSizeLocation = gl.getUniformLocation(program, "u_gridSize");
 	gl.uniform2f(gridSizeLocation, gridSize.width, gridSize.height);
