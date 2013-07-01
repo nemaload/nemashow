@@ -1,10 +1,10 @@
 //webgl related stuff
 Template.webgl.renderImage = function() {
   if (Session.get("currentWebGLMode") === "image") {
-    newmode("lightfield");
+    newmode("3d");
     newmode("image");
   } else {
-    newmode("lightfield");
+    newmode("3d");
   }
   render_if_ready(image, 0);
 }
@@ -91,7 +91,7 @@ Template.webgl.events = {
     render(image, 1);
   },
 
-  'mousedown #canvas-lightfield': function(e) {
+  'mousedown #canvas-3d': function(e) {
     mousedrag_X = e.pageX;
     mousedrag_Y = e.pageY;
     $(window).mousemove(function() {
