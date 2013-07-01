@@ -19,7 +19,7 @@ Template.webgl.created = function() {
   });
 }
 
-Template.webgl.annotationNote = function() {
+Template.webglControls.annotationNote = function() {
   if (Session.get("viewingAnnotation")) {
     var currentAnnotation = Annotations.findOne(Session.get("currentAnnotationId"));
     return "Currently viewing annotation by " + Meteor.users.findOne(currentAnnotation.userId).emails[0].address;
@@ -27,19 +27,19 @@ Template.webgl.annotationNote = function() {
 
 }
 
-Template.webgl.currentFrameIndex = function() {
+Template.webglControls.currentFrameIndex = function() {
   return Session.get("currentFrameIndex");
 }
 
-Template.webgl.maxFrame = function() {
+Template.webglControls.maxFrame = function() {
   return Session.get("imageSliderMax");
 }
 
-Template.webgl.minFrame = function() {
+Template.webglControls.minFrame = function() {
   return Session.get("imageSliderMin");
 }
 
-Template.webgl.needsGridBox = function() {
+Template.webglControls.needsGridBox = function() {
   if (Session.get("currentWebGLMode") === "image") {
     return true;
   } else {
@@ -47,24 +47,24 @@ Template.webgl.needsGridBox = function() {
   }
 }
 
-Template.webgl.shouldShowSlider = function() {
+Template.webglControls.shouldShowSlider = function() {
   if (Session.get("currentImageNumFrames") == 1) {
     return false;
   }
   return true;
 }
 
-Template.webgl.currentImageGain = function() {
+Template.webglControls.currentImageGain = function() {
   return Session.get("currentImageGain");
 }
 
-Template.webgl.currentImageGamma = function() {
+Template.webglControls.currentImageGamma = function() {
   return Session.get("currentImageGamma");
 }
 
 Template.webgl.setupSliders = function() {
   if (Session.get("currentImageNumFrames") > 1) {
-    $("#imageSlider").change(function() {
+    $("#imageSlider").off('change').change(function() {
       var newURL = Images.findOne(Session.get("currentImageId")).webPath[this.value];
       Session.set("currentFrameURL", newURL);
       Session.set("currentFrameIndex", this.value);
@@ -75,12 +75,14 @@ Template.webgl.setupSliders = function() {
   $("#grid").button();
   $('.btn-group').button();
 
-  $("#gainSlider").change(function() {
+  $("#gainSlider").off('change').change(function() {
+    console.log('gainSlider ' + this.value);
     $('#gain_current').html(Math.pow(10, this.value).toFixed(2));
     Session.set("currentImageGain", this.value);
     render_if_ready(image, 0);
   }).change();
-  $("#gammaSlider").change(function() {
+  $("#gammaSlider").off('change').change(function() {
+    console.log('gammaSlider ' + this.value);
     $('#gamma_current').html(Math.pow(10, this.value).toFixed(2));
     Session.set("currentImageGamma", this.value);
     render_if_ready(image, 0);
@@ -89,6 +91,9 @@ Template.webgl.setupSliders = function() {
 
 Template.webgl.rendered = function() {
   Template.webgl.renderImage();
+}
+
+Template.webglControls.rendered = function() {
   updateUV_display();
   Template.webgl.setupSliders();
 }

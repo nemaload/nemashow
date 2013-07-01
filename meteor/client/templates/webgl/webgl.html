@@ -1,69 +1,70 @@
 <!-- WebGL stuff -->
 <template name="webgl">
   <div class="webglstuff">
-    <div class="controls">
-      {{#if shouldShowSlider}} {{annotationNote}}
+    {{> webglControls}}
+    {{> webglCanvas}}
+  </div>
+</template>
+
+<template name="webglControls">
+  <div class="controls">
+    {{#if shouldShowSlider}} {{annotationNote}}
+    <p>
+    Current Frame: {{currentFrameIndex}}, Range: {{minFrame}} - {{maxFrame}}<br />
+    <input type="range" id="imageSlider" value="{{currentFrameIndex}}" min="{{minFrame}}" max="{{maxFrame}}" step="1" />
+    </p>
+    {{/if}}
+    <div id="sliders" class="span6">
       <p>
-      Current Frame: {{currentFrameIndex}}, Range: {{minFrame}} - {{maxFrame}}<br />
-      <input type="range" id="imageSlider" value="{{currentFrameIndex}}" min="{{minFrame}}" max="{{maxFrame}}" step="1" />
+      Gain: <span id="gain_current" style="width: 5em"> </span><br />
+      <input type="range" id="gainSlider" value="{{currentImageGain}}" min="-1" max="1" step="0.05" />
       </p>
-      {{/if}}
-      <div id="sliders" class="span6">
-        <p>
-        Gain: <span id="gain_current" style="width: 5em"> </span><br />
-        <input type="range" id="gainSlider" value="{{currentImageGain}}" min="-1" max="1" step="0.05" />
-        </p>
-        <p>
-        Gamma: <span id="gamma_current" style="width: 5em"> </span><br />
-        <input type="range" id="gammaSlider" value="{{currentImageGamma}}" min="0.5" max="1.5" step="0.01" />
-        </p>
-      </div>
-      <div id="otherControls" style="margin-top: 2%;">
-        <div id="imageTypeSelect">
-          <select id="rendermode">
-            <option value="image">
-              Image
-            </option>
-            <option value="lightfield">
-              Light field
-            </option>
-          </select>
-        </div>
-      </div>
-      {{#if needsGridBox}}
-      <button type="button" class="btn" id="grid">
-        Grid
-      </button>
-      <button type="button" class="btn" id="setDefaults">
-        Set Default Gain and Gamma
-      </button>
-      <div style="display:none;float: left; margin: 0.5em auto; width: 52">
-        <canvas id="canvas-uvpos" width="52" height="52">
-        </canvas>
-      </div>
-      {{else}}
-      <div style="float: left; margin: 0.5em auto; width: 52">
-        <canvas id="canvas-uvpos" width="52" height="52">
-        </canvas>
-      </div>
-      {{/if}}
-      <p id="controls-lightfield" class="controlbox">
-        <input type="button" value="U-" onClick="updateUV(-1.0, 0);">
-        <input type="button" value="U+" onClick="updateUV(+1.0, 0);">
-        <span id="U_current" style="width: 5em">
-        </span>
-        <br />
-        <input type="button" value="V-" onClick="updateUV(0, -1.0);">
-        <input type="button" value="V+" onClick="updateUV(0, +1.0);">
-        <span id="V_current" style="width: 5em">
-        </span>
+      <p>
+      Gamma: <span id="gamma_current" style="width: 5em"> </span><br />
+      <input type="range" id="gammaSlider" value="{{currentImageGamma}}" min="0.5" max="1.5" step="0.01" />
       </p>
     </div>
-    <!--<canvas id="canvas-image" width="1080" height="1280"></canvas>
-<canvas id="canvas-lightfield" width="432" height="512"></canvas> -->
-    <canvas id="canvas-image" width="1080" height="1280">
-    </canvas>
-    <canvas id="canvas-lightfield" width="432" height="512">
-    </canvas>
+    <div id="otherControls" style="margin-top: 2%;">
+      <div id="imageTypeSelect">
+        <select id="rendermode">
+          <option value="image">
+            Image
+          </option>
+          <option value="lightfield">
+            Light field
+          </option>
+        </select>
+      </div>
+    </div>
+    {{#if needsGridBox}}
+    <button type="button" class="btn" id="grid">
+      Grid
+    </button>
+    <button type="button" class="btn" id="setDefaults">
+      Set Default Gain and Gamma
+    </button>
+    <div style="display:none;float: left; margin: 0.5em auto; width: 52">
+      <canvas id="canvas-uvpos" width="52" height="52"></canvas>
+    </div>
+    {{else}}
+    <div style="float: left; margin: 0.5em auto; width: 52">
+      <canvas id="canvas-uvpos" width="52" height="52"></canvas>
+    </div>
+    {{/if}}
+    <p id="controls-lightfield" class="controlbox">
+      <input type="button" value="U-" onClick="updateUV(-1.0, 0);">
+      <input type="button" value="U+" onClick="updateUV(+1.0, 0);">
+      <span id="U_current" style="width: 5em">
+      </span>
+      <br />
+      <input type="button" value="V-" onClick="updateUV(0, -1.0);">
+      <input type="button" value="V+" onClick="updateUV(0, +1.0);">
+      <span id="V_current" style="width: 5em">
+      </span>
+    </p>
   </div>
+</template>
+<template name="webglCanvas">
+  <canvas id="canvas-image" width="512" height="640"></canvas>
+  <canvas id="canvas-lightfield" width="432" height="512"></canvas>
 </template>
