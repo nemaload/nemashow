@@ -64,7 +64,7 @@ Template.webglControls.currentImageGamma = function() {
 
 Template.webgl.setupSliders = function() {
   if (Session.get("currentImageNumFrames") > 1) {
-    $("#imageSlider").off('change').change(function() {
+    $("#imageSlider").val(Session.get('currentFrameIndex')).off('change').change(function() {
       var newURL = Images.findOne(Session.get("currentImageId")).webPath[this.value];
       Session.set("currentFrameURL", newURL);
       Session.set("currentFrameIndex", this.value);
@@ -75,13 +75,13 @@ Template.webgl.setupSliders = function() {
   $("#grid").button();
   $('.btn-group').button();
 
-  $("#gainSlider").off('change').change(function() {
+  $("#gainSlider").val(Session.get('currentImageGain')).off('change').change(function() {
     console.log('gainSlider ' + this.value);
     $('#gain_current').html(Math.pow(10, this.value).toFixed(2));
     Session.set("currentImageGain", this.value);
     render_if_ready(image, 0);
   }).change();
-  $("#gammaSlider").off('change').change(function() {
+  $("#gammaSlider").val(Session.get('currentImageGamma')).off('change').change(function() {
     console.log('gammaSlider ' + this.value);
     $('#gamma_current').html(Math.pow(10, this.value).toFixed(2));
     Session.set("currentImageGamma", this.value);
