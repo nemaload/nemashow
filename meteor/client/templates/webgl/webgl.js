@@ -83,7 +83,7 @@ Template.webgl.setupSliders = function() {
   }).change();
   $("#gammaSlider").val(Session.get('currentImageGamma')).off('change').change(function() {
     console.log('gammaSlider ' + this.value);
-    $('#gamma_current').html(Math.pow(10, this.value).toFixed(2));
+    $('#gamma_current').html(parseFloat(this.value).toFixed(2));
     Session.set("currentImageGamma", this.value);
     render_if_ready(image, 0);
   }).change();
