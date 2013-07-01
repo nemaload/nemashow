@@ -24,7 +24,6 @@ Template.webglControls.annotationNote = function() {
     var currentAnnotation = Annotations.findOne(Session.get("currentAnnotationId"));
     return "Currently viewing annotation by " + Meteor.users.findOne(currentAnnotation.userId).emails[0].address;
   }
-
 }
 
 Template.webglControls.currentFrameIndex = function() {
@@ -40,26 +39,11 @@ Template.webglControls.minFrame = function() {
 }
 
 Template.webglControls.needsGridBox = function() {
-  if (Session.get("currentWebGLMode") === "image") {
-    return true;
-  } else {
-    return false;
-  }
+  return (Session.get("currentWebGLMode") === "image");
 }
 
 Template.webglControls.shouldShowSlider = function() {
-  if (Session.get("currentImageNumFrames") == 1) {
-    return false;
-  }
-  return true;
-}
-
-Template.webglControls.currentImageGain = function() {
-  return Session.get("currentImageGain");
-}
-
-Template.webglControls.currentImageGamma = function() {
-  return Session.get("currentImageGamma");
+  return (Session.get("currentImageNumFrames") > 1);
 }
 
 Template.webgl.setupSliders = function() {

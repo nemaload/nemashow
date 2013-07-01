@@ -27,22 +27,14 @@
     <div id="otherControls" style="margin-top: 2%;">
       <div id="imageTypeSelect">
         <select id="rendermode">
-          <option value="image">
-            Image
-          </option>
-          <option value="lightfield">
-            Light field
-          </option>
+          <option value="image">Image</option>
+          <option value="lightfield">Light field</option>
         </select>
       </div>
     </div>
     {{#if needsGridBox}}
-    <button type="button" class="btn" id="grid">
-      Grid
-    </button>
-    <button type="button" class="btn" id="setDefaults">
-      Set Default Gain and Gamma
-    </button>
+    <button type="button" class="btn" id="grid">Grid</button>
+    <button type="button" class="btn" id="setDefaults">Set Default Gain and Gamma</button>
     <div style="display:none;float: left; margin: 0.5em auto; width: 52">
       <canvas id="canvas-uvpos" width="52" height="52"></canvas>
     </div>
@@ -54,13 +46,11 @@
     <p id="controls-lightfield" class="controlbox">
       <input type="button" value="U-" onClick="updateUV(-1.0, 0);">
       <input type="button" value="U+" onClick="updateUV(+1.0, 0);">
-      <span id="U_current" style="width: 5em">
-      </span>
+      <span id="U_current" style="width: 5em"></span>
       <br />
       <input type="button" value="V-" onClick="updateUV(0, -1.0);">
       <input type="button" value="V+" onClick="updateUV(0, +1.0);">
-      <span id="V_current" style="width: 5em">
-      </span>
+      <span id="V_current" style="width: 5em"></span>
     </p>
   </div>
 </template>
