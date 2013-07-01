@@ -64,66 +64,27 @@ Template.webgl.currentImageGamma = function() {
 
 Template.webgl.setupSliders = function() {
   if (Session.get("currentImageNumFrames") > 1) {
-    $("#imageSlider").slider({
-      value: Session.get("currentFrameIndex"),
-      orientation: "horizontal",
-      range: "min",
-      min: Session.get("imageSliderMin"),
-      max: Session.get("imageSliderMax"),
-      step: 1,
-      //max: Session.get("currentImageNumFrames") -1,
-      animate: true,
-      change: function() {
-        var newURL = Images.findOne(Session.get("currentImageId")).webPath[$("#imageSlider").slider("value")];
-        Session.set("currentFrameURL", newURL);
-        Session.set("currentFrameIndex", $("#imageSlider").slider("value"));
-      }
+    $("#imageSlider").change(function() {
+      var newURL = Images.findOne(Session.get("currentImageId")).webPath[this.value];
+      Session.set("currentFrameURL", newURL);
+      Session.set("currentFrameIndex", this.value);
     });
   }
 
   $("#rendermode").val(Session.get("currentWebGLMode"));
   $("#grid").button();
   $('.btn-group').button();
-  $("#gainSlider").slider({
-    value: Session.get("currentImageGain"),
-    min: -1,
-    max: 1,
-    step: 0.05,
-    orientation: "horizontal",
-    range: "min",
-    animate: true,
-    change: function() {
-      $('#gain_current').html(Math.pow(10, $("#gainSlider").slider("value")).toFixed(2));
-      Session.set("currentImageGain", $("#gainSlider").slider("value"));
-      render_if_ready(image, 0);
-    },
-    slide: function(event, ui) {
-      $('#gain_current').html(Math.pow(10, ui.value).toFixed(2));
-      Session.set("currentImageGain", ui.value);
-      render_if_ready(image, 0);
-    }
-  });
 
-
-  $("#gammaSlider").slider({
-    value: Session.get("currentImageGamma"),
-    min: 0.5,
-    max: 1.5,
-    step: 0.01,
-    orientation: "horizontal",
-    range: "min",
-    animate: true,
-    change: function() {
-      $('#gamma_current').html(parseFloat($("#gammaSlider").slider("value")).toFixed(2));
-      Session.set("currentImageGamma", $("#gammaSlider").slider("value"));
-      render_if_ready(image, 0);
-    },
-    slide: function(event, ui) {
-      $('#gamma_current').html(Math.pow(10, ui.value).toFixed(2));
-      Session.set("currentImageGamma", ui.value);
-      render_if_ready(image, 0);
-    }
-  });
+  $("#gainSlider").change(function() {
+    $('#gain_current').html(Math.pow(10, this.value).toFixed(2));
+    Session.set("currentImageGain", this.value);
+    render_if_ready(image, 0);
+  }).change();
+  $("#gammaSlider").change(function() {
+    $('#gamma_current').html(Math.pow(10, this.value).toFixed(2));
+    Session.set("currentImageGamma", this.value);
+    render_if_ready(image, 0);
+  }).change();
 }
 
 Template.webgl.rendered = function() {

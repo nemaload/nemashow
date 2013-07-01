@@ -93,3 +93,9 @@ canvas, .controls {
     text-overflow: ellipsis;
     overflow: hidden;
 }
+
+input[type='range'] {
+    width: 96%;
+    margin: 2%;
+    display:inline-block;
+}
