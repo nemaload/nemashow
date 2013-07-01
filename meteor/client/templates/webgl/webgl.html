@@ -9,10 +9,10 @@
 <template name="webglControls">
   <div class="controls">
     {{#if shouldShowSlider}} {{annotationNote}}
-    <p>
-    Current Frame: {{currentFrameIndex}}, Range: {{minFrame}} - {{maxFrame}}<br />
-    <input type="range" id="imageSlider" min="{{minFrame}}" max="{{maxFrame}}" step="1" />
-    </p>
+      <p>
+      Current Frame: {{currentFrameIndex}}, Range: {{minFrame}} - {{maxFrame}}<br />
+      <input type="range" id="imageSlider" min="{{minFrame}}" max="{{maxFrame}}" step="1" />
+      </p>
     {{/if}}
     <div id="sliders" class="span6">
       <p>
@@ -33,15 +33,15 @@
       </div>
     </div>
     {{#if needsGridBox}}
-    <button type="button" class="btn" id="grid">Grid</button>
-    <button type="button" class="btn" id="setDefaults">Set Default Gain and Gamma</button>
-    <div style="display:none;float: left; margin: 0.5em auto; width: 52">
-      <canvas id="canvas-uvpos" width="52" height="52"></canvas>
-    </div>
+      <button type="button" class="btn" id="grid">Grid</button>
+      <button type="button" class="btn" id="setDefaults">Set Default Gain and Gamma</button>
+      <div style="display:none;float: left; margin: 0.5em auto; width: 52">
+        <canvas id="canvas-uvpos" width="52" height="52"></canvas>
+      </div>
     {{else}}
-    <div style="float: left; margin: 0.5em auto; width: 52">
-      <canvas id="canvas-uvpos" width="52" height="52"></canvas>
-    </div>
+      <div style="float: left; margin: 0.5em auto; width: 52">
+        <canvas id="canvas-uvpos" width="52" height="52"></canvas>
+      </div>
     {{/if}}
     <p id="controls-lightfield" class="controlbox">
       <input type="button" value="U-" onClick="updateUV(-1.0, 0);">
