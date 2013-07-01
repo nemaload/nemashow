@@ -12,6 +12,9 @@ Aside from Meteor itself (`$ curl https://install.meteor.com | sh`) and a WebGL-
 ###Data
 The application expects to find data in `meteor/data` (absent from this repository). The actual dataset is many gigabytes; while we are currently working to make it publicly available, for now just contact us if you're interested.
 
+###Usage
+To run the website, run the `mtr` command from the `meteor` directory and point your browser at `http://localhost:3000/`.
+
 ###Administration
 To make a user an administrator, direct database access is required. In the `db.users` collection, simply set a user's `admin` field to `"admin"`.
 
