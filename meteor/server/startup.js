@@ -20,5 +20,5 @@ Meteor.startup(function() {
 
 
 
-  fs.symlinkSync('../../../../data', '.meteor/local/build/static/data')
+  fs.symlinkSync('../../../../data', '.meteor/local/build/static/data');
 });

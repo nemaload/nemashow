@@ -16,6 +16,7 @@ Template.imageInformation.events = {
     alert("This feature is not available at this time.");
   },
   'click #imageFullView': function(e) {
+    e.preventDefault();
     Session.set("currentFrameIndex", 0);
     Session.set("viewingAnnotation", false);
     Session.set("imageSliderMin", 0);

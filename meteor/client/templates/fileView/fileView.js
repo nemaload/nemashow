@@ -64,7 +64,8 @@ Template.fileView.setImageSessionVars = function() {
   var imageObject = Images.findOne(Session.get("currentImageId"));
   Session.set("currentImageNumFrames", imageObject.numFrames);
   Session.set("currentFrameIndex", 0);
-  Session.set("currentFrameURL", imageObject.webPath[0]);
+  if (Session.get("useAmazonData")) { Session.set("currentFrameURL", imageObject.amazonPath[0]);}
+  else {Session.set("currentFrameURL", imageObject.webPath[0]);}
   Session.set("startFrameIndex", 0);
   Session.set("endFrameIndex", 0);
   Session.set("imageSliderMax", imageObject.numFrames - 1);

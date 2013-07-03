@@ -15,11 +15,23 @@ function loadimage(imagepath) {
 		"lenslets": 0
 	};
 	image = new Image();
-	image.src = imagepath; // MUST BE SAME DOMAIN!!!
+	image.crossOrigin = "anonymous";
 	image.onload = function() {
 		loaded.image = 1;
 		render_if_ready(image, 1);
-	}
+	};
+	/* Not supported yet :(
+	image.onloadstart = function() {
+		alert("loading started! logging to console");
+	};
+	image.onloadprogress = function(e) 
+	{ 
+		console.log(e.loaded);
+	};
+	image.onloadend = function () {
+		alert("Loading ended!");
+	};*/
+	image.src = imagepath;
 	optics = {
 		"pitch": Session.get("op_pitch"),
 		"flen": Session.get("op_flen"),

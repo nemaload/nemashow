@@ -65,7 +65,13 @@ Template.webgl.currentImageGamma = function() {
 Template.webgl.setupSliders = function() {
   if (Session.get("currentImageNumFrames") > 1) {
     $("#imageSlider").change(function() {
-      var newURL = Images.findOne(Session.get("currentImageId")).webPath[this.value];
+      if (Session.get("useAmazonData")) {
+        var newURL = Images.findOne(Session.get("currentImageId")).amazonPath[this.value]; 
+      } else {
+        var newURL = Images.findOne(Session.get("currentImageId")).webPath[this.value];
+
+      }
+      
       Session.set("currentFrameURL", newURL);
       Session.set("currentFrameIndex", this.value);
     });

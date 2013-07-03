@@ -21,3 +21,6 @@ Session.setDefault("viewingAnnotation", false);
 //rendering related things
 Session.setDefault("currentImageGain", 0);
 Session.setDefault("currentImageGamma", 1);
+
+//How to change to local rendering mode
+Session.setDefault("useAmazonData",true);
