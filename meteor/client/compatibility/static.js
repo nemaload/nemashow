@@ -60,8 +60,8 @@ function render_if_ready(image, is_new_image) {
 function newmode(newmode) {
 	mode = newmode;
 	document.getElementById("canvas-image").style.display = mode == "image" ? 'block' : 'none';
-	document.getElementById("canvas-lightfield").style.display = mode == "lightfield" ? 'block' : 'none';
-	document.getElementById("controls-lightfield").style.display = mode == "lightfield" ? 'block' : 'none';
+	document.getElementById("canvas-3d").style.display = mode == "3d" ? 'block' : 'none';
+	document.getElementById("controls-lightfield").style.display = mode == "3d" ? 'block' : 'none';
 }
 
 function updateUV(delta_U, delta_V) {
