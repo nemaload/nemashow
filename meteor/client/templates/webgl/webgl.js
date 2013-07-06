@@ -6,7 +6,7 @@ Template.webgl.renderImage = function() {
   } else {
     newmode("3d");
   }
-  render_if_ready(image, 0);
+  render_if_ready(0);
 }
 
 Template.webgl.created = function() {
@@ -49,7 +49,11 @@ Template.webglControls.shouldShowSlider = function() {
 Template.webgl.setupSliders = function() {
   if (Session.get("currentImageNumFrames") > 1) {
     $("#imageSlider").val(Session.get('currentFrameIndex')).off('change').change(function() {
-      var newURL = Images.findOne(Session.get("currentImageId")).webPath[this.value];
+      if (Session.get("useAmazonData")) {
+        var newURL = Images.findOne(Session.get("currentImageId")).amazonPath[this.value]; 
+      } else {
+        var newURL = Images.findOne(Session.get("currentImageId")).webPath[this.value];
+      }
       Session.set("currentFrameURL", newURL);
       Session.set("currentFrameIndex", this.value);
     });
@@ -63,13 +67,13 @@ Template.webgl.setupSliders = function() {
     console.log('gainSlider ' + this.value);
     $('#gain_current').html(Math.pow(10, this.value).toFixed(2));
     Session.set("currentImageGain", this.value);
-    render_if_ready(image, 0);
+    render_if_ready(0);
   }).change();
   $("#gammaSlider").val(Session.get('currentImageGamma')).off('change').change(function() {
     console.log('gammaSlider ' + this.value);
     $('#gamma_current').html(parseFloat(this.value).toFixed(2));
     Session.set("currentImageGamma", this.value);
-    render_if_ready(image, 0);
+    render_if_ready(0);
   }).change();
 }
 
@@ -78,7 +82,7 @@ Template.webgl.rendered = function() {
 }
 
 Template.webglControls.rendered = function() {
-  updateUV_display();
+  lf.updateUV_display();
   Template.webgl.setupSliders();
 }
 
@@ -88,7 +92,7 @@ Template.webgl.events = {
 
     newmode($(e.target).val());
     Session.set("currentWebGLMode", $('#rendermode').val());
-    render(image, 1);
+    render(1);
   },
 
   'mousedown #canvas-3d': function(e) {
@@ -105,7 +109,7 @@ Template.webgl.events = {
 
   'click #grid': function() {
     $("#grid").toggleClass('active');
-    render_if_ready(image, 0);
+    render_if_ready(0);
   },
 
   'click #setDefaults': function(e) {

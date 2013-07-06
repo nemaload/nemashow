@@ -7,6 +7,9 @@ Template.header.events = {
   },
   'click #triggerFirstScreen': function() {
     Session.set("currentView", "viewingFirstScreen");
+  },
+  'change #useAmazonData': function(ev) {
+    Session.set("useAmazonData", ev.currentTarget.checked);
   }
 }
 
@@ -24,6 +27,7 @@ Template.header.searchtest = function(searchterm) {
 }
 
 Template.header.rendered = function() {
+  $('#useAmazonData').prop('checked', Session.get('useAmazonData'));
   $('#annotationSearch').typeahead({
     items: 10,
     minLength: 2,

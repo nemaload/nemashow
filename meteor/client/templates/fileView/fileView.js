@@ -64,7 +64,8 @@ Template.fileView.setImageSessionVars = function() {
   var imageObject = Images.findOne(Session.get("currentImageId"));
   Session.set("currentImageNumFrames", imageObject.numFrames);
   Session.set("currentFrameIndex", 0);
-  Session.set("currentFrameURL", imageObject.webPath[0]);
+  if (Session.get("useAmazonData")) { Session.set("currentFrameURL", imageObject.amazonPath[0]);}
+  else {Session.set("currentFrameURL", imageObject.webPath[0]);}
   Session.set("startFrameIndex", 0);
   Session.set("endFrameIndex", 0);
   Session.set("imageSliderMax", imageObject.numFrames - 1);
@@ -103,7 +104,7 @@ Template.fileView.events = {
     Session.set("currentWebGLMode", "image");
     $("#rendermode").val("image");
     newmode("image");
-    render(image, 1);
+    render(1);
   },
   'dragstart .fileViewRow': function(e) {
     e.dataTransfer.effectAllowed = 'move';

@@ -1,10 +1,8 @@
-
 meteor/public/.DS_Store
-
 meteor/.meteor/.DS_Store
-
 meteor/.DS_Store
-
 .DS_Store
 
+.*.sw?
 *.png
+meteor/data
