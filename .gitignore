@@ -3,5 +3,6 @@ meteor/.meteor/.DS_Store
 meteor/.DS_Store
 .DS_Store
 
+.*.sw?
 *.png
 meteor/data
