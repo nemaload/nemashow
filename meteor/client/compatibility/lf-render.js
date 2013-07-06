@@ -220,7 +220,7 @@ LightFieldRenderer.prototype.render = function(is_new_image) {
 LightFieldRenderer.prototype.render_image = function(canvas, gl) {
 	// compile shaders
 	vertexShader = createShaderFromScriptElement(gl, "image-vertex-shader");
-	fragmentShader = createShaderFromScriptElement(gl, "image-fragment-shader");
+	fragmentShader = createShaderFromScriptElement(gl, "lf-image-fragment-shader");
 	program = createProgram(gl, [vertexShader, fragmentShader]);
 	gl.useProgram(program);
 
@@ -248,7 +248,7 @@ LightFieldRenderer.prototype.render_image = function(canvas, gl) {
 LightFieldRenderer.prototype.render_lightfield_pinhole = function(canvas, gl) {
 	// compile shaders
 	vertexShader = createShaderFromScriptElement(gl, "image-vertex-shader");
-	fragmentShader = createShaderFromScriptElement(gl, "lightfield-pinhole-fragment-shader");
+	fragmentShader = createShaderFromScriptElement(gl, "lf-pinhole-fragment-shader");
 	program = createProgram(gl, [vertexShader, fragmentShader]);
 	gl.useProgram(program);
 
@@ -293,8 +293,8 @@ LightFieldRenderer.prototype.render_lightfield_pinhole = function(canvas, gl) {
 }
 
 LightFieldRenderer.prototype.render_grid = function(canvas, gl) {
-	var vertexShader = createShaderFromScriptElement(gl, "grid-vertex-shader");
-	var fragmentShader = createShaderFromScriptElement(gl, "grid-fragment-shader");
+	var vertexShader = createShaderFromScriptElement(gl, "lf-grid-vertex-shader");
+	var fragmentShader = createShaderFromScriptElement(gl, "lf-grid-fragment-shader");
 	var program = createProgram(gl, [vertexShader, fragmentShader]);
 	gl.useProgram(program);
 

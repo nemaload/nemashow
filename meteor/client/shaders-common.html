@@ -1,0 +1,20 @@
+<body>
+<script id="image-vertex-shader" type="x-shader/x-vertex">
+  attribute vec2 a_canvCoord;
+  attribute vec2 a_texCoord;
+
+  uniform vec2 u_canvSize;
+
+  varying vec2 v_texCoord;
+
+  void main() {
+    // convert the rectangle from pixels to -1.0 to 1.0
+    vec2 clipSpace = a_canvCoord / u_canvSize * 2.0 - 1.0;
+    gl_Position = vec4(clipSpace, 0, 1);
+
+    // pass the texCoord to the fragment shader
+    // The GPU will interpolate this value between points.
+    v_texCoord = a_texCoord;
+  }
+</script>
+</body>
