@@ -44,12 +44,12 @@
       </div>
     {{/if}}
     <p id="controls-lightfield" class="controlbox">
-      <input type="button" value="U-" onClick="updateUV(-1.0, 0);">
-      <input type="button" value="U+" onClick="updateUV(+1.0, 0);">
+      <input type="button" value="U-" onClick="lf.updateUV(-1.0, 0);">
+      <input type="button" value="U+" onClick="lf.updateUV(+1.0, 0);">
       <span id="U_current" style="width: 5em"></span>
       <br />
-      <input type="button" value="V-" onClick="updateUV(0, -1.0);">
-      <input type="button" value="V+" onClick="updateUV(0, +1.0);">
+      <input type="button" value="V-" onClick="lf.updateUV(0, -1.0);">
+      <input type="button" value="V+" onClick="lf.updateUV(0, +1.0);">
       <span id="V_current" style="width: 5em"></span>
     </p>
   </div>

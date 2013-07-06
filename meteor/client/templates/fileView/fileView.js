@@ -104,7 +104,7 @@ Template.fileView.events = {
     Session.set("currentWebGLMode", "image");
     $("#rendermode").val("image");
     newmode("image");
-    render(lf, 1);
+    render(1);
   },
   'dragstart .fileViewRow': function(e) {
     e.dataTransfer.effectAllowed = 'move';
