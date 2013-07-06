@@ -1,38 +1,51 @@
-var mouseSensitivity = 4.0;
+// global variable holding the lightfield rendering context
+lf = {
+	'image': null,
+	'optics': {},
+	'lenslets': {},
 
-var ofs_U = 0.0, ofs_V = 0.0; // in OpenGL coordinate system
-var mode;
+	'loaded': {}, // indexed by variable name
+	'texture': {}, // GL texture cache; indexed by mode name
 
-var image, optics, lenslets;
-var loaded = {}; // indexed by variable name
+	'view3d': {
+		'mouseSensitivity': 4.0,
+
+		// OpenGL coordinate system (0.0 is the middle)
+		'ofs_U': 0.0,
+		'ofs_V': 0.0,
+	}
+};
+
+// current rendering mode ('image' is source image / '3d' is rendered view)
+mode = 'image';
 
 function loadimage(imagepath) {
 	// This method of asynchronous loading may be problematic if there
 	// is still an outstanding request from previous loadimage(); FIXME
-	loaded = {
+	lf.loaded = {
 		"image": 0,
 		"optics": 0,
 		"lenslets": 0
 	};
-	image = new Image();
-	image.crossOrigin = "anonymous";
-	image.onload = function() {
-		loaded.image = 1;
-		render_if_ready(image, 1);
+	lf.image = new Image();
+	lf.image.crossOrigin = "anonymous";
+	lf.image.onload = function() {
+		lf.loaded.image = 1;
+		render_if_ready(lf, 1);
 	};
 	/* Not supported yet :(
-	image.onloadstart = function() {
+	lf.image.onloadstart = function() {
 		alert("loading started! logging to console");
 	};
-	image.onloadprogress = function(e) 
+	lf.image.onloadprogress = function(e) 
 	{ 
 		console.log(e.loaded);
 	};
-	image.onloadend = function () {
+	lf.image.onloadend = function () {
 		alert("Loading ended!");
 	};*/
-	image.src = imagepath;
-	optics = {
+	lf.image.src = imagepath;
+	lf.optics = {
 		"pitch": Session.get("op_pitch"),
 		"flen": Session.get("op_flen"),
 		"mag": Session.get("op_mag"),
@@ -40,21 +53,21 @@ function loadimage(imagepath) {
 		"na": Session.get("op_na"),
 		"medium": Session.get("op_medium")
 	};
-	loaded.optics = 1;
-	lenslets = {
+	lf.loaded.optics = 1;
+	lf.lenslets = {
 		"offset": [Session.get("op_x_offset"), Session.get("op_y_offset")],
 		"right": [Session.get("op_right_dx"), Session.get("op_right_dy")],
 		"down": [Session.get("op_down_dx"), Session.get("op_down_dy")]
 	};
-	loaded.lenslets = 1;
-	render_if_ready(image, 1);
+	lf.loaded.lenslets = 1;
+	render_if_ready(lf, 1);
 }
 
-function render_if_ready(image, is_new_image) {
-	console.log("loadimage " + loaded.image + " " + loaded.optics + " " + loaded.lenslets);
-	if (!loaded.image || !loaded.optics || !loaded.lenslets)
+function render_if_ready(lf, is_new_image) {
+	console.log("loadimage " + lf.loaded.image + " " + lf.loaded.optics + " " + lf.loaded.lenslets);
+	if (!lf.loaded.image || !lf.loaded.optics || !lf.loaded.lenslets)
 		return;
-	render(image, is_new_image);
+	render(lf, is_new_image);
 }
 
 function newmode(newmode) {
@@ -65,27 +78,27 @@ function newmode(newmode) {
 }
 
 function updateUV(delta_U, delta_V) {
-	newofs_U = ofs_U + delta_U;
-	newofs_V = ofs_V + delta_V;
+	var newofs_U = lf.view3d.ofs_U + delta_U;
+	var newofs_V = lf.view3d.ofs_V + delta_V;
 
-	var rel_U = newofs_U / lenslets.right[0];
-	var rel_V = newofs_V / lenslets.down[1];
+	var rel_U = newofs_U / lf.lenslets.right[0];
+	var rel_V = newofs_V / lf.lenslets.down[1];
 	var UV_dist = rel_U * rel_U + rel_V * rel_V;
-	var max_slope = maxNormalizedSlope();
+	var max_slope = maxNormalizedSlope(lf);
 	if (UV_dist > max_slope * max_slope) {
 		console.log(UV_dist + " > " + max_slope * max_slope)
 		return;
 	}
 
-	ofs_U = newofs_U;
-	ofs_V = newofs_V;
-	render(image, 0);
+	lf.view3d.ofs_U = newofs_U;
+	lf.view3d.ofs_V = newofs_V;
+	render(lf, 0);
 	updateUV_display();
 }
 
 function updateUV_display() {
-	$('#U_current').html(parseFloat(ofs_U).toFixed(2));
-	$('#V_current').html(parseFloat(ofs_V).toFixed(2));
+	$('#U_current').html(parseFloat(lf.view3d.ofs_U).toFixed(2));
+	$('#V_current').html(parseFloat(lf.view3d.ofs_V).toFixed(2));
 
 	var canvas = document.getElementById("canvas-uvpos");
 	var cuvpos = canvas.getContext("2d");
@@ -97,10 +110,10 @@ function updateUV_display() {
 	cuvpos.stroke();
 
 	var pos_x, pos_y;
-	if (optics != null && lenslets != null) {
-		var rel_U = ofs_U / lenslets.right[0];
-		var rel_V = ofs_V / lenslets.down[1];
-		var max_slope = maxNormalizedSlope();
+	if (lf.optics != null && lf.lenslets != null) {
+		var rel_U = lf.view3d.ofs_U / lf.lenslets.right[0];
+		var rel_V = lf.view3d.ofs_V / lf.lenslets.down[1];
+		var max_slope = maxNormalizedSlope(lf);
 		pos_x = canvas.width / 2 + cradius * rel_U / max_slope;
 		pos_y = canvas.height / 2 - cradius * rel_V / max_slope;
 	} else {
@@ -117,7 +130,7 @@ function updateUV_display() {
 var mousedrag_X, mousedrag_Y;
 
 function mousedrag(new_X, new_Y) {
-	updateUV((new_X - mousedrag_X) / mouseSensitivity, -(new_Y - mousedrag_Y) / mouseSensitivity);
+	updateUV((new_X - mousedrag_X) / lf.view3d.mouseSensitivity, -(new_Y - mousedrag_Y) / lf.view3d.mouseSensitivity);
 	mousedrag_X = new_X;
 	mousedrag_Y = new_Y;
 }
