@@ -244,6 +244,7 @@ func ConvertHDF5ToPNG(inputPath string, newRootDirectory string, session *mgo.Se
 		//fmt.Println(newPath)
 		//fmt.Println("h5topng", "-r", "-8", newPath, "-o", basePath)
 		webPath = append(webPath, webFileName)
+		//If images are incorrectly rotated, the -T flag might come in handy 
 		_, err := exec.Command("h5topng", "-r", "-8", newPath, "-o", basePath).Output() //WARNING CHECK OUTPUT, 8 MIGHT BE A PROBLEM
 		if err != nil {
 			panic(err)
