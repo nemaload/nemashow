@@ -13,7 +13,6 @@ Template.webgl.created = function() {
   console.log("webgl created");
   Deps.autorun(function () {
     console.log("autorun " + Session.get("currentImageId") + " " + Session.get("currentFrameURL"));
-    var imageObject = Images.findOne(Session.get("currentImageId"));
     imagePath = Session.get("currentFrameURL");
     loadimage(imagePath);
   });
