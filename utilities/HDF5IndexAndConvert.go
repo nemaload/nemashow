@@ -89,7 +89,7 @@ func RunS3Sync(repoAddress, localFolder string) {
 }
 
 func GetHDF5Autorectify(filepath string, session *mgo.Session) {
-	c := session.DB("meteor").C("dbtest")
+	c := session.DB("meteor").C("Images")
 	//modify filepath to have -autorectify after name but before hdf5
 	newFilePath := filepath
 	newFilePath = strings.Replace(newFilePath, ".hdf5", "-autorectify.hdf5", -1)
@@ -172,7 +172,7 @@ func RemoveInvalidFiles(pathList []string) []string {
 	return pathList
 }
 func InsertImageIntoDatabase(path string, session *mgo.Session) {
-	c := session.DB("meteor").C("dbtest")
+	c := session.DB("meteor").C("Images")
 
 	//gather image data into object here
 	newImage := HDF5Image{}
@@ -222,7 +222,7 @@ func ConvertHDF5ToPNG(inputPath string, newRootDirectory string, session *mgo.Se
 	var webPath []string
 	var webFileName string
 	// webPath = append(webPath, stringToAppend)
-	c := session.DB("meteor").C("dbtest")
+	c := session.DB("meteor").C("Images")
 	for i := 0; i < numFrames; i++ {
 		extensionString := ":/images/" + strconv.Itoa(i)
 
@@ -244,6 +244,7 @@ func ConvertHDF5ToPNG(inputPath string, newRootDirectory string, session *mgo.Se
 		//fmt.Println(newPath)
 		//fmt.Println("h5topng", "-r", "-8", newPath, "-o", basePath)
 		webPath = append(webPath, webFileName)
+		//If images are incorrectly rotated, the -T flag might come in handy 
 		_, err := exec.Command("h5topng", "-r", "-8", newPath, "-o", basePath).Output() //WARNING CHECK OUTPUT, 8 MIGHT BE A PROBLEM
 		if err != nil {
 			panic(err)
@@ -296,8 +297,8 @@ func ConvertHDF5ToPNG(inputPath string, newRootDirectory string, session *mgo.Se
 	fmt.Println("Name:", result.Name, "ID:", result.Id)
 
 }*/
-
+/*
 func TestAttributes() {
 	testString := GetHDF5Attribute("createdAt", "images", "/mnt/data_xz/20130301/lensgrid.hdf5")
 	fmt.Println(testString)
-}
+}*/
