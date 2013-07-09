@@ -32,8 +32,8 @@
         </select>
       </div>
     </div>
-    {{#if needsGridBox}}
       <button type="button" class="btn" id="grid">Grid</button>
+    {{#if needsGridBox}}
       <button type="button" class="btn" id="setDefaults">Set Default Gain and Gamma</button>
       <div style="display:none;float: left; margin: 0.5em auto; width: 52">
         <canvas id="canvas-uvpos" width="52" height="52"></canvas>
@@ -43,14 +43,37 @@
         <canvas id="canvas-uvpos" width="52" height="52"></canvas>
       </div>
     {{/if}}
-    <p id="controls-lightfield" class="controlbox">
-      <input type="button" value="U-" onClick="lf.updateUV(-1.0, 0);">
-      <input type="button" value="U+" onClick="lf.updateUV(+1.0, 0);">
+    <p id="perspective-p"><input type="checkbox" id="perspective" value="1" checked="1" /> Perspective</p>
+    <p id="controls-3d" class="controlbox">
+      <input type="button" value="U-" onClick="updateUV(-1.0, 0);">
+      <input type="button" value="U+" onClick="updateUV(+1.0, 0);">
       <span id="U_current" style="width: 5em"></span>
       <br />
-      <input type="button" value="V-" onClick="lf.updateUV(0, -1.0);">
-      <input type="button" value="V+" onClick="lf.updateUV(0, +1.0);">
+      <input type="button" value="V-" onClick="updateUV(0, -1.0);">
+      <input type="button" value="V+" onClick="updateUV(0, +1.0);">
       <span id="V_current" style="width: 5em"></span>
+    </p>
+    <p id="controls-lightsheet-image" class="controlbox">
+      <input type="button" value="Z-" onClick="ls.updateZ(-ls.view3d.ofs_Z_step);">
+      <input type="button" value="Z+" onClick="ls.updateZ(+ls.view3d.ofs_Z_step);">
+      <span id="Z_current" style="width: 5em"></span>
+    </p>
+    <div id="info-lightsheet-image" class="controlbox">
+      <table>
+      <tr><td>i =</td><td><span id="Z_i" class="t_value"></span></td></tr>
+      <tr><td>t =</td><td><span id="t" class="t_value"></span></td></tr>
+      <tr><td>z<sub>req</sub> =</td><td><span id="Z_r" class="Z_value"></span></td></tr>
+      <tr><td>z<sub>meas</sub> =</td><td><span id="Z_m" class="Z_value"></span></td></tr>
+      </table>
+    </div>
+    <p id="box-lightsheet-3d" class="controlbox">
+      <input type="checkbox" id="box" value="1" checked="1" /> Bounding box<br />
+      [<input type="text" id="box-x0" value="0.0" size="4" />,
+       <input type="text" id="box-y0" value="0.0" size="4" />,
+       <input type="text" id="box-z0" value="0.0" size="4" />]<br />
+      [<input type="text" id="box-x1" value="128.0" size="4" />,
+       <input type="text" id="box-y1" value="128.0" size="4" />,
+       <input type="text" id="box-z1" value="8.0" size="4" />]
     </p>
   </div>
 </template>

@@ -1,0 +1,33 @@
+<body>
+<script id="ls-box-vertex-shader" type="x-shader/x-vertex">
+attribute vec3 a_lineCoord;
+varying vec3 v_lineCoord;
+uniform vec2 u_canvSize;
+uniform vec3 u_UVOCoord;
+uniform float u_perspective;
+void main() {
+	// compute angle-slope to the z=0 plane based on U,V coordinates
+	vec2 UV_slope = vec2((u_UVOCoord[0] - u_perspective * (a_lineCoord[0] - 0.5)) / u_UVOCoord[2],
+			     (u_UVOCoord[1] - u_perspective * (a_lineCoord[1] - 0.5)) / u_UVOCoord[2]);
+
+	vec2 planeCoord = vec2(a_lineCoord[0], a_lineCoord[1]) + (UV_slope * vec2(a_lineCoord[2], a_lineCoord[2]));
+
+	// convert the rectangle from [0.0,1.0] to [-1.0, 1.0]
+	vec2 clipSpace = planeCoord * 2.0 - 1.0;
+	gl_Position = vec4(clipSpace, a_lineCoord[2], 1);
+
+	v_lineCoord = a_lineCoord;
+}
+</script>
+
+<script id="ls-box-fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+
+// the texCoords passed in from the vertex shader
+varying vec3 v_lineCoord;
+
+void main() {
+	gl_FragColor = vec4(0.0, 1.0 - v_lineCoord[2] * 1.5, 0.0, 0.4);
+}
+</script>
+</body>

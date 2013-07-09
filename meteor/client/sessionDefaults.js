@@ -3,6 +3,7 @@ Session.setDefault("userIsAdmin", false);
 Session.setDefault("currentView", "viewingFirstScreen");
 Session.setDefault("currentImageId", null);
 Session.setDefault("currentImageView", "viewingNothing");
+Session.setDefault("currentImageType", "ls");
 Session.setDefault("currentWebGLMode", "image");
 Session.setDefault("currentFrameIndex", 0); //frameindex
 Session.setDefault("currentFrameURL", null);

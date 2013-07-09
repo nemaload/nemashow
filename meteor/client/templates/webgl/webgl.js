@@ -48,10 +48,15 @@ Template.webglControls.shouldShowSlider = function() {
 Template.webgl.setupSliders = function() {
   if (Session.get("currentImageNumFrames") > 1) {
     $("#imageSlider").val(Session.get('currentFrameIndex')).off('change').change(function() {
-      if (Session.get("useAmazonData")) {
-        var newURL = Images.findOne(Session.get("currentImageId")).amazonPath[this.value]; 
+      var newURL;
+      if (Session.get('currentImageType') == 'lf') {
+        if (Session.get("useAmazonData")) {
+          newURL = Images.findOne(Session.get("currentImageId")).amazonPath[this.value]; 
+        } else {
+          newURL = Images.findOne(Session.get("currentImageId")).webPath[this.value];
+        }
       } else {
-        var newURL = Images.findOne(Session.get("currentImageId")).webPath[this.value];
+        newURL = Images.findOne(Session.get("currentImageId")).relPath[this.value];
       }
       Session.set("currentFrameURL", newURL);
       Session.set("currentFrameIndex", this.value);
@@ -81,7 +86,8 @@ Template.webgl.rendered = function() {
 }
 
 Template.webglControls.rendered = function() {
-  lf.updateUV_display();
+  if (Session.get('currentImageType') == 'lf')
+    lf.updateUV_display();
   Template.webgl.setupSliders();
 }
 

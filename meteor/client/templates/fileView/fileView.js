@@ -62,32 +62,44 @@ Template.fileView.getFolderName = function() {
 
 Template.fileView.setImageSessionVars = function() {
   var imageObject = Images.findOne(Session.get("currentImageId"));
+  var type = imageObject.type ? imageObject.type : 'lf';
+  Session.set("currentImageType", type);
   Session.set("currentImageNumFrames", imageObject.numFrames);
   Session.set("currentFrameIndex", 0);
-  if (Session.get("useAmazonData")) { Session.set("currentFrameURL", imageObject.amazonPath[0]);}
-  else {Session.set("currentFrameURL", imageObject.webPath[0]);}
-  Session.set("startFrameIndex", 0);
-  Session.set("endFrameIndex", 0);
   Session.set("imageSliderMax", imageObject.numFrames - 1);
   Session.set("imageSliderMin", 0);
-  //optics
-  Session.set("op_pitch", imageObject.op_pitch);
-  Session.set("op_flen", imageObject.op_flen);
-  Session.set("op_mag", imageObject.op_mag);
-  Session.set("op_na", imageObject.op_na);
-  Session.set("op_medium", imageObject.op_medium);
-  //lenslets
-  Session.set("op_x_offset", imageObject.op_x_offset);
-  Session.set("op_y_offset", imageObject.op_y_offset);
-  Session.set("op_right_dx", imageObject.op_right_dx);
-  Session.set("op_right_dy", imageObject.op_right_dy);
-  Session.set("op_down_dx", imageObject.op_down_dx);
-  Session.set("op_down_dy", imageObject.op_down_dy);
+  Session.set("startFrameIndex", 0);
+  Session.set("endFrameIndex", 0);
+
+  if (type == 'lf') {
+    if (Session.get("useAmazonData")) { Session.set("currentFrameURL", imageObject.amazonPath[0]);}
+    else {Session.set("currentFrameURL", imageObject.webPath[0]);}
+
+    //optics
+    Session.set("op_pitch", imageObject.op_pitch);
+    Session.set("op_flen", imageObject.op_flen);
+    Session.set("op_mag", imageObject.op_mag);
+    Session.set("op_na", imageObject.op_na);
+    Session.set("op_medium", imageObject.op_medium);
+
+    //lenslets
+    Session.set("op_x_offset", imageObject.op_x_offset);
+    Session.set("op_y_offset", imageObject.op_y_offset);
+    Session.set("op_right_dx", imageObject.op_right_dx);
+    Session.set("op_right_dy", imageObject.op_right_dy);
+    Session.set("op_down_dx", imageObject.op_down_dx);
+    Session.set("op_down_dy", imageObject.op_down_dy);
+
+  } else if (imageObject.type == 'ls') {
+    // our metadata is a list of per-frame information that we don't store
+    // in the database for now and couldn't put in session even if we did
+    // as it's an array
+    Session.set("currentFrameURL", imageObject.relPath[0]);
+  }
+
   //rendering stuff
   Session.set("currentImageGain", imageObject.defaultGain);
   Session.set("currentImageGamma", imageObject.defaultGamma);
-
-
 }
 
 Template.fileView.events = {
