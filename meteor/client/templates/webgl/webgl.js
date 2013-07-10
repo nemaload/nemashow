@@ -123,5 +123,12 @@ Template.webgl.events = {
         alert(result);
       }
     });
+  },
+
+  'change #box': function(ev) {
+    render_if_ready(0);
+  },
+  'change #perspective': function(ev) {
+    render_if_ready(0);
   }
 }
