@@ -15,6 +15,7 @@
       </p>
     {{/if}}
     <div id="sliders" class="span6">
+      <button type="button" class="btn" style="float: right" id="setDefaults">Set Default Gain and Gamma</button>
       <p>
       Gain: <span id="gain_current" style="width: 5em"> </span><br />
       <input type="range" id="gainSlider" min="-1" max="1" step="0.05" />
@@ -24,35 +25,37 @@
       <input type="range" id="gammaSlider" min="0.5" max="1.5" step="0.01" />
       </p>
     </div>
-    <div id="otherControls" style="margin-top: 2%;">
-      <div id="imageTypeSelect">
-        <select id="rendermode">
-          <option value="image">Image</option>
-          <option value="3d">3D</option>
-        </select>
+    <div class="controlbox">
+      <div id="otherControls" style="margin-top: 2%;">
+        <div id="imageTypeSelect">
+          <select id="rendermode">
+            <option value="image">Image</option>
+            <option value="3d">3D</option>
+          </select>
+        </div>
       </div>
-    </div>
       <button type="button" class="btn" id="grid">Grid</button>
-    {{#if needsGridBox}}
-      <button type="button" class="btn" id="setDefaults">Set Default Gain and Gamma</button>
-      <div style="display:none;float: left; margin: 0.5em auto; width: 52">
+      <p id="perspective-p"><input type="checkbox" id="perspective" value="1" checked="1" />&nbsp;Perspective</p>
+    </div>
+    <div id="controls-3d" class="controlbox">
+      <div id="div-uvpos" style="float: left; margin: 0.5em auto; width: 52">
         <canvas id="canvas-uvpos" width="52" height="52"></canvas>
       </div>
-    {{else}}
-      <div style="float: left; margin: 0.5em auto; width: 52">
-        <canvas id="canvas-uvpos" width="52" height="52"></canvas>
-      </div>
-    {{/if}}
-    <p id="perspective-p"><input type="checkbox" id="perspective" value="1" checked="1" /> Perspective</p>
-    <p id="controls-3d" class="controlbox">
+      <table>
+      <tr><td>
       <input type="button" value="U-" onClick="updateUV(-1.0, 0);">
       <input type="button" value="U+" onClick="updateUV(+1.0, 0);">
+      </td><td>
       <span id="U_current" style="width: 5em"></span>
-      <br />
+      </td></tr>
+      <tr><td>
       <input type="button" value="V-" onClick="updateUV(0, -1.0);">
       <input type="button" value="V+" onClick="updateUV(0, +1.0);">
+      </td><td>
       <span id="V_current" style="width: 5em"></span>
-    </p>
+      </td></tr>
+      </table>
+    </div>
     <p id="controls-lightsheet-image" class="controlbox">
       <input type="button" value="Z-" onClick="ls.updateZ(-ls.view3d.ofs_Z_step);">
       <input type="button" value="Z+" onClick="ls.updateZ(+ls.view3d.ofs_Z_step);">

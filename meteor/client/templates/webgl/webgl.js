@@ -37,10 +37,6 @@ Template.webglControls.minFrame = function() {
   return Session.get("imageSliderMin");
 }
 
-Template.webglControls.needsGridBox = function() {
-  return (Session.get("currentWebGLMode") === "image");
-}
-
 Template.webglControls.shouldShowSlider = function() {
   return (Session.get("currentImageNumFrames") > 1);
 }

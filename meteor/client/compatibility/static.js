@@ -7,6 +7,7 @@ function newmode(newmode) {
 	document.getElementById("canvas-3d").style.display = mode == "3d" ? 'block' : 'none';
 	document.getElementById("controls-3d").style.display = mode == "3d" ? 'block' : 'none';
 	document.getElementById("grid").style.display = mode == "image" && Session.get('currentImageType') == "lf" ? 'inline' : 'none';
+	document.getElementById("div-uvpos").style.display = mode == "3d" && Session.get('currentImageType') == "lf" ? 'block' : 'none';
 	document.getElementById("perspective-p").style.display = mode == "3d" && Session.get('currentImageType') == "ls" ? 'block' : 'none';
 	document.getElementById("controls-lightsheet-image").style.display = mode == "image" && Session.get('currentImageType') == "ls" ? 'block' : 'none';
 	document.getElementById("info-lightsheet-image").style.display = mode == "image" && Session.get('currentImageType') == "ls" ? 'block' : 'none';

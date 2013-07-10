@@ -61,7 +61,7 @@ canvas, .controls {
 .controlbox {
     float: left;
     border: 1pt solid;
-    margin: 1ex 1em;
+    margin: 1ex 0.5em;
     padding: 0.5ex 0.5em;
 }
 
@@ -98,4 +98,11 @@ input[type='range'] {
     width: 96%;
     margin: 2%;
     display:inline-block;
+}
+
+#rendermode{
+    width: 6em;
+}
+#box-lightsheet-3d input {
+    width: 3em;
 }
