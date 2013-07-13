@@ -10,7 +10,13 @@
   <div class="controls">
     {{#if shouldShowSlider}} {{annotationNote}}
       <p>
-      Current Frame: {{currentFrameIndex}}, Range: {{minFrame}} - {{maxFrame}}<br />
+      Current Frame: {{currentFrameIndex}}, Range: {{minFrame}} - {{maxFrame}}
+      <span style="margin: 0 1em">
+      <input type="button" id="frameprev_button" value="-">
+      <input type="button" id="framenext_button" value="+">
+      <input type="button" id="frameanim_button">
+      </span>
+      <br />
       <input type="range" id="imageSlider" min="{{minFrame}}" max="{{maxFrame}}" step="1" />
       </p>
     {{/if}}

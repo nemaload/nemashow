@@ -1,4 +1,51 @@
 //webgl related stuff
+
+function setFrame(idx) {
+  console.log("frame " + Session.get("currentFrameIndex") + " -> " + idx);
+  var newURL;
+  if (Session.get('currentImageType') == 'lf') {
+    if (Session.get("useAmazonData")) {
+      newURL = Images.findOne(Session.get("currentImageId")).amazonPath[idx];
+    } else {
+      newURL = Images.findOne(Session.get("currentImageId")).webPath[idx];
+    }
+  } else {
+    newURL = Images.findOne(Session.get("currentImageId")).relPath[idx];
+  }
+  Session.set("currentFrameURL", newURL);
+  Session.set("currentFrameIndex", idx);
+}
+
+var playFrames_delay = 500; // [ms]
+var playFrames_timer;
+function playFrames() {
+  playFrames_timer = window.setInterval(function() {
+      if (Session.get("currentFrameIndex") >= Session.get("imageSliderMax")) {
+        console.log(Session.get("currentFrameIndex") + " >= " + Session.get("imageSliderMax"));
+        stopPlayFrames();
+        return;
+      }
+      setFrame(Session.get("currentFrameIndex") + 1);
+      $("#imageSlider").val(Session.get('currentFrameIndex'))
+    }, playFrames_delay);
+  console.log("timer" + playFrames_timer);
+  $('#frameanim_button').attr('value', '[]');
+  $('#frameanim_button').off('click').click(stopPlayFrames);
+}
+function stopPlayFrames() {
+  if (playFrames_timer != null) {
+    console.log("clearInterval" + playFrames_timer);
+    window.clearInterval(playFrames_timer);
+  }
+  $('#frameanim_button').attr('value', '>');
+  $('#frameanim_button').off('click').click(function() {
+    if (Session.get("currentFrameIndex") >= Session.get("imageSliderMax"))
+      setFrame(0);
+    playFrames();
+  });
+};
+
+
 Template.webgl.renderImage = function() {
   if (Session.get("currentWebGLMode") === "image") {
     newmode("3d");
@@ -42,21 +89,21 @@ Template.webglControls.shouldShowSlider = function() {
 }
 
 Template.webgl.setupSliders = function() {
+  console.log("setupSliders");
   if (Session.get("currentImageNumFrames") > 1) {
     $("#imageSlider").val(Session.get('currentFrameIndex')).off('change').change(function() {
-      var newURL;
-      if (Session.get('currentImageType') == 'lf') {
-        if (Session.get("useAmazonData")) {
-          newURL = Images.findOne(Session.get("currentImageId")).amazonPath[this.value]; 
-        } else {
-          newURL = Images.findOne(Session.get("currentImageId")).webPath[this.value];
-        }
-      } else {
-        newURL = Images.findOne(Session.get("currentImageId")).relPath[this.value];
-      }
-      Session.set("currentFrameURL", newURL);
-      Session.set("currentFrameIndex", this.value);
+      setFrame(this.value);
     });
+    $("#frameprev_button").off('click').click(function() {
+      if (Session.get("currentFrameIndex") > Session.get("imageSliderMin"))
+        setFrame(Session.get("currentFrameIndex") - 1);
+    });
+    $("#framenext_button").off('click').click(function() {
+      if (Session.get("currentFrameIndex") < Session.get("imageSliderMax"))
+        setFrame(Session.get("currentFrameIndex") + 1);
+    });
+    if (! $("#frameanim_button").val())
+      stopPlayFrames(); // sets up frameanim_button
   }
 
   $("#rendermode").val(Session.get("currentWebGLMode"));
