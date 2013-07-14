@@ -31,6 +31,9 @@ function render(is_new_image) {
 	return Session.get('currentImageType') == "ls" ? ls.render(is_new_image) : lf.render(is_new_image);
 }
 
+function mousedrag_set(new_X, new_Y) {
+	return Session.get('currentImageType') == "ls" ? ls.mousedrag_set(new_X, new_Y) : lf.mousedrag_set(new_X, new_Y);
+}
 function mousedrag(new_X, new_Y) {
 	return Session.get('currentImageType') == "ls" ? ls.mousedrag(new_X, new_Y) : lf.mousedrag(new_X, new_Y);
 }

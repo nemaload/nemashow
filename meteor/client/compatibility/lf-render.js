@@ -121,6 +121,10 @@ LightFieldRenderer.prototype.updateUV_display = function() {
 	cuvpos.fill();
 }
 
+LightFieldRenderer.prototype.mousedrag_set = function(new_X, new_Y) {
+	this.view3d.mousedrag_X = new_X;
+	this.view3d.mousedrag_Y = new_Y;
+}
 LightFieldRenderer.prototype.mousedrag = function(new_X, new_Y) {
 	if (this.view3d.mousedrag_X) {
 		this.updateUV((new_X - this.view3d.mousedrag_X) / this.view3d.mouseSensitivity,

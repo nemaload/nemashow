@@ -59,6 +59,10 @@ LightSheetRenderer.prototype.updateUV = function(delta_U, delta_V) {
 	this.render(0);
 }
 
+LightSheetRenderer.prototype.mousedrag_set = function(new_X, new_Y) {
+	this.view3d.mousedrag_X = new_X;
+	this.view3d.mousedrag_Y = new_Y;
+}
 LightSheetRenderer.prototype.mousedrag = function(new_X, new_Y) {
 	if (this.view3d.mousedrag_X) {
 		this.updateUV((new_X - this.view3d.mousedrag_X) / this.view3d.mouseSensitivity,
