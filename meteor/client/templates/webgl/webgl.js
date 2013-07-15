@@ -1,15 +1,18 @@
 //webgl related stuff
 
 function frameURL(idx) {
+  var imageObject = Images.findOne(Session.get("currentImageId"));
+  if (imageObject == null) // XXX: sometimes this just happens even though followup calls will succeed :(
+    return null;
   var newURL;
   if (Session.get('currentImageType') == 'lf') {
     if (Session.get("useAmazonData")) {
-      newURL = Images.findOne(Session.get("currentImageId")).amazonPath[idx];
+      newURL = imageObject.amazonPath[idx];
     } else {
-      newURL = Images.findOne(Session.get("currentImageId")).webPath[idx];
+      newURL = imageObject.webPath[idx];
     }
   } else {
-    newURL = Images.findOne(Session.get("currentImageId")).relPath[idx];
+    newURL = imageObject.relPath[idx];
   }
   return newURL;
 }
