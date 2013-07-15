@@ -9,7 +9,7 @@ Template.imageInformation.events = {
   },
   'click #frameLink': function(e) {
     e.preventDefault();
-    window.open(Session.get("currentFrameURL"));
+    alert("This feature is not available at this time.");
   },
   'click #shareTwitter': function(e) {
     e.preventDefault();

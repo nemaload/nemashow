@@ -6,7 +6,6 @@ Session.setDefault("currentImageView", "viewingNothing");
 Session.setDefault("currentImageType", "ls");
 Session.setDefault("currentWebGLMode", "image");
 Session.setDefault("currentFrameIndex", 0); //frameindex
-Session.setDefault("currentFrameURL", null);
 Session.setDefault("startFrameIndex", 0);
 Session.setDefault("endFrameIndex", 0);
 Session.setDefault("currentSearchTerm", "");

@@ -1,18 +1,24 @@
 //webgl related stuff
 
-function setFrame(idx) {
-  console.log("frame " + Session.get("currentFrameIndex") + " -> " + idx);
+function frameURL(idx) {
+  var imageObject = Images.findOne(Session.get("currentImageId"));
+  if (imageObject == null) // XXX: sometimes this just happens even though followup calls will succeed :(
+    return null;
   var newURL;
   if (Session.get('currentImageType') == 'lf') {
     if (Session.get("useAmazonData")) {
-      newURL = Images.findOne(Session.get("currentImageId")).amazonPath[idx];
+      newURL = imageObject.amazonPath[idx];
     } else {
-      newURL = Images.findOne(Session.get("currentImageId")).webPath[idx];
+      newURL = imageObject.webPath[idx];
     }
   } else {
-    newURL = Images.findOne(Session.get("currentImageId")).relPath[idx];
+    newURL = imageObject.relPath[idx];
   }
-  Session.set("currentFrameURL", newURL);
+  return newURL;
+}
+
+function setFrame(idx) {
+  console.log("frame " + Session.get("currentFrameIndex") + " -> " + idx);
   Session.set("currentFrameIndex", idx);
 }
 
@@ -59,9 +65,16 @@ Template.webgl.renderImage = function() {
 Template.webgl.created = function() {
   console.log("webgl created");
   Deps.autorun(function () {
-    console.log("autorun " + Session.get("currentImageId") + " " + Session.get("currentFrameURL"));
-    imagePath = Session.get("currentFrameURL");
-    loadimage(imagePath);
+    if (Session.get('currentImageType') == "ls" && Session.get("currentImageChannels") == 2) {
+      var imagePaths = [
+        frameURL(Session.get("currentFrameIndex")),
+        frameURL(Session.get("currentFrameIndex") + Session.get("currentImageNumFrames")),
+      ];
+      loadimage(imagePaths);
+    } else {
+      var imagePath = frameURL(Session.get("currentFrameIndex"));
+      loadimage([imagePath, imagePath]);
+    }
   });
 }
 
@@ -92,7 +105,7 @@ Template.webgl.setupSliders = function() {
   console.log("setupSliders");
   if (Session.get("currentImageNumFrames") > 1) {
     $("#imageSlider").val(Session.get('currentFrameIndex')).off('change').change(function() {
-      setFrame(this.value);
+      setFrame(parseInt(this.value));
     });
     $("#frameprev_button").off('click').click(function() {
       if (Session.get("currentFrameIndex") > Session.get("imageSliderMin"))

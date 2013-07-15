@@ -64,16 +64,10 @@ Template.fileView.setImageSessionVars = function() {
   var imageObject = Images.findOne(Session.get("currentImageId"));
   var type = imageObject.type ? imageObject.type : 'lf';
   Session.set("currentImageType", type);
-  Session.set("currentImageNumFrames", imageObject.numFrames);
-  Session.set("currentFrameIndex", 0);
-  Session.set("imageSliderMax", imageObject.numFrames - 1);
-  Session.set("imageSliderMin", 0);
-  Session.set("startFrameIndex", 0);
-  Session.set("endFrameIndex", 0);
+  var numFrames;
 
   if (type == 'lf') {
-    if (Session.get("useAmazonData")) { Session.set("currentFrameURL", imageObject.amazonPath[0]);}
-    else {Session.set("currentFrameURL", imageObject.webPath[0]);}
+    numFrames = imageObject.numFrames;
 
     //optics
     Session.set("op_pitch", imageObject.op_pitch);
@@ -94,8 +88,18 @@ Template.fileView.setImageSessionVars = function() {
     // our metadata is a list of per-frame information that we don't store
     // in the database for now and couldn't put in session even if we did
     // as it's an array
-    Session.set("currentFrameURL", imageObject.relPath[0]);
+    var numChannels = imageObject.channels.length;
+    console.log("loading " + numChannels + " channels");
+    Session.set("currentImageChannels", numChannels);
+    numFrames = imageObject.numFrames / numChannels;
   }
+
+  Session.set("currentImageNumFrames", numFrames);
+  Session.set("currentFrameIndex", 0);
+  Session.set("imageSliderMax", numFrames - 1);
+  Session.set("imageSliderMin", 0);
+  Session.set("startFrameIndex", 0);
+  Session.set("endFrameIndex", 0);
 
   //rendering stuff
   Session.set("currentImageGain", imageObject.defaultGain);
