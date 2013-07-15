@@ -92,7 +92,7 @@ Template.webgl.setupSliders = function() {
   console.log("setupSliders");
   if (Session.get("currentImageNumFrames") > 1) {
     $("#imageSlider").val(Session.get('currentFrameIndex')).off('change').change(function() {
-      setFrame(this.value);
+      setFrame(parseInt(this.value));
     });
     $("#frameprev_button").off('click').click(function() {
       if (Session.get("currentFrameIndex") > Session.get("imageSliderMin"))
