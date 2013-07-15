@@ -1,7 +1,6 @@
 //webgl related stuff
 
-function setFrame(idx) {
-  console.log("frame " + Session.get("currentFrameIndex") + " -> " + idx);
+function frameURL(idx) {
   var newURL;
   if (Session.get('currentImageType') == 'lf') {
     if (Session.get("useAmazonData")) {
@@ -12,7 +11,11 @@ function setFrame(idx) {
   } else {
     newURL = Images.findOne(Session.get("currentImageId")).relPath[idx];
   }
-  Session.set("currentFrameURL", newURL);
+  return newURL;
+}
+
+function setFrame(idx) {
+  console.log("frame " + Session.get("currentFrameIndex") + " -> " + idx);
   Session.set("currentFrameIndex", idx);
 }
 
@@ -59,8 +62,8 @@ Template.webgl.renderImage = function() {
 Template.webgl.created = function() {
   console.log("webgl created");
   Deps.autorun(function () {
-    console.log("autorun " + Session.get("currentImageId") + " " + Session.get("currentFrameURL"));
-    imagePath = Session.get("currentFrameURL");
+    var imagePath = frameURL(Session.get("currentFrameIndex"));
+    console.log("autorun " + Session.get("currentImageId") + " " + imagePath);
     loadimage(imagePath);
   });
 }

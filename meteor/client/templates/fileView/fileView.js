@@ -68,8 +68,6 @@ Template.fileView.setImageSessionVars = function() {
 
   if (type == 'lf') {
     numFrames = imageObject.numFrames;
-    if (Session.get("useAmazonData")) { Session.set("currentFrameURL", imageObject.amazonPath[0]);}
-    else {Session.set("currentFrameURL", imageObject.webPath[0]);}
 
     //optics
     Session.set("op_pitch", imageObject.op_pitch);
@@ -90,7 +88,6 @@ Template.fileView.setImageSessionVars = function() {
     // our metadata is a list of per-frame information that we don't store
     // in the database for now and couldn't put in session even if we did
     // as it's an array
-    Session.set("currentFrameURL", imageObject.relPath[0]);
     var numChannels = imageObject.channels.length;
     console.log("loading " + numChannels + " channels");
     Session.set("imageChannels", numChannels);
