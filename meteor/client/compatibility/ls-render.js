@@ -2,6 +2,14 @@ function LightSheetRenderer() {
 	this.filedata = {};
 	this.group = null;
 
+	// group loading lifetime: last_group (init) -> group_load_queue (queued) -> loading_group (loading) -> group (loaded)
+	// queue of group loads to run after current group finishes loading
+	this.group_load_queue = [];
+	// last group requested by the user
+	this.last_group = null;
+	// group currently being loaded
+	this.loading_group = null;
+
 	// GL texture cache; indexed by mode name and channel#
 	this.imageTexture = {};
 	this.zTexture = {};
@@ -26,15 +34,27 @@ function LightSheetRenderer() {
 var ls_baseurl = 'http://localhost:8001/lightsheet/';
 
 LightSheetRenderer.prototype.loadimage = function(paths) {
-	this.group = new GroupImage(this, paths);
+	if (this.last_group && !this.last_group.loaded())
+		this.last_group.cancel_queued_load();
+	this.last_group = new GroupImage(this, paths);
 }
 
 LightSheetRenderer.prototype.render_if_ready = function(is_new_image) {
-	this.group.render_if_ready(is_new_image);
+	if (this.group)
+		this.group.render_if_ready(is_new_image);
 };
 LightSheetRenderer.prototype.render = function(is_new_image) {
-	this.group.render(is_new_image);
+	if (this.group)
+		this.group.render(is_new_image);
 };
+
+LightSheetRenderer.prototype.runGroupLoadQueue = function() {
+	console.log(this.group_load_queue.length + " group loads to run, current group " + (this.group && this.group.paths) + " loading_group " + (this.loading_group && this.loading_group.paths) + " loading = " + !!(this.loading_group && !this.loading_group.loaded()));
+	if (this.group_load_queue.length == 0 || (this.loading_group && !this.loading_group.loaded()))
+		return; // nothing to run or we should wait still
+	var toload = this.group_load_queue.shift();
+	toload.load();
+}
 
 LightSheetRenderer.prototype.updateZ = function(delta_Z) {
 	var newofs_Z = this.view3d.ofs_Z + delta_Z;
@@ -81,10 +101,20 @@ function GroupImage(ls, paths) {
 	this.images = [null, null]
 	this.metadata = null
 
-	this.load(paths);
+	if (paths[0])
+		this.load(paths);
 }
 
 GroupImage.prototype.load = function(paths) {
+	var g = this;
+	this.ls.group_load_queue.push({'paths': paths, 'load': function() {
+		g.ls.loading_group = g;
+		g.loadDo(paths);
+	}});
+	this.ls.runGroupLoadQueue(); // try loading if it's the right moment
+}
+
+GroupImage.prototype.loadDo = function(paths) {
 	var g = this;
 
 	var image_loading = new Array;
@@ -118,8 +148,11 @@ GroupImage.prototype.load = function(paths) {
 GroupImage.prototype.render_if_ready = function(is_new_image) {
 	if (!this.loaded())
 		return;
+
 	// this is the currently displayed group!
-	group = this;
+	this.ls.group = this;
+	// we have everything here, continue processing the queue
+	this.ls.runGroupLoadQueue();
 
 	// we finally have everything, proceed!
 	this.render(is_new_image);
@@ -128,6 +161,15 @@ GroupImage.prototype.loaded = function() {
 	console.log('loaded ' + this.images[0] + ' ' + this.images[1] + ' ' + this.metadata);
 	return this.images[0] && this.images[1] && this.metadata;
 }
+GroupImage.prototype.cancel_queued_load = function() {
+	// Loading us is not needed anymore if we are still waiting
+	// for that.
+	var g = this;
+	console.log("cancelling load of " + g.path);
+	this.ls.group_load_queue = this.ls.group_load_queue.filter(function(e,i,a) {
+		return e.paths[0] != g.paths[0] || e.paths[1] != g.paths[1];
+	});
+};
 
 GroupImage.prototype.setupZ = function() {
 	/* After loading metadata, update a variety of stuff related
