@@ -2,7 +2,7 @@ function LightSheetRenderer() {
 	this.filedata = {};
 	this.group = null;
 
-	// GL texture cache; indexed by mode name
+	// GL texture cache; indexed by mode name and channel#
 	this.imageTexture = {};
 	this.zTexture = {};
 
@@ -25,8 +25,8 @@ function LightSheetRenderer() {
 
 var ls_baseurl = 'http://localhost:8001/lightsheet/';
 
-LightSheetRenderer.prototype.loadimage = function(path) {
-	this.group = new GroupImage(this, path);
+LightSheetRenderer.prototype.loadimage = function(paths) {
+	this.group = new GroupImage(this, paths);
 }
 
 LightSheetRenderer.prototype.render_if_ready = function(is_new_image) {
@@ -73,31 +73,37 @@ LightSheetRenderer.prototype.mousedrag = function(new_X, new_Y) {
 }
 
 
-function GroupImage(ls, path) {
+function GroupImage(ls, paths) {
 	this.ls = ls;
-	this.path = path;
+	this.paths = paths;
 
 	// Loaded asynchronously
-	this.image = null
+	this.images = [null, null]
 	this.metadata = null
 
-	console.log('gi load ' + path);
-	this.load(path);
+	this.load(paths);
 }
 
-GroupImage.prototype.load = function(path) {
+GroupImage.prototype.load = function(paths) {
 	var g = this;
 
-	var image_loading = new Image();
-	image_loading.crossOrigin = "anonymous";
-	image_loading.src = ls_baseurl + path + "/png";
-	image_loading.onload = function() {
-		console.log('gi got image');
-		g.image = image_loading;
-		g.render_if_ready(1);
+	var image_loading = new Array;
+	for (var i = 0; i < 2; i++) {
+		image_loading[i] = new Image();
+		image_loading[i].crossOrigin = "anonymous";
+		image_loading[i].src = ls_baseurl + paths[i] + "/png";
+		console.log('gi load ' + i + ': ' + paths[i] + "/png");
+		// this funky embedded closure call makes sure @i has
+		// the current value within the onload closure :)
+		image_loading[i].onload = (function(i) { return function() {
+			console.log('gi got image ' + i + ': ' + image_loading[i]);
+			g.images[i] = image_loading[i];
+			g.render_if_ready(1);
+		}; })(i);
 	}
 
-	var metadatapath = ls_baseurl + path + "/json";
+	// we assume metadata is the same for both channels
+	var metadatapath = ls_baseurl + paths[0] + "/json";
 	$.getJSON(metadatapath, function(data) {
 		console.log('gi got metadata');
 		g.metadata = data;
@@ -110,7 +116,6 @@ GroupImage.prototype.load = function(path) {
 };
 
 GroupImage.prototype.render_if_ready = function(is_new_image) {
-	console.log('loaded ' + this.image + ' ' + this.metadata);
 	if (!this.loaded())
 		return;
 	// this is the currently displayed group!
@@ -120,7 +125,8 @@ GroupImage.prototype.render_if_ready = function(is_new_image) {
 	this.render(is_new_image);
 };
 GroupImage.prototype.loaded = function() {
-	return this.image && this.metadata;
+	console.log('loaded ' + this.images[0] + ' ' + this.images[1] + ' ' + this.metadata);
+	return this.images[0] && this.images[1] && this.metadata;
 }
 
 GroupImage.prototype.setupZ = function() {
@@ -153,19 +159,24 @@ GroupImage.prototype.render = function(is_new_image) {
 		program = this.render_lightsheet(canvas, gl);
 	}
 
+	var textureIds = [gl.TEXTURE0, gl.TEXTURE1, gl.TEXTURE2];
+
 	if (is_new_image) {
-		if (this.ls.imageTexture[mode]) {
-			gl.deleteTexture(this.ls.imageTexture[mode]);
+		for (var i = 0; i < 2; i++) {
+			if (this.ls.imageTexture[mode] == null)
+				this.ls.imageTexture[mode] = new Array;
+			if (this.ls.imageTexture[mode][i])
+				gl.deleteTexture(this.ls.imageTexture[mode][i]);
+			this.ls.imageTexture[mode][i] = gl.createTexture();
+			gl.activeTexture(textureIds[i]);
+			gl.bindTexture(gl.TEXTURE_2D, this.ls.imageTexture[mode][i]);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+			gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+			gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.images[i]);
 		}
-		this.ls.imageTexture[mode] = gl.createTexture();
-		gl.activeTexture(gl.TEXTURE0);
-		gl.bindTexture(gl.TEXTURE_2D, this.ls.imageTexture[mode]);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image);
 
 		var z_max = this.metadata.framedata[this.metadata.framedata.length - 1].z;
 		var z_focal = (this.metadata.framedata[0].z + z_max) / 2;
@@ -178,7 +189,7 @@ GroupImage.prototype.render = function(is_new_image) {
 			gl.deleteTexture(this.ls.zTexture[mode]);
 		}
 		this.ls.zTexture[mode] = gl.createTexture();
-		gl.activeTexture(gl.TEXTURE1);
+		gl.activeTexture(textureIds[2]);
 		gl.bindTexture(gl.TEXTURE_2D, this.ls.zTexture[mode]);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -190,10 +201,12 @@ GroupImage.prototype.render = function(is_new_image) {
 				new Float32Array(z_data));
 	}
 
-	var imageLocation = gl.getUniformLocation(program, "u_image");
+	var imageLocation = gl.getUniformLocation(program, "u_image0");
 	gl.uniform1i(imageLocation, 0);
+	var imageLocation = gl.getUniformLocation(program, "u_image1");
+	gl.uniform1i(imageLocation, 1);
 	var zdataLocation = gl.getUniformLocation(program, "u_zdata");
-	gl.uniform1i(zdataLocation, 1);
+	gl.uniform1i(zdataLocation, 2);
 
 	gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -304,11 +317,11 @@ GroupImage.prototype.render_box = function(canvas, gl) {
 	var z_max = this.metadata.framedata[n_slices - 1].z;
 	var z_focal = (this.metadata.framedata[0].z + z_max) / 2;
 	var boxCorners =
-		[[parseFloat(document.getElementById("box-x0").value) / this.image.width,
-		  parseFloat(document.getElementById("box-y0").value) / (this.image.height / n_slices),
+		[[parseFloat(document.getElementById("box-x0").value) / this.images[0].width,
+		  parseFloat(document.getElementById("box-y0").value) / (this.images[0].height / n_slices),
 		  parseFloat(document.getElementById("box-z0").value) / z_max - z_focal / z_max],
-		 [parseFloat(document.getElementById("box-x1").value) / this.image.width,
-		  parseFloat(document.getElementById("box-y1").value) / (this.image.height / n_slices),
+		 [parseFloat(document.getElementById("box-x1").value) / this.images[0].width,
+		  parseFloat(document.getElementById("box-y1").value) / (this.images[0].height / n_slices),
 		  parseFloat(document.getElementById("box-z1").value) / z_max - z_focal / z_max]];
 	var lineList = [
 		/* corner 0,0,0 */

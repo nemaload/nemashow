@@ -65,9 +65,16 @@ Template.webgl.renderImage = function() {
 Template.webgl.created = function() {
   console.log("webgl created");
   Deps.autorun(function () {
-    var imagePath = frameURL(Session.get("currentFrameIndex"));
-    console.log("autorun " + Session.get("currentImageId") + " " + imagePath);
-    loadimage(imagePath);
+    if (Session.get('currentImageType') == "ls" && Session.get("currentImageChannels") == 2) {
+      var imagePaths = [
+        frameURL(Session.get("currentFrameIndex")),
+        frameURL(Session.get("currentFrameIndex") + Session.get("currentImageNumFrames")),
+      ];
+      loadimage(imagePaths);
+    } else {
+      var imagePath = frameURL(Session.get("currentFrameIndex"));
+      loadimage([imagePath, imagePath]);
+    }
   });
 }
 

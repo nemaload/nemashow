@@ -21,7 +21,7 @@ ls = new LightSheetRenderer();
 // TODO: these will in the future switch based on image type
 
 function loadimage(imagepath) {
-	return Session.get('currentImageType') == "ls" ? ls.loadimage(imagepath) : lf.loadimage(imagepath);
+	return Session.get('currentImageType') == "ls" ? ls.loadimage(imagepath) : lf.loadimage(imagepath[0]);
 }
 
 function render_if_ready(is_new_image) {

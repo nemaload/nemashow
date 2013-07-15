@@ -3,7 +3,7 @@
 precision mediump float;
 
 // our texture
-uniform sampler2D u_image;
+uniform sampler2D u_image0, u_image1;
 uniform sampler2D u_zdata;
 
 // the texCoords passed in from the vertex shader.
@@ -25,12 +25,16 @@ void main() {
 
 	// interpolation coefficient
 	float beta = (u_z0z1z2[1] - u_z0z1z2[0]) / (u_z0z1z2[2] - u_z0z1z2[0]);
-	// interpolate
-	vec4 color0 = texture2D(u_image, texCoord0);
-	vec4 color2 = texture2D(u_image, texCoord2);
-	vec4 color = beta * color0 + (1.0 - beta) * color2;
 
-	gl_FragColor = pow(color * gain, gamma);
+	// interpolate
+	vec4 color0 = texture2D(u_image0, texCoord0);
+	vec4 color2 = texture2D(u_image0, texCoord2);
+	vec4 color_i0 = beta * color0 + (1.0 - beta) * color2;
+	     color0 = texture2D(u_image1, texCoord0);
+	     color2 = texture2D(u_image1, texCoord2);
+	vec4 color_i1 = beta * color0 + (1.0 - beta) * color2;
+
+	gl_FragColor = pow(vec4(color_i0.x, color_i1.x, 0., 1.) * gain, gamma);
 }
 </script>
 
@@ -38,7 +42,7 @@ void main() {
 precision mediump float;
 
 // our texture
-uniform sampler2D u_image;
+uniform sampler2D u_image0, u_image1;
 uniform sampler2D u_zdata;
 
 // the texCoords passed in from the vertex shader
@@ -53,7 +57,8 @@ uniform vec2 u_zSlices; // slicing parameters
 void main() {
 	vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, u_gammaGain.x);
 	vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, u_gammaGain.y);
-	vec4 color = vec4(0.0, 0.0, 0.0, 1.0);
+	vec4 color_i0 = vec4(0.0, 0.0, 0.0, 1.0);
+	vec4 color_i1 = vec4(0.0, 0.0, 0.0, 1.0);
 
 	float n_slices = u_zSlices[1];
 	float sliceStep = 1.0 / n_slices;
@@ -70,11 +75,12 @@ void main() {
 		vec2 planeCoord = v_texCoord + UV_slope * vec2(zOffset, zOffset);
 		if (!any(bvec4(lessThan(planeCoord, vec2(0.0, 0.0)), lessThan(vec2(1.0, 1.0), planeCoord)))) {
 			vec2 texCoord = vec2(planeCoord[0], sliceStep * (z + planeCoord[1]));
-			color = color + texture2D(u_image, texCoord) * sliceStep;
+			color_i0 = color_i0 + texture2D(u_image0, texCoord) * sliceStep;
+			color_i1 = color_i1 + texture2D(u_image1, texCoord) * sliceStep;
 		}
 	}
 
-	gl_FragColor = pow(color * gain, gamma);
+	gl_FragColor = pow(vec4(color_i0.x, color_i1.x, 0., 1.) * gain, gamma);
 }
 </script>
 </body>

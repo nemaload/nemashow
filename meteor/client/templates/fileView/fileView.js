@@ -90,7 +90,7 @@ Template.fileView.setImageSessionVars = function() {
     // as it's an array
     var numChannels = imageObject.channels.length;
     console.log("loading " + numChannels + " channels");
-    Session.set("imageChannels", numChannels);
+    Session.set("currentImageChannels", numChannels);
     numFrames = imageObject.numFrames / numChannels;
   }
 
