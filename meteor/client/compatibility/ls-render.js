@@ -23,7 +23,7 @@ function LightSheetRenderer() {
 	};
 };
 
-var ls_baseurl = 'http://localhost:8001/lightsheet/';
+var ls_baseurl = 'dualstack.lightsheet-nginx-799649215.us-east-1.elb.amazonaws.com/lightsheet/';
 
 LightSheetRenderer.prototype.loadimage = function(path) {
 	this.group = new GroupImage(this, path);
