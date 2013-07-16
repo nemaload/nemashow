@@ -122,6 +122,7 @@ Template.webgl.setupSliders = function() {
   $("#rendermode").val(Session.get("currentWebGLMode"));
   $("#grid").button();
   $('.btn-group').button();
+  $("#bbplot").button();
 
   $("#gainSlider").val(Session.get('currentImageGain')).off('change').change(function() {
     console.log('gainSlider ' + this.value);
@@ -170,6 +171,34 @@ Template.webgl.events = {
   'click #grid': function() {
     $("#grid").toggleClass('active');
     render_if_ready(0);
+  },
+
+  'click #bbplot': function() {
+    var bbplot = $("#bbplot");
+    bbplot.toggleClass('active');
+    if (bbplot.hasClass('active')) {
+      var baseName = Images.findOne(Session.get("currentImageId")).baseName;
+      var boxCoords = document.getElementById("box-x0").value + ','
+                      + document.getElementById("box-y0").value + ','
+                      + document.getElementById("box-z0").value + '-'
+                      + document.getElementById("box-x1").value + ','
+                      + document.getElementById("box-y1").value + ','
+                      + document.getElementById("box-z1").value;
+      var metadatapath = 'http://localhost:8002/' + baseName + "/box-intensity/0/" + boxCoords + "?chnorm";
+      updateLoading(+1);
+      $.getJSON(metadatapath, function(data) {
+        document.getElementById('plot').style.display = 'block';
+        $.getScript('https://github.com/flot/flot/raw/master/jquery.flot.js', function() {
+          intensities = [];
+          for (var i = 0; i < data.intensity.length; i++)
+            intensities[i] = [i, data.intensity[i]];
+          $.plot($('#plot'), [intensities], {});
+          updateLoading(-1);
+        });
+      });
+    } else {
+      document.getElementById('plot').style.display = 'none';
+    }
   },
 
   'click #setDefaults': function(e) {
