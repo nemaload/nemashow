@@ -1,357 +1,98 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
+
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>HDFWeb by nemaload</title>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="HDFWeb : A browser-based HDF5 image viewer" />
 
-    <link rel="stylesheet" href="stylesheets/styles.css">
-    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-    <!--[if lt IE 9]>
-    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>HDFWeb</title>
   </head>
+
   <body>
-    <div class="wrapper">
-      <header>
-        <h1>HDFWeb</h1>
-        <p>A browser-based HDF5 image viewer</p>
 
-        <p class="view"><a href="https://github.com/nemaload/HDFWeb">View the Project on GitHub <small>nemaload/HDFWeb</small></a></p>
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/nemaload/nemashow">View on GitHub</a>
 
+          <h1 id="project_title">HDFWeb</h1>
+          <h2 id="project_tagline">A browser-based HDF5 image viewer</h2>
 
-        <ul>
-          <li><a href="https://github.com/nemaload/HDFWeb/zipball/master">Download <strong>ZIP File</strong></a></li>
-          <li><a href="https://github.com/nemaload/HDFWeb/tarball/master">Download <strong>TAR Ball</strong></a></li>
-          <li><a href="https://github.com/nemaload/HDFWeb">View On <strong>GitHub</strong></a></li>
-        </ul>
-      </header>
-      <section>
-        <p><img src="http://i.imgur.com/6mlZGk6.jpg" alt="HDFWeb Logo"></p>
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/nemaload/nemashow/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/nemaload/nemashow/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <p><a href="http://nemaload.davidad.org"><img src="http://nemaload.davidad.org/png/nemaload" alt="Nemaload Logo"></a>
+<em>presents</em></p>
 
 <h1>
-<a name="hdfweb-specification" class="anchor" href="#hdfweb-specification"><span class="octicon octicon-link"></span></a>HDFWeb Specification</h1>
+<a name="nemashow" class="anchor" href="#nemashow"><span class="octicon octicon-link"></span></a>Nemashow</h1>
 
-<p>This document describes HDFWeb, a system designed to allow remote viewing of raster images stored in the HDF5 file format in-browser. </p>
-
-<p>This software is pre-alpha, so this document is subject to change.</p>
+<p>Nemashow is a web application which will enable the public to access interactive visualizations of data produced by the <a href="http://nemaload.davidad.org">NEMALOAD</a> project. Nemashow is built on the <a href="http://meteor.com/">Meteor</a> framework, and uses <a href="http://webgl.org">WebGL</a> for visualizations.</p>
 
 <h2>
-<a name="purpose" class="anchor" href="#purpose"><span class="octicon octicon-link"></span></a>Purpose</h2>
-
-<p>One of NEMALOAD's goals is to generate public interest in science through openness. There are a number of factors which make it very difficult for the general public to view the processed data we generate at the moment, such as prohibitive size, uncommon data formats, and custom software which is difficult to build. To facilitate delivering visualizations to the public, we are writing HDFView.</p>
-
-<p>HDFView is a work that will continue to grow as the project does. While the first release of the software will only support viewing raw microscope images and videos, features which will be added in later releases include support for GLSL shaders for raytracing, as well as 3D visualizations of tomographic data. This will allow unprecedented public access to the data.</p>
-
-<h2>
-<a name="design-overview" class="anchor" href="#design-overview"><span class="octicon octicon-link"></span></a>Design Overview</h2>
-
-<p>All data is backed up and stored for internal distribution on S3. From there, the web server keeps in sync via the <em>s3cmd sync</em> tool. The webserver consists of three parts:</p>
-
-<ul>
-<li><p>The file daemon retrieves file information, performs necessary file conversions, updates the database, and pulls new files from S3 when necessary.</p></li>
-<li><p>The web server program provides resource information stored in the database via a RESTful API. </p></li>
-<li><p>A fast reverse proxy, such as nginx, provides access to the PNGs stored on the server.</p></li>
-</ul><p>The client software is written in Javascript and WebGL. It consists of:</p>
-
-<ul>
-<li><p>An UI in which the user can browse files, see file details, and proceed with visualization.</p></li>
-<li><p>HTML5 Cache in which the large images are stored.</p></li>
-<li><p>WebGL shaders written in GLSL which process the data and provide interactivity.</p></li>
-</ul><p><img src="http://i.imgur.com/YKpCdZk.png" alt="HDFWeb Design Draft"></p>
-
-<h2>
-<a name="api" class="anchor" href="#api"><span class="octicon octicon-link"></span></a>API</h2>
+<a name="setup" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>Setup</h2>
 
 <h3>
-<a name="notes" class="anchor" href="#notes"><span class="octicon octicon-link"></span></a>Notes</h3>
+<a name="dependencies" class="anchor" href="#dependencies"><span class="octicon octicon-link"></span></a>Dependencies</h3>
 
-<p>The only verb that the client will utilize is GET. POST, PUT, and DELETE will be used by the server file daemon to maintain the database, and as such, access should be restricted.</p>
+<p>Aside from Meteor itself (<code>$ curl https://install.meteor.com | sh</code>) and a WebGL-capable browser (we use the latest <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a> builds; you can test your browser <a href="http://www.doesmybrowsersupportwebgl.com/">here</a>), you'll also need:</p>
+
+<ul>
+<li>
+<a href="https://github.com/oortcloud/meteorite">Meteorite</a>: <code>$ npm install -g meteorite</code>
+</li>
+<li>
+<a href="http://www.mongodb.org/downloads">MongoDB</a> command-line tools</li>
+</ul><h3>
+<a name="data" class="anchor" href="#data"><span class="octicon octicon-link"></span></a>Data</h3>
+
+<p>The application expects to find data in <code>meteor/data</code> (absent from this repository). The actual dataset is many gigabytes; while we are currently working to make it publicly available, for now just contact us if you're interested.</p>
 
 <h3>
-<a name="resources" class="anchor" href="#resources"><span class="octicon octicon-link"></span></a>Resources</h3>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h3>
 
-<h4>
-<a name="collections" class="anchor" href="#collections"><span class="octicon octicon-link"></span></a>Collections</h4>
+<p>To run the website, run the <code>mtr</code> command from the <code>meteor</code> directory and point your browser at <code>http://localhost:3000/</code>.
+To access lightsheet images data, you also need to run the <code>./simple-hdf-server.py ../data</code> command, where <code>../data</code> is the directory holding HDF5 lightsheet data files.
+To access lightsheet bounding box plotting functionality, also run the <code>./computation-server.py ../data</code> command.</p>
 
-<p>Collections consist of one or more HDF5 files.</p>
+<h3>
+<a name="administration" class="anchor" href="#administration"><span class="octicon octicon-link"></span></a>Administration</h3>
 
-<ul>
-<li>GET collections
-
-<ul>
-<li>Returns all names and IDs of collections on the server.</li>
-</ul>
-</li>
-</ul><p><code>GET collections</code></p>
-
-<div class="highlight"><pre><span class="p">{</span>
-   <span class="nt">"collections"</span><span class="p">:[</span>
-      <span class="p">{</span>
-         <span class="nt">"name"</span><span class="p">:</span><span class="s2">"worms"</span><span class="p">,</span>
-         <span class="nt">"id"</span><span class="p">:</span><span class="s2">"5sa35gbmle"</span>
-      <span class="p">},</span>
-      <span class="p">{</span>
-         <span class="nt">"name"</span><span class="p">:</span><span class="s2">"flies"</span><span class="p">,</span>
-         <span class="nt">"id"</span><span class="p">:</span><span class="s2">"2za32gb5el"</span>
-      <span class="p">}</span>
-   <span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-
-<ul>
-<li>GET collections/:id
-
-<ul>
-<li>Returns a list of all files and file IDs in the specified collection</li>
-</ul>
-</li>
-</ul><p><code>GET collections/2za32gb5el</code>    </p>
-
-<div class="highlight"><pre><span class="p">{</span>
-   <span class="nt">"files"</span><span class="p">:[</span>
-      <span class="p">{</span>
-         <span class="nt">"name"</span><span class="p">:</span><span class="s2">"Epi_63xZeiss_1.4_3beads_w_lenses1.hdf5"</span><span class="p">,</span>
-         <span class="nt">"id"</span><span class="p">:</span><span class="s2">"AofWKYWz6Q"</span>
-      <span class="p">},</span>
-      <span class="p">{</span>
-         <span class="nt">"name"</span><span class="p">:</span><span class="s2">"Kohler_63xZeiss_1.4_pollen_wo_lenses.hdf5"</span><span class="p">,</span>
-         <span class="nt">"id"</span><span class="p">:</span><span class="s2">"GiELmFmpdZ"</span>
-      <span class="p">}</span>
-   <span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-
-<ul>
-<li>POST collections
-
-<ul>
-<li>Creates a new collection with the specified name.</li>
-</ul>
-</li>
-<li>PUT collections/:id
-
-<ul>
-<li>Updates the specified collection by adding files through their id.</li>
-</ul>
-</li>
-<li>DELETE collections/:id
-
-<ul>
-<li>Deletes the specified collection.</li>
-</ul>
-</li>
-</ul><h4>
-<a name="files" class="anchor" href="#files"><span class="octicon octicon-link"></span></a>Files</h4>
-
-<p>Files consist of one or more groups. They also have non-HDF5 related properties such as size and modification date.</p>
-
-<ul>
-<li>GET files
-
-<ul>
-<li>Get a list of all files</li>
-</ul>
-</li>
-</ul><p><code>GET files</code></p>
-
-<div class="highlight"><pre>
-<span class="p">{</span>
-    <span class="nt">"files"</span><span class="p">:[{</span>
-            <span class="nt">"name"</span><span class="p">:</span> <span class="s2">"Epi_63xZeiss_1.4_3beads_w_lenses1.hdf5"</span><span class="p">,</span>
-            <span class="nt">"id"</span><span class="p">:</span> <span class="s2">"AofWKYWz6Q"</span>
-        <span class="p">},</span> <span class="p">{</span>
-            <span class="nt">"name"</span><span class="p">:</span> <span class="s2">"Kohler_63xZeiss_1.4_pollen_wo_lenses.tif"</span><span class="p">,</span>
-            <span class="nt">"id"</span><span class="p">:</span> <span class="s2">"GiELmFmpdZ"</span>
-        <span class="p">},</span> <span class="p">{</span>
-            <span class="nt">"name"</span><span class="p">:</span> <span class="s2">"MT21063_video11.hdf5"</span><span class="p">,</span>
-            <span class="nt">"id"</span><span class="p">:</span> <span class="s2">"66vd2RGEXm"</span>
-    <span class="p">}]</span>
-
-<span class="p">}</span>
-</pre></div>
-
-<ul>
-<li>GET files/:id
-
-<ul>
-<li>Get the metadata of the given file</li>
-</ul>
-</li>
-</ul><p><code>GET files/66vd2RGEXm</code></p>
-
-<div class="highlight"><pre><span class="p">{</span>
-   <span class="nt">"metadata"</span><span class="p">:[</span>
-      <span class="p">{</span>
-         <span class="nt">"name"</span><span class="p">:</span><span class="s2">"MT21063_video11.hdf5"</span><span class="p">,</span>
-         <span class="nt">"size"</span><span class="p">:</span><span class="mi">2367970585</span><span class="p">,</span>
-         <span class="nt">"modified"</span><span class="p">:</span><span class="s2">"2003-08-04 12:30:45"</span><span class="p">,</span>
-         <span class="nt">"path"</span><span class="p">:</span><span class="s2">"/this/is/not/secure/so/needs/authentication/at/some/point"</span><span class="p">,</span>
-         <span class="nt">"groups"</span><span class="p">:[</span>
-            <span class="p">{</span>
-               <span class="nt">"name"</span><span class="p">:</span><span class="s2">"frames"</span><span class="p">,</span>
-               <span class="nt">"id"</span><span class="p">:</span><span class="s2">"CkaRvZe3A5"</span>
-            <span class="p">}</span>
-         <span class="p">]</span>
-      <span class="p">}</span>
-   <span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-
-<ul>
-<li>POST files
-
-<ul>
-<li>Registers a file in the database from it's path on the machine.</li>
-</ul>
-</li>
-<li>PUT files/:id
-
-<ul>
-<li>Queues an update of that file's data by the maintenance script</li>
-</ul>
-</li>
-<li>DELETE files/:id
-
-<ul>
-<li>Deletes a file from the database(stays on local machine)</li>
-</ul>
-</li>
-</ul><h4>
-<a name="groups" class="anchor" href="#groups"><span class="octicon octicon-link"></span></a>Groups</h4>
-
-<p>Groups consist of one or more datasets, each representing an image frame in the current use case.</p>
-
-<ul>
-<li>GET groups/:id
-
-<ul>
-<li>Get the HDF5 metadata of the given group.</li>
-</ul>
-</li>
-</ul><p><code>GET groups/CkaRvZe3A5</code></p>
-
-<div class="highlight"><pre><span class="p">{</span>
-   <span class="nt">"metadata"</span><span class="p">:[</span>
-      <span class="p">{</span>
-         <span class="nt">"name"</span><span class="p">:</span><span class="s2">"frames"</span><span class="p">,</span>
-         <span class="nt">"size"</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span>
-         <span class="nt">"attributes"</span><span class="p">:[</span>
-            <span class="p">{</span>
-               <span class="nt">"createdAt"</span><span class="p">:[</span>
-                  <span class="p">{</span>
-                     <span class="nt">"value"</span><span class="p">:</span><span class="s2">"2013-05-25 04:01:45"</span><span class="p">,</span>
-                     <span class="nt">"type"</span><span class="p">:</span><span class="s2">"String, length=19"</span><span class="p">,</span>
-                     <span class="nt">"size"</span><span class="p">:</span><span class="mi">1</span>
-                  <span class="p">}</span>
-               <span class="p">]</span>
-            <span class="p">},</span>
-            <span class="p">{</span>
-               <span class="nt">"numFrames"</span><span class="p">:[</span>
-                  <span class="p">{</span>
-                     <span class="nt">"value"</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span>
-                     <span class="nt">"type"</span><span class="p">:</span><span class="s2">"64-bit integer"</span><span class="p">,</span>
-                     <span class="nt">"size"</span><span class="p">:</span><span class="mi">1</span>
-                  <span class="p">}</span>
-               <span class="p">]</span>
-            <span class="p">},</span>
-            <span class="p">{</span>
-               <span class="nt">"originalName"</span><span class="p">:[</span>
-                  <span class="p">{</span>
-                     <span class="nt">"value"</span><span class="p">:</span><span class="s2">"Epi_63xZeiss_1.4_3beads_w_lenses1.hdf5"</span><span class="p">,</span>
-                     <span class="nt">"type"</span><span class="p">:</span><span class="s2">"String, length=33"</span><span class="p">,</span>
-                     <span class="nt">"size"</span><span class="p">:</span><span class="mi">1</span>
-                  <span class="p">}</span>
-               <span class="p">]</span>
-            <span class="p">}</span>
-         <span class="p">]</span>
-      <span class="p">}</span>
-   <span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-
-<ul>
-<li>POST groups
-
-<ul>
-<li>Adds a group</li>
-</ul>
-</li>
-<li>PUT groups/:id
-
-<ul>
-<li>Updates a group</li>
-</ul>
-</li>
-<li>DELETE groups/:id
-
-<ul>
-<li>Removes a group</li>
-</ul>
-</li>
-</ul><h4>
-<a name="datasets" class="anchor" href="#datasets"><span class="octicon octicon-link"></span></a>Datasets</h4>
-
-<p>Datasets are multidimensional arrays containing grayscale image data. These correspond to image frames. These also may contain metadata.</p>
-
-<ul>
-<li>GET datasets/metadata
-
-<ul>
-<li>Returns metadata information on all datasets</li>
-</ul>
-</li>
-<li>GET datasets/metadata/:id
-
-<ul>
-<li>Returns the metadata of the given dataset.</li>
-</ul>
-</li>
-<li>GET datasets/data/:id
-
-<ul>
-<li>Returns the link to the  PNG representation of the given dataset</li>
-</ul>
-</li>
-<li>POST datasets
-
-<ul>
-<li>Adds a dataset</li>
-</ul>
-</li>
-<li>PUT datasets/:id
-
-<ul>
-<li>Edits a dataset</li>
-</ul>
-</li>
-<li>DELETE datasets/:id
-
-<ul>
-<li>Deletes a dataset</li>
-</ul>
-</li>
-</ul><h2>
-<a name="implementation-notes" class="anchor" href="#implementation-notes"><span class="octicon octicon-link"></span></a>Implementation Notes</h2>
-
-<p>For the client side, Backbone.js will be utilized for large portions of the UI. While the server will be eventually written in OpenResty for speed, due to lack of experience with that web framework portions of the infrastructure will be written in server-side Javascript and then ported to OpenResty to save time and confusion. The server-daemon will be written in a fast scripting language, probably Go, due to the amount of related utility code NEMALOAD has written.</p>
+<p>To make a user an administrator, direct database access is required. In the <code>db.users</code> collection, simply set a user's <code>admin</code> field to <code>"admin"</code>.</p>
 
 <h2>
-<a name="licensing" class="anchor" href="#licensing"><span class="octicon octicon-link"></span></a>Licensing</h2>
+<a name="roadmap" class="anchor" href="#roadmap"><span class="octicon octicon-link"></span></a>Roadmap</h2>
 
-<p>This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</p>
+<p>Nemashow's support for light-field visualizations is nearly complete. Our goals for the short term include integrating light-sheet visualizations, improving reusability of workflow utilities, and making the application scalable for public deployment. </p>
 
-<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.</p>
+<h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
 
-<p>You should have received a copy of the GNU General Public License along with this program.  If not, see <a href="http://www.gnu.org/licenses/">http://www.gnu.org/licenses/</a>.</p>
+<p>This program is free software: you can redistribute it and/or modify it under the terms of the <a href="http://www.gnu.org/licenses/gpl.html">GNU General Public License</a> as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.</p>
+
+<p>This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the <a href="http://www.gnu.org/licenses/gpl.html">GNU General Public License</a> for more details.</p>
       </section>
-      <footer>
-        <p>This project is maintained by <a href="https://github.com/nemaload">nemaload</a></p>
-        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">HDFWeb maintained by <a href="https://github.com/nemaload">nemaload</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
       </footer>
     </div>
-    <script src="javascripts/scale.fix.js"></script>
+
     
+
   </body>
 </html>
