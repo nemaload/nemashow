@@ -3,7 +3,10 @@ Meteor.methods({
   //record to "admin"
   //for example, db.users.update({_id:"PFmfFFMhe9H99Bfo9"},{$set:{admin:"admin"}})
   isAdmin: function() {
-    var user = Meteor.user();
+    if (Meteor.user())
+      var user = Meteor.user();
+    else
+      return false;
     if (!("string" === typeof(user.admin) && "admin" == (user.admin))) {
       return false;
     }
