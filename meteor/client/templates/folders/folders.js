@@ -2,7 +2,7 @@ Template.folders.foldersTop = function() {
 
   return Folders.find({
     parent: null
-  });
+  },{sort: {sortOrder : 1}});
 }
 
 Template.folders.isCurrentFolder = function(folder) {
