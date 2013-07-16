@@ -14,6 +14,13 @@ function newmode(newmode) {
 	document.getElementById("box-lightsheet-3d").style.display = mode == "3d" && Session.get('currentImageType') == "ls" ? 'block' : 'none';
 }
 
+var loading_count = 0;
+function updateLoading(loadingDelta) {
+	loading_count += loadingDelta;
+	document.getElementById("loader").className = loading_count == 0 ? "loaded" : "loading";
+	console.log("loading " + (loading_count == 0 ? "loaded" : "loading") + " count " + loading_count);
+}
+
 // global variables holding the rendering contexts
 lf = new LightFieldRenderer();
 ls = new LightSheetRenderer();
