@@ -2,32 +2,24 @@
   <div class="hero-unit" style="height:300px;" overflow="auto">
     {{#if isViewing "viewingAbout"}}
     <p>
-      This is the about screen
+      See <a href="http://nemaload.github.io/nemashow/"> this page for more details.</a> 
     </p>
     {{/if}} {{#if isViewing "viewingHelp"}}
     <p>
-      This is the Help screen
+      If you have found a bug and would like to report it, please contact <a href="mailto:schmatz@umich.edu">support.</a>
     </p>
     {{/if}}
-    {{#if currentUser}} {{#if isViewing "viewingFirstScreen"}}
-    <p>
-      Please choose a dataset to explore from the list to the left.
-    </p>
-    {{/if}} {{#if isViewing "fileListing"}} {{> fileView}} {{/if}} {{#if isViewing "searchResults"}}
+    {{#if isViewing "fileListing"}} {{> fileView}} {{/if}} {{#if isViewing "searchResults"}}
     {{> searchResults}} {{/if}}
-    {{else}} {{#if isViewing "viewingFirstScreen"}}
+    {{#if isViewing "viewingFirstScreen"}}
     <h1>
-      Welcome to HDFWeb
+      Welcome to NEMASHOW
     </h1>
-    HDFWeb allows both NEMALOAD researchers and the public to interactively view the
+    NEMASHOW allows both NEMALOAD researchers and the public to interactively view the
     project data.
     <p>
-      <a href="http://nemaload.github.io/HDFWeb" class="btn btn-primary btn-large">Learn more &raquo;</a>
+      <a href="http://nemaload.github.io/nemashow/" class="btn btn-primary btn-large">Learn more &raquo;</a>
     </p>
-    {{/if}} {{#if isViewing "fileListing"}}
-    <p>
-      You need to log in to view files.
-    </p>
-    {{/if}} {{/if}}
+    {{/if}}
   </div>
 </template>
