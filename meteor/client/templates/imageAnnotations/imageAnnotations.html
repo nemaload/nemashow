@@ -35,13 +35,12 @@
         </div>
       </div>
     </div>
-    {{/each}} {{/unless}} {{#if noAnnotations}}
+    {{/each}} {{/unless}}  {{#if noAnnotations}}
     <p>
       There are no annotations for this image.
-      <br />
-      Why don't you write one?
     </p>
     {{/if}}
+    {{#if isAdmin}}
     <div class="accordion-group">
       <div class="accordion-heading">
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" id="writeCommentLink">
@@ -74,5 +73,6 @@
         </div>
       </div>
     </div>
+    {{/if}}
   </div>
 </template>
