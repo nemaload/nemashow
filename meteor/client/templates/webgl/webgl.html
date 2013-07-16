@@ -23,9 +23,9 @@
       <script src="https://github.com/flot/flot/raw/master/jquery.flot.js"></script>
       <div id="plot" style="width: 96%; height: 50px; display: none"></div>
     {{/if}}
-    <div id="sliders" class="span6">
+    <div id="sliders" class="span6"> {{#if isAdmin}}
       <button type="button" class="btn" style="float: right" id="setDefaults">Set Default Gain and Gamma</button>
-      <p>
+      {{/if}}<p>
       Gain: <span id="gain_current" style="width: 5em"> </span><br />
       <input type="range" id="gainSlider" min="-1" max="1" step="0.05" />
       </p>
