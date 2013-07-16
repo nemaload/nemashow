@@ -15,6 +15,7 @@ The application expects to find data in `meteor/data` (absent from this reposito
 ###Usage
 To run the website, run the `mtr` command from the `meteor` directory and point your browser at `http://localhost:3000/`.
 To access lightsheet images data, you also need to run the `./simple-hdf-server.py ../data` command, where `../data` is the directory holding HDF5 lightsheet data files.
+To access lightsheet bounding box plotting functionality, also run the `./computation-server.py ../data` command.
 
 ###Administration
 To make a user an administrator, direct database access is required. In the `db.users` collection, simply set a user's `admin` field to `"admin"`.
