@@ -106,3 +106,15 @@ input[type='range'] {
 #box-lightsheet-3d input {
     width: 3em;
 }
+
+#loader {
+	width: 16px; height: 16px;
+	display: inline-block;
+	vertical-align: middle;
+}
+#loader.loading {
+	background: url(../../loading.gif) no-repeat center center;
+}
+#loader.loaded {
+	background: none;
+}

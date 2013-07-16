@@ -15,7 +15,9 @@
       <div id="collapseOne" class="accordion-body collapse in">
         <div class="accordion-inner">
           <div class="annotation">
+          {{#if isAdmin}}
             <i class="icon-remove-sign" style="float: right; cursor:pointer;" id="{{_id}}">
+            {{/if}}
             </i>
             <i class="icon-eye-open" annotationid="{{_id}}" style="float: right; margin-right:10px;cursor:pointer;">
             </i>
@@ -35,13 +37,12 @@
         </div>
       </div>
     </div>
-    {{/each}} {{/unless}} {{#if noAnnotations}}
+    {{/each}} {{/unless}}  {{#if noAnnotations}}
     <p>
       There are no annotations for this image.
-      <br />
-      Why don't you write one?
     </p>
     {{/if}}
+    {{#if isAdmin}}
     <div class="accordion-group">
       <div class="accordion-heading">
         <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion2" id="writeCommentLink">
@@ -74,5 +75,6 @@
         </div>
       </div>
     </div>
+    {{/if}}
   </div>
 </template>

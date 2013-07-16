@@ -2,11 +2,11 @@
   <!-- each lower level, for children -->
   <ul class="nav nav-list">
     {{#each children _id}} {{#if isCurrentFolder _id}}
-    <li class="folderLi" draggable="true">
+    <li class="folderLi" {{#if isAdmin}} draggable="true" {{/if}}>
       <a id="{{_id}}"><i class="icon-folder-open-alt"></i>{{> folders_sub}}</a>
     </li>
     {{else}}
-    <li class="folderLi" draggable="true">
+    <li class="folderLi" {{#if isAdmin}} draggable="true" {{/if}}>
       <a id="{{_id}}"><i class="icon-folder-close-alt"></i>{{> folders_sub}}</a>
     </li>
     {{/if}} {{/each}}
