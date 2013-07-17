@@ -4,7 +4,7 @@ Session.setDefault("currentView", "viewingFirstScreen");
 Session.setDefault("currentImageId", null);
 Session.setDefault("currentImageView", "viewingNothing");
 Session.setDefault("currentImageType", "ls");
-Session.setDefault("currentWebGLMode", "image");
+Session.setDefault("currentWebGLMode", "3d");
 Session.setDefault("currentFrameIndex", 0); //frameindex
 Session.setDefault("startFrameIndex", 0);
 Session.setDefault("endFrameIndex", 0);
