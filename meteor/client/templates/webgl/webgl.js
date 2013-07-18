@@ -144,6 +144,7 @@ Template.webgl.rendered = function() {
 
 Template.webglControls.rendered = function() {
   if (! Session.get("createdImageLoadingBar")) {
+    $(".loadingRow").empty();
     var divWidth = 100.0/Session.get("currentImageNumFrames");
     for (var i=0; i < Session.get("currentImageNumFrames"); i++)
     {
