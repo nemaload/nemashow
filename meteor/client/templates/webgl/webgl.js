@@ -143,6 +143,20 @@ Template.webgl.rendered = function() {
 }
 
 Template.webglControls.rendered = function() {
+  if (! Session.get("createdImageLoadingBar")) {
+    var divWidth = 100.0/Session.get("currentImageNumFrames");
+    for (var i=0; i < Session.get("currentImageNumFrames"); i++)
+    {
+          console.log("loadedThing");
+      $("<div />", {
+          "class":"gridCell notLoaded",
+          id: "imageLoading" + i
+      }).css({
+          "width": divWidth + "%"
+      }).appendTo(".loadingRow");
+    }
+    Session.set("createdImageLoadingBar", true);
+  }
   if (Session.get('currentImageType') == 'lf')
     lf.updateUV_display();
   Template.webgl.setupSliders();
