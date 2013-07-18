@@ -28,11 +28,13 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 		"optics": 0,
 		"lenslets": 0
 	};
+	$("#imageLoading" + Session.get("currentFrameIndex")).removeClass("notLoaded").addClass("loading");
 	this.image = new Image();
 	this.image.crossOrigin = "anonymous";
 	this.image.onload = function() {
 		obj.loaded.image = 1;
 		obj.render_if_ready(1);
+		$("#imageLoading" + Session.get("currentFrameIndex")).removeClass("notLoaded").removeClass("loading").addClass("loaded");
 	};
 	/* Not supported yet :(
 	this.image.onloadstart = function() {

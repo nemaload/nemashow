@@ -18,7 +18,10 @@
       </span>
       <span id="loader" class="loaded" style="margin: 0 1em"></span>
       <br />
+      <div id="sliderAndProgress">
       <input type="range" id="imageSlider" min="{{minFrame}}" max="{{maxFrame}}" step="1" />
+      {{#constant}}<div class="loadingRow"></div>{{/constant}}
+      </div>
       </p>
       <script src="https://github.com/flot/flot/raw/master/jquery.flot.js"></script>
       <div id="plot" style="width: 96%; height: 50px; display: none"></div>
