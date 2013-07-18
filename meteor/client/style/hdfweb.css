@@ -30,6 +30,36 @@ body {
     word-wrap: break-word;
 }
 
+/* animation stuff */
+@-webkit-keyframes loadingAnimation {
+      0% {background-color:#5A4337;}
+      25% {background-color: #934C25;}
+     50% {background-color: #AF6F21;}
+     75% {background-color: #BF981D;}
+     100% {background-color: #C3C419;}
+}
+.loadingRow {
+    width: 96%;
+    margin-left: 2%;
+    height:10px;
+    margin-top:-10px;
+    z-index: 1; /* must be smaller than z-index of range slider*/
+}
+
+.gridCell {
+    float:left;
+    height:10px;
+}
+.notLoaded {
+    background-color: #5A4337;
+}
+.loading {
+    -webkit-animation: loadingAnimation 5s infinite alternate;
+}
+.loaded {
+    background-color: #B8F14F;
+}
+
 .colAttribute {
     width: 5.4em;
 }
@@ -97,7 +127,10 @@ canvas, .controls {
 input[type='range'] {
     width: 96%;
     margin: 2%;
+    height: 10px;
     display:inline-block;
+    z-index:2;
+    background: rgba(1,1,1,0);
 }
 
 #rendermode{
