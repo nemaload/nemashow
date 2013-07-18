@@ -118,6 +118,7 @@ GroupImage.prototype.loadDo = function(paths) {
 	var g = this;
 
 	var image_loading = new Array;
+	$("#imageLoading" + Session.get("currentFrameIndex")).removeClass("notLoaded").addClass("loading");
 	for (var i = 0; i < 2; i++) {
 		image_loading[i] = new Image();
 		image_loading[i].crossOrigin = "anonymous";
@@ -131,6 +132,7 @@ GroupImage.prototype.loadDo = function(paths) {
 			g.render_if_ready(1);
 		}; })(i);
 	}
+	$("#imageLoading" + Session.get("currentFrameIndex")).removeClass("notLoaded").removeClass("loading").addClass("loaded");
 
 	// we assume metadata is the same for both channels
 	var metadatapath = ls_baseurl + paths[0] + "/json";
