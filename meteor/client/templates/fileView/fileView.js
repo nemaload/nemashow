@@ -100,7 +100,7 @@ Template.fileView.setImageSessionVars = function() {
   Session.set("imageSliderMin", 0);
   Session.set("startFrameIndex", 0);
   Session.set("endFrameIndex", 0);
-
+  Session.set("createdImageLoadingBar",false);
   //rendering stuff
   Session.set("currentImageGain", imageObject.defaultGain);
   Session.set("currentImageGamma", imageObject.defaultGamma);
