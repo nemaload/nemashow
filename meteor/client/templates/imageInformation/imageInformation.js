@@ -5,15 +5,12 @@ Template.imageInformation.imageObject = function() {
 Template.imageInformation.events = {
   'click #magnetLink': function(e) {
     e.preventDefault();
-    alert("This feature is not available at this time.");
-  },
-  'click #frameLink': function(e) {
-    e.preventDefault();
-    alert("This feature is not available at this time.");
-  },
-  'click #shareTwitter': function(e) {
-    e.preventDefault();
-    alert("This feature is not available at this time.");
+    var currentImage = Images.findOne(Session.get("currentImageId"));
+    if (currentImage.type) { // only LS images have this attribute
+      window.open("https://s3.amazonaws.com/nemaload.data/light_sheet_hdf5/" + currentImage.baseName + "?torrrent", '_blank');
+    } else {
+      window.open("https://s3.amazonaws.com/nemaload.data/light_field_hdf5/" + currentImage.baseName + "?torrent", '_blank');
+    }
   },
   'click #imageFullView': function(e) {
     e.preventDefault();
