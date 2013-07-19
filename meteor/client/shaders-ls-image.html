@@ -19,9 +19,14 @@ void main() {
 
 	// derive the texCoord of the pair of appropriate Z-coord slices
 	float z = u_zSlices[0];
-	float sliceStep = 1.0 / u_zSlices[1];
-	vec2 texCoord0 = vec2(v_texCoord[0], sliceStep * (z + v_texCoord[1]));
-	vec2 texCoord2 = vec2(v_texCoord[0], sliceStep * (z + 1.0 + v_texCoord[1]));
+	float sliceColStep = 1.0 / 8.; // XXX: hardcoded value
+	float sliceRowStep = 1.0 / ceil(u_zSlices[1] / 8.);
+	vec2 texCoord0 = vec2(
+		sliceColStep * (mod(z, 8.) + v_texCoord[0]),
+		sliceRowStep * (floor(z / 8.) + v_texCoord[1]));
+	vec2 texCoord2 = vec2(
+		sliceColStep * (mod((z + 1.0), 8.) + v_texCoord[0]),
+		sliceRowStep * (floor((z + 1.0) / 8.) + v_texCoord[1]));
 
 	// interpolation coefficient
 	float beta = (u_z0z1z2[1] - u_z0z1z2[0]) / (u_z0z1z2[2] - u_z0z1z2[0]);
@@ -29,10 +34,10 @@ void main() {
 	// interpolate
 	vec4 color0 = texture2D(u_image0, texCoord0);
 	vec4 color2 = texture2D(u_image0, texCoord2);
-	vec4 color_i0 = beta * color0 + (1.0 - beta) * color2;
+	vec4 color_i0 = (1.0 - beta) * color0 + beta * color2;
 	     color0 = texture2D(u_image1, texCoord0);
 	     color2 = texture2D(u_image1, texCoord2);
-	vec4 color_i1 = beta * color0 + (1.0 - beta) * color2;
+	vec4 color_i1 = (1.0 - beta) * color0 + beta * color2;
 
 	gl_FragColor = pow(vec4(color_i1.x, color_i0.x, 0.0000001, 1.) * gain, gamma);
 }
@@ -61,7 +66,8 @@ void main() {
 	vec4 color_i1 = vec4(0.0, 0.0, 0.0, 1.0);
 
 	float n_slices = u_zSlices[1];
-	float sliceStep = 1.0 / n_slices;
+	float sliceColStep = 1.0 / 8.; // XXX: hardcoded value
+	float sliceRowStep = 1.0 / ceil(n_slices / 8.);
 
 	for (float z = 0.0; z < 1000.0; z++) {
 		if (z >= n_slices)
@@ -74,9 +80,11 @@ void main() {
 		float zOffset = texture2D(u_zdata, vec2(z / n_slices, 0))[0];
 		vec2 planeCoord = v_texCoord + UV_slope * vec2(zOffset, zOffset);
 		if (!any(bvec4(lessThan(planeCoord, vec2(0.0, 0.0)), lessThan(vec2(1.0, 1.0), planeCoord)))) {
-			vec2 texCoord = vec2(planeCoord[0], sliceStep * (z + planeCoord[1]));
-			color_i0 = color_i0 + texture2D(u_image0, texCoord) * sliceStep;
-			color_i1 = color_i1 + texture2D(u_image1, texCoord) * sliceStep;
+			vec2 texCoord = vec2(
+				sliceColStep * (mod(z, 8.) + planeCoord[0]),
+				sliceRowStep * (floor(z / 8.) + planeCoord[1]));
+			color_i0 = color_i0 + texture2D(u_image0, texCoord) / n_slices;
+			color_i1 = color_i1 + texture2D(u_image1, texCoord) / n_slices;
 		}
 	}
 
