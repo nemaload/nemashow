@@ -89,7 +89,7 @@ func RunS3Sync(repoAddress, localFolder string) {
 }
 
 func GetHDF5Autorectify(filepath string, session *mgo.Session) {
-	c := session.DB("meteor").C("Images")
+	c := session.DB("meteor").C("images")
 	//modify filepath to have -autorectify after name but before hdf5
 	newFilePath := filepath
 	newFilePath = strings.Replace(newFilePath, ".hdf5", "-autorectify.hdf5", -1)
@@ -172,7 +172,7 @@ func RemoveInvalidFiles(pathList []string) []string {
 	return pathList
 }
 func InsertImageIntoDatabase(path string, session *mgo.Session) {
-	c := session.DB("meteor").C("Images")
+	c := session.DB("meteor").C("images")
 
 	//gather image data into object here
 	newImage := HDF5Image{}
@@ -222,7 +222,7 @@ func ConvertHDF5ToPNG(inputPath string, newRootDirectory string, session *mgo.Se
 	var webPath []string
 	var webFileName string
 	// webPath = append(webPath, stringToAppend)
-	c := session.DB("meteor").C("Images")
+	c := session.DB("meteor").C("images")
 	for i := 0; i < numFrames; i++ {
 		extensionString := ":/images/" + strconv.Itoa(i)
 
