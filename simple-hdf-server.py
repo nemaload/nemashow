@@ -15,14 +15,8 @@
 # * /lightsheet/ returns a list of lightsheet HDF5 files.
 # * /lightsheet/<filename>/ returns file metadata (# of channels and groups -
 #   z-sweeps).
-# * /lightsheet/<filename>/<channel>/json returns all frames metadata
-# * /lightsheet/<filename>/<channel>/png returns combined all frames imgdata PNG
 # * /lightsheet/<filename>/<channel>/<group>/json returns z-sweep frames metadata
 # * /lightsheet/<filename>/<channel>/<group>/png returns z-sweep frames imgdata PNG
-#
-# Note that the "all frames" access has been just an experiment and is
-# **not recommended**! It takes long to produce the data and it's just too huge
-# to be practical.
 
 
 ### Settings
@@ -164,10 +158,6 @@ class LightsheetRequestHandler(BackendRequestHandler):
             (o, ctype) = LightsheetRequestHandler.lightsheet_index()
         if len(words) == 2:
             (o, ctype) = LightsheetRequestHandler.lightsheet_file_metadata(words[1])
-        if len(words) == 4 and words[3] == "json":
-            (o, ctype) = LightsheetRequestHandler.lightsheet_group_metadata(words[1], words[2], head_only)
-        if len(words) == 4 and words[3] == "png":
-            (o, ctype) = LightsheetRequestHandler.lightsheet_group_png(words[1], words[2], head_only)
         if len(words) == 5 and words[4] == "json":
             (o, ctype) = LightsheetRequestHandler.lightsheet_subgroup_metadata(words[1], words[2], words[3], head_only)
         if len(words) == 5 and words[4] == "png":
@@ -209,28 +199,6 @@ class LightsheetRequestHandler(BackendRequestHandler):
         ls = LightsheetRequestHandler.lsfile_cache[filename].get_group_info()
         s = json.dumps(ls)
         return (("string", s), "application/json")
-
-    @staticmethod
-    def lightsheet_group_metadata(filename, channel, head_only):
-        if filename not in LightsheetRequestHandler.lsfile_cache:
-            LightsheetRequestHandler.lsfile_cache[filename] = LightsheetFile(lightsheet_dir + "/" + filename)
-        objpath = "/images/.ch" + channel
-        metadata = LightsheetRequestHandler.lsfile_cache[filename].group_metadata(objpath, head_only)
-        s = json.dumps(metadata)
-        return (("string", s), "application/json")
-
-    @staticmethod
-    def lightsheet_group_png(filename, channel, head_only):
-        if filename not in LightsheetRequestHandler.lsfile_cache:
-            LightsheetRequestHandler.lsfile_cache[filename] = LightsheetFile(lightsheet_dir + "/" + filename)
-        objpath = "/images/.ch" + channel
-        imgdata = LightsheetRequestHandler.lsfile_cache[filename].group_imgdata(objpath, head_only)
-
-        scipy.misc.imsave("/tmp/rawls.png", imgdata)
-        f = open("/tmp/rawls.png", "rb")
-        os.unlink("/tmp/rawls.png")
-
-        return (("file", f), "image/png")
 
     @staticmethod
     def lightsheet_subgroup_metadata(filename, channel, group, head_only):
@@ -415,46 +383,6 @@ class LightsheetFile:
     def subgroup_imgdata(self, objpath, multiread):
         if objpath not in self.cache or "imgdata" not in self.cache[objpath]:
             self.get_subgroup(objpath)
-        i = self.cache[objpath]["imgdata"]
-        if not multiread:
-            del self.cache[objpath]["imgdata"]
-        return i
-
-    def get_group(self, objpath, multiread):
-        group_list = [i for (i, node) in self.h5file.get_node('/', objpath)._v_children.items()]
-        group_list.sort(key=int)
-
-        metadata = {'groupdata': []}
-        imgdata = None
-        for group in group_list:
-            g_objpath = objpath + '/' + group
-            self.get_subgroup(g_objpath)
-            metadata['groupdata'].append(self.subgroup_metadata(g_objpath, multiread))
-            g_imgdata = self.subgroup_imgdata(g_objpath, multiread)
-            if imgdata is None:
-                imgdata = g_imgdata
-            else:
-                padheight = imgdata.shape[0] - g_imgdata.shape[0]
-                if padheight < 0:
-                    imgdata = numpy.vstack((imgdata, numpy.zeros((-padheight, imgdata.shape[1]))))
-                elif padheight > 0:
-                    g_imgdata = numpy.vstack((g_imgdata, numpy.zeros((padheight, g_imgdata.shape[1]))))
-                print str(group) + " : " + str(imgdata.shape) + " -> " + str(g_imgdata.shape)
-                imgdata = numpy.hstack((imgdata, g_imgdata))
-
-        self.cache[objpath] = { "imgdata": imgdata, "metadata": metadata }
-
-    def group_metadata(self, objpath, multiread):
-        if objpath not in self.cache or "metadata" not in self.cache[objpath]:
-            self.get_group(objpath, multiread)
-        m = self.cache[objpath]["metadata"]
-        if not multiread:
-            del self.cache[objpath]["metadata"]
-        return m
-
-    def group_imgdata(self, objpath, multiread):
-        if objpath not in self.cache or "imgdata" not in self.cache[objpath]:
-            self.get_group(objpath, multiread)
         i = self.cache[objpath]["imgdata"]
         if not multiread:
             del self.cache[objpath]["imgdata"]
