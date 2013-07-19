@@ -29,10 +29,10 @@ void main() {
 	// interpolate
 	vec4 color0 = texture2D(u_image0, texCoord0);
 	vec4 color2 = texture2D(u_image0, texCoord2);
-	vec4 color_i0 = beta * color0 + (1.0 - beta) * color2;
+	vec4 color_i0 = (1.0 - beta) * color0 + beta * color2;
 	     color0 = texture2D(u_image1, texCoord0);
 	     color2 = texture2D(u_image1, texCoord2);
-	vec4 color_i1 = beta * color0 + (1.0 - beta) * color2;
+	vec4 color_i1 = (1.0 - beta) * color0 + beta * color2;
 
 	gl_FragColor = pow(vec4(color_i1.x, color_i0.x, 0.0000001, 1.) * gain, gamma);
 }
