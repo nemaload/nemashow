@@ -118,9 +118,10 @@ GroupImage.prototype.loadDo = function(paths) {
 	var g = this;
 
 	var image_loading = new Array;
-	$("#imageLoading" + Session.get("currentFrameIndex")).removeClass("notLoaded").addClass("loading");
+	
 	for (var i = 0; i < 2; i++) {
 		image_loading[i] = new Image();
+		$("#imageLoading" + Session.get("currentFrameIndex")).removeClass("notLoaded").addClass("loading");
 		image_loading[i].crossOrigin = "anonymous";
 		image_loading[i].src = ls_baseurl + paths[i] + "/png";
 		console.log('gi load ' + i + ': ' + paths[i] + "/png");
@@ -132,7 +133,7 @@ GroupImage.prototype.loadDo = function(paths) {
 			g.render_if_ready(1);
 		}; })(i);
 	}
-	$("#imageLoading" + Session.get("currentFrameIndex")).removeClass("notLoaded").removeClass("loading").addClass("loaded");
+	
 
 	// we assume metadata is the same for both channels
 	var metadatapath = ls_baseurl + paths[0] + "/json";
@@ -150,6 +151,7 @@ GroupImage.prototype.loadDo = function(paths) {
 GroupImage.prototype.render_if_ready = function(is_new_image) {
 	if (!this.loaded())
 		return;
+	
 
 	// this is the currently displayed group!
 	this.ls.group = this;
@@ -161,6 +163,7 @@ GroupImage.prototype.render_if_ready = function(is_new_image) {
 };
 GroupImage.prototype.loaded = function() {
 	console.log('loaded ' + this.images[0] + ' ' + this.images[1] + ' ' + this.metadata);
+	$("#imageLoading" + Session.get("currentFrameIndex")).removeClass("notLoaded").removeClass("loading").addClass("loaded");
 	return this.images[0] && this.images[1] && this.metadata;
 }
 GroupImage.prototype.cancel_queued_load = function() {
@@ -168,6 +171,7 @@ GroupImage.prototype.cancel_queued_load = function() {
 	// for that.
 	var g = this;
 	console.log("cancelling load of " + g.path);
+	$("#imageLoading" + Session.get("currentFrameIndex")).removeClass("notLoaded").removeClass("loading");
 	this.ls.group_load_queue = this.ls.group_load_queue.filter(function(e,i,a) {
 		return e.paths[0] != g.paths[0] || e.paths[1] != g.paths[1];
 	});
