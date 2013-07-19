@@ -88,10 +88,10 @@ func RunS3Sync(repoAddress, localFolder string) {
 	fmt.Println("Completed sync!")
 }
 
-func GetHDF5Autorectify(filepath string, session *mgo.Session) {
+func GetHDF5Autorectify(path string, session *mgo.Session) {
 	c := session.DB("meteor").C("images")
 	//modify filepath to have -autorectify after name but before hdf5
-	newFilePath := filepath
+	newFilePath := path
 	newFilePath = strings.Replace(newFilePath, ".hdf5", "-autorectify.hdf5", -1)
 	//now that it's properly formatted, we can check if it exists
 	var op_x_offset, op_y_offset, op_right_dx, op_right_dy, op_down_dx, op_down_dy float64
@@ -99,6 +99,7 @@ func GetHDF5Autorectify(filepath string, session *mgo.Session) {
 
 	if _, err := os.Stat(newFilePath); err != nil {
 		if os.IsNotExist(err) {
+			fmt.Println("No autorectification")
 			//maintains sample values
 			return
 		} else {
@@ -114,16 +115,21 @@ func GetHDF5Autorectify(filepath string, session *mgo.Session) {
 		op_down_dx, _ = strconv.ParseFloat(GetHDF5Attribute("down_dx", "autorectification", newFilePath), 64)
 		op_down_dy, _ = strconv.ParseFloat(GetHDF5Attribute("down_dy", "autorectification", newFilePath), 64)
 	}
-	//now update the database record for filepath, which is originalPath
-	colQuerier := bson.M{"originalPath": filepath}
+
+	fmt.Println("Autorectify values of", filepath.Base(path), "op_x_offset", op_x_offset, "op_y_offset", op_y_offset, "op_right_dx", op_right_dx, "op_right_dy", op_right_dy, "op_down_dx", op_down_dx, "op_down_dy", op_down_dy);
+
+	colQuerier := bson.M{"baseName": filepath.Base(path)}
 	change := bson.M{"$set": bson.M{"op_x_offset": op_x_offset, "op_y_offset": op_y_offset, "op_right_dx": op_right_dx, "op_right_dy": op_right_dy, "op_down_dx": op_down_dx, "op_down_dy": op_down_dy}}
 	newErr := c.Update(colQuerier, change)
 	if newErr != nil {
 		if newErr != mgo.ErrNotFound {
 			panic(newErr)
+		} else {
+			fmt.Println("Image record not found when trying to update autorectify values for", newFilePath)
 		}
+	} else {
+		fmt.Println("Successfully inserted autorectify values for", newFilePath)
 	}
-	fmt.Println("Successfully inserted custom autorectify values for", newFilePath)
 }
 
 func GetHDF5Attribute(attribute string, group string, filepath string) string {
