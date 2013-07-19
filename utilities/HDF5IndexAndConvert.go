@@ -233,13 +233,13 @@ func ConvertHDF5ToPNG(inputPath string, newRootDirectory string, session *mgo.Se
 		webFileName = basePath
 		webFileName = "/data/" + webFileName
 		basePath = strings.Join([]string{newRootDirectory, basePath}, "")
-		if _, err := os.Stat(basePath); err != nil {
-			if os.IsNotExist(err) {
-				//maintains sample values
-				fmt.Println("File already exists")
-				return
-			}
-		}
+		//if _, err := os.Stat(basePath); err != nil {
+		//	if os.IsNotExist(err) {
+		//		//maintains sample values
+		//		fmt.Println("File already exists")
+		//		return
+		//	}
+		//}
 		//fmt.Println(basePath)
 		//fmt.Println(newPath)
 		//fmt.Println("h5topng", "-r", "-8", newPath, "-o", basePath)
