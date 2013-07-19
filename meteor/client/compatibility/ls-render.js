@@ -358,14 +358,15 @@ GroupImage.prototype.render_box = function(canvas, gl) {
 	gl.useProgram(program);
 
 	var n_slices = this.metadata.framedata.length;
+	var n_cols = 8, n_rows = Math.ceil(n_slices / n_cols);
 	var z_max = this.metadata.framedata[n_slices - 1].z;
 	var z_focal = (this.metadata.framedata[0].z + z_max) / 2;
 	var boxCorners =
-		[[parseFloat(document.getElementById("box-x0").value) / this.images[0].width,
-		  parseFloat(document.getElementById("box-y0").value) / (this.images[0].height / n_slices),
+		[[parseFloat(document.getElementById("box-x0").value) / (this.images[0].width / n_cols),
+		  parseFloat(document.getElementById("box-y0").value) / (this.images[0].height / n_rows),
 		  parseFloat(document.getElementById("box-z0").value) / z_max - z_focal / z_max],
-		 [parseFloat(document.getElementById("box-x1").value) / this.images[0].width,
-		  parseFloat(document.getElementById("box-y1").value) / (this.images[0].height / n_slices),
+		 [parseFloat(document.getElementById("box-x1").value) / (this.images[0].width / n_cols),
+		  parseFloat(document.getElementById("box-y1").value) / (this.images[0].height / n_rows),
 		  parseFloat(document.getElementById("box-z1").value) / z_max - z_focal / z_max]];
 	var lineList = [
 		/* corner 0,0,0 */

@@ -356,20 +356,27 @@ class LightsheetFile:
         """
         node0 = self.h5file.get_node('/', objpath + '/0')
 
-        imgdata = None
+        rowlen = 8
+        imgrows = []
         metadata = {'size_x': int(node0.shape[0]), 'size_y': int(node0.shape[1]), 'framedata': []}
+        j = 0
 
         for (i, node) in sorted(self.h5file.get_node('/', objpath)._v_children.items(), key = lambda i: i[1].attrs['ls_z_measured']):
-            if imgdata is None:
-                imgdata = node.read()
+            if len(imgrows) <= j/rowlen:
+                imgrows.append(node.read())
             else:
-                imgdata = numpy.vstack((imgdata, node.read()))
+                imgrows[j/rowlen] = numpy.hstack((imgrows[j/rowlen], node.read()))
             metadata['framedata'].append(
                     {'t': int(node.attrs['ls_time']),
                      'n': int(node.attrs['ls_n']),
                      'z_r': float(node.attrs['ls_z_request']),
                      'z': float(node.attrs['ls_z_measured'])})
+            j += 1
 
+        # Fully extend the last row
+        imgrows[-1] = numpy.hstack((imgrows[-1], numpy.zeros([metadata['size_y'], rowlen * metadata['size_x'] - imgrows[-1].shape[1]])))
+
+        imgdata = numpy.vstack(imgrows)
         self.cache[objpath] = { "imgdata": imgdata, "metadata": metadata }
 
     def subgroup_metadata(self, objpath, multiread):
