@@ -4,7 +4,7 @@
   uniform vec2 u_canvSize;
   void main() {
     // convert the rectangle from pixels to -1.0 to 1.0
-    vec2 clipSpace = a_canvCoord / u_canvSize * 1.0 - 1.0;
+    vec2 clipSpace = (a_canvCoord / u_canvSize) / 2.0 - 1.0;
     gl_Position = vec4(clipSpace * vec2(1, -1), 0, 1);
   }
 </script>
