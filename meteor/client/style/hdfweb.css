@@ -137,8 +137,18 @@ input[type='range'] {
 #rendermode{
     width: 6em;
 }
-#box-lightsheet-3d input {
+#box-lightsheet-3d input[type=text] {
     width: 3em;
+}
+#box-lightsheet-3d .btn {
+    margin-left: 1em;
+}
+.sellabel {
+    display: inline-block;
+}
+#bbplot-chan, #bbplot-norm {
+    width: auto;
+    padding-left: 0;
 }
 
 #loader {
