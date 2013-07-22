@@ -163,6 +163,19 @@ Template.webglControls.rendered = function() {
   Template.webgl.setupSliders();
 }
 
+// intensities[] are expensive to compute, so let's try to cache them
+var intensitiesCache = {};
+function intensitiesPlot(intensities) {
+  document.getElementById('plot-outer').style.display = 'block';
+  $.getScript('https://github.com/flot/flot/raw/master/jquery.flot.js', function() {
+    $.plot($('#plot-inner'), [intensities], {
+      'xaxis': {'show': false},
+      'yaxis': {'show': false},
+      'grid': {'minBorderMargin': 0, 'borderWidth': 0},
+      'lines': {'lineWidth': 2}, 'shadowSize': 0});
+  });
+}
+
 Template.webgl.events = {
   'change #rendermode': function(e) {
     console.log("Mode changed");
@@ -199,22 +212,21 @@ Template.webgl.events = {
                       + document.getElementById("box-x1").value + ','
                       + document.getElementById("box-y1").value + ','
                       + document.getElementById("box-z1").value;
-      var metadatapath = 'http://localhost:8002/' + baseName + "/box-intensity/0/" + boxCoords + "?chnorm";
-      updateLoading(+1);
-      $.getJSON(metadatapath, function(data) {
-        document.getElementById('plot-outer').style.display = 'block';
-        $.getScript('https://github.com/flot/flot/raw/master/jquery.flot.js', function() {
-          intensities = [];
+      var metadatapath = baseName + "/box-intensity/0/" + boxCoords + "?chnorm";
+      var metadataurl = 'http://localhost:8002/' + metadatapath;
+      if (intensitiesCache[metadatapath]) {
+        intensitiesPlot(intensitiesCache[metadatapath]);
+      } else {
+        updateLoading(+1);
+        $.getJSON(metadataurl, function(data) {
+          var intensities = [];
           for (var i = 0; i < data.intensity.length; i++)
             intensities[i] = [i, data.intensity[i]];
-          $.plot($('#plot-inner'), [intensities], {
-            'xaxis': {'show': false},
-            'yaxis': {'show': false},
-            'grid': {'minBorderMargin': 0, 'borderWidth': 0},
-            'lines': {'lineWidth': 2}, 'shadowSize': 0});
+          intensitiesCache[metadatapath] = intensities;
+          intensitiesPlot(intensities);
           updateLoading(-1);
         });
-      });
+      }
     } else {
       document.getElementById('plot-outer').style.display = 'none';
     }
