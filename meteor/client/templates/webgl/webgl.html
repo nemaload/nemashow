@@ -24,7 +24,9 @@
       </div>
       </p>
       <script src="https://github.com/flot/flot/raw/master/jquery.flot.js"></script>
-      <div id="plot" style="width: 96%; height: 50px; display: none"></div>
+      <div id="plot-outer" style="width: 96%; display: none; padding: 2%">
+        <div id="plot-inner" style="height: 40px"></div>
+      </div>
     {{/if}}
     <div id="sliders" class="span6"> {{#if isAdmin}}
       <button type="button" class="btn" style="float: right" id="setDefaults">Set Default Gain and Gamma</button>

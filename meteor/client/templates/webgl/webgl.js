@@ -202,17 +202,21 @@ Template.webgl.events = {
       var metadatapath = 'http://localhost:8002/' + baseName + "/box-intensity/0/" + boxCoords + "?chnorm";
       updateLoading(+1);
       $.getJSON(metadatapath, function(data) {
-        document.getElementById('plot').style.display = 'block';
+        document.getElementById('plot-outer').style.display = 'block';
         $.getScript('https://github.com/flot/flot/raw/master/jquery.flot.js', function() {
           intensities = [];
           for (var i = 0; i < data.intensity.length; i++)
             intensities[i] = [i, data.intensity[i]];
-          $.plot($('#plot'), [intensities], {});
+          $.plot($('#plot-inner'), [intensities], {
+            'xaxis': {'show': false},
+            'yaxis': {'show': false},
+            'grid': {'minBorderMargin': 0, 'borderWidth': 0},
+            'lines': {'lineWidth': 2}, 'shadowSize': 0});
           updateLoading(-1);
         });
       });
     } else {
-      document.getElementById('plot').style.display = 'none';
+      document.getElementById('plot-outer').style.display = 'none';
     }
   },
 
