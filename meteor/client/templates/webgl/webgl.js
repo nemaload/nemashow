@@ -212,7 +212,9 @@ Template.webgl.events = {
                       + document.getElementById("box-x1").value + ','
                       + document.getElementById("box-y1").value + ','
                       + document.getElementById("box-z1").value;
-      var metadatapath = baseName + "/box-intensity/0/" + boxCoords + "?chnorm";
+      var channelNum = document.getElementById("bbplot-chan").value;
+      var normStr = document.getElementById("bbplot-norm").value;
+      var metadatapath = baseName + "/box-intensity/" + channelNum + "/" + boxCoords + (normStr ? "?" + normStr : "");
       var metadataurl = 'http://localhost:8002/' + metadatapath;
       if (intensitiesCache[metadatapath]) {
         intensitiesPlot(intensitiesCache[metadatapath]);
