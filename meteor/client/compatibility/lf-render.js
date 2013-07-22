@@ -73,9 +73,9 @@ LightFieldRenderer.prototype.render_if_ready = function(is_new_image) {
 	this.render(is_new_image);
 }
 
-LightFieldRenderer.prototype.updateUV = function(delta_U, delta_V) {
-	var newofs_U = this.view3d.ofs_U + delta_U;
-	var newofs_V = this.view3d.ofs_V + delta_V;
+LightFieldRenderer.prototype.setUV = function(U, V) {
+	var newofs_U = U;
+	var newofs_V = V;
 
 	var rel_U = newofs_U / this.lenslets.right[0];
 	var rel_V = newofs_V / this.lenslets.down[1];
@@ -90,6 +90,10 @@ LightFieldRenderer.prototype.updateUV = function(delta_U, delta_V) {
 	this.view3d.ofs_V = newofs_V;
 	this.render(0);
 	this.updateUV_display();
+}
+
+LightFieldRenderer.prototype.updateUV = function(delta_U, delta_V) {
+	this.setUV(this.view3d.ofs_U + delta_U, this.view3d.ofs_V + delta_V);
 }
 
 LightFieldRenderer.prototype.updateUV_display = function() {

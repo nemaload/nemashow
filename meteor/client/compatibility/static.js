@@ -45,6 +45,9 @@ function mousedrag(new_X, new_Y) {
 	return Session.get('currentImageType') == "ls" ? ls.mousedrag(new_X, new_Y) : lf.mousedrag(new_X, new_Y);
 }
 
+function setUV(U, V) {
+	return Session.get('currentImageType') == "ls" ? ls.setUV(U, V) : lf.setUV(U, V);
+}
 function updateUV(delta_U, delta_V) {
 	return Session.get('currentImageType') == "ls"
 		? ls.updateUV(delta_U * ls.view3d.ofs_UV_step, delta_V * ls.view3d.ofs_UV_step)
