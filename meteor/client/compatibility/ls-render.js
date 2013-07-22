@@ -67,9 +67,9 @@ LightSheetRenderer.prototype.updateZ = function(delta_Z) {
 	this.group.render(0);
 }
 
-LightSheetRenderer.prototype.updateUV = function(delta_U, delta_V) {
-	var newofs_U = this.view3d.ofs_U + delta_U;
-	var newofs_V = this.view3d.ofs_V + delta_V;
+LightSheetRenderer.prototype.setUV = function(U, V) {
+	var newofs_U = U;
+	var newofs_V = V;
 
 	this.view3d.ofs_U = newofs_U;
 	this.view3d.ofs_V = newofs_V;
@@ -77,6 +77,9 @@ LightSheetRenderer.prototype.updateUV = function(delta_U, delta_V) {
 	$('#V_current').html(parseFloat(this.view3d.ofs_V).toFixed(2));
 
 	this.render(0);
+}
+LightSheetRenderer.prototype.updateUV = function(delta_U, delta_V) {
+	this.setUV(this.view3d.ofs_U + delta_U, this.view3d.ofs_V + delta_V);
 }
 
 LightSheetRenderer.prototype.mousedrag_set = function(new_X, new_Y) {
