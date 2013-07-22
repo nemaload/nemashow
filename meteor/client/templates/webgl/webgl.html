@@ -8,7 +8,7 @@
 
 <template name="webglControls">
   <div class="controls">
-    {{#if shouldShowSlider}} {{annotationNote}}
+    {{#if shouldShowSlider}} {{#isolate}} {{annotationNote}}
       <p>
       Current Frame: {{currentFrameIndex}}, Range: {{minFrame}} - {{maxFrame}}
       <span style="margin: 0 1em">
@@ -23,6 +23,7 @@
       {{#constant}}<div class="loadingRow"></div>{{/constant}}
       </div>
       </p>
+      {{/isolate}}
       <script src="https://github.com/flot/flot/raw/master/jquery.flot.js"></script>
       <div id="plot-outer" style="width: 96%; display: none; padding: 2%">
         <div id="plot-inner" style="height: 40px"></div>
