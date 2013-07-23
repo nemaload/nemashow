@@ -4,6 +4,10 @@ Template.fileView.filesWithId = function() {
   });
 }
 
+Template.fileView.alreadyLoaded = function() {
+  return Session.get("loadedLiveData");
+}
+
 Template.fileView.foldersWithParent = function() {
   return Folders.find({
     parent: Session.get("currentFolderId")
@@ -117,7 +121,7 @@ Template.fileView.events = {
     Session.set("currentImageId", $(e.target).parent().attr("fileid"));
     Template.fileView.setImageSessionVars();
     Session.set("currentImageView", "viewingImage");
-    Session.set("currentWebGLMode", "image");
+    Session.set("currentWebGLMode", "3d");
     $("#rendermode").val("image");
   },
   'dragstart .fileViewRow': function(e) {

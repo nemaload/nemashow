@@ -7,12 +7,14 @@ function frameURL(idx) {
   var newURL;
   if (Session.get('currentImageType') == 'lf') {
     if (Session.get("useAmazonData")) {
-      newURL = imageObject.amazonPath[idx];
+      newURL = imageObject.baseName;
     } else {
-      newURL = imageObject.webPath[idx];
+      newURL = "/data/" + imageObject.baseName + "-" + idx +".png"
+      //newURL = imageObject.webPath[idx];
     }
   } else {
-    newURL = imageObject.relPath[idx];
+    newURL = imageObject.baseName + "/" + Math.floor(idx/(imageObject.numFrames/imageObject.channels.length)) + "/" + idx % (imageObject.numFrames/imageObject.channels.length);
+    //newURL = imageObject.relPath[idx];
   }
   return newURL;
 }

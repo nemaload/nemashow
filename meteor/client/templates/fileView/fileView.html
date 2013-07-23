@@ -63,10 +63,15 @@
       </tbody>
       {{/if}}
     </table>
-    {{/unless}} {{#if hasNothing}}
+    {{/unless}} 
+    {{#if alreadyLoaded}}
+    {{#if hasNothing}}
     <h5>
       There's nothing here.
     </h5>
+    {{/if}}
+    {{else}}
+    <h5>Loading, please wait...</h5>
     {{/if}}
   </div>
 </template>

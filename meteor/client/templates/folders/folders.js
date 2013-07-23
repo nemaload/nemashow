@@ -1,8 +1,11 @@
 Template.folders.foldersTop = function() {
-
-  return Folders.find({
-    parent: null
-  },{sort: {sortOrder : 1}});
+  if (! Session.get("loadedLiveData"))
+    return localCollection.find({parent:null},{sort:{sortOrder:1}});
+  else {
+    return Folders.find({
+      parent: null
+    },{sort: {sortOrder : 1}});
+  }
 }
 
 Template.folders.isCurrentFolder = function(folder) {
