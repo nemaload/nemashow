@@ -12,7 +12,8 @@ function frameURL(idx) {
       newURL = imageObject.webPath[idx];
     }
   } else {
-    newURL = imageObject.relPath[idx];
+    newURL = imageObject.baseName + "/" + floor(idx/imageObject.numFrames) + "/" + idx % imageObject.numFrames;
+    //newURL = imageObject.relPath[idx];
   }
   return newURL;
 }
