@@ -18,6 +18,8 @@ function LightFieldRenderer() {
 	}
 };
 
+var lf_baseurl = "http://nemaload.cachefly.net/";
+
 LightFieldRenderer.prototype.loadimage = function(imagepath) {
 	var obj = this;
 
@@ -47,7 +49,7 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 	this.image.onloadend = function () {
 		alert("Loading ended!");
 	};*/
-	this.image.src = imagepath;
+	this.image.src = lf_baseurl + imagepath + "-" + Session.get("currentFrameIndex") + ".png";
 	this.optics = {
 		"pitch": Session.get("op_pitch"),
 		"flen": Session.get("op_flen"),
