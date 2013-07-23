@@ -26,4 +26,4 @@ for originalCollectionName in originalCollectionNames:
 with open(outputFile,"a") as optimizationFile:
         for insertionString in insertionStringArray:
                 optimizationFile.write(insertionString)
-                optimizationFile.write("\n”)
+                optimizationFile.write("\n")
