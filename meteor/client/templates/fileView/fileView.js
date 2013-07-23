@@ -4,6 +4,10 @@ Template.fileView.filesWithId = function() {
   });
 }
 
+Template.fileView.alreadyLoaded = function() {
+  return Session.get("loadedLiveData");
+}
+
 Template.fileView.foldersWithParent = function() {
   return Folders.find({
     parent: Session.get("currentFolderId")
