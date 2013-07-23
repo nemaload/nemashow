@@ -163,12 +163,17 @@ LightFieldRenderer.prototype.lenslets_offset2corner = function() {
 	var changed;
 	do {
 		changed = false;
+		if (corner[1] > corner[0] && corner[0] > lenslets.down[0] && corner[1] > lenslets.down[1]) {
+			corner[0] -= lenslets.down[0];
+			corner[1] -= lenslets.down[1];
+			changed = true;
+		}
 		if (corner[0] > lenslets.right[0] && corner[1] > lenslets.right[1]) {
 			corner[0] -= lenslets.right[0];
 			corner[1] -= lenslets.right[1];
 			changed = true;
 		}
-		if (corner[0] > lenslets.down[0] && corner[1] > lenslets.down[1]) {
+		if (corner[1] > corner[0] && corner[0] > lenslets.down[0] && corner[1] > lenslets.down[1]) {
 			corner[0] -= lenslets.down[0];
 			corner[1] -= lenslets.down[1];
 			changed = true;
