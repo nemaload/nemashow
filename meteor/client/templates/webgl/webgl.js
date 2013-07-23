@@ -9,7 +9,8 @@ function frameURL(idx) {
     if (Session.get("useAmazonData")) {
       newURL = imageObject.baseName;
     } else {
-      newURL = imageObject.webPath[idx];
+      newURL = "/data/" + imageObject.baseName + "-" + idx +".png"
+      //newURL = imageObject.webPath[idx];
     }
   } else {
     newURL = imageObject.baseName + "/" + Math.floor(idx/(imageObject.numFrames/imageObject.channels.length)) + "/" + idx % (imageObject.numFrames/imageObject.channels.length);
