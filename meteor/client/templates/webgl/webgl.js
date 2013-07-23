@@ -7,7 +7,7 @@ function frameURL(idx) {
   var newURL;
   if (Session.get('currentImageType') == 'lf') {
     if (Session.get("useAmazonData")) {
-      newURL = imageObject.amazonPath[idx];
+      newURL = imageObject.baseName;
     } else {
       newURL = imageObject.webPath[idx];
     }
