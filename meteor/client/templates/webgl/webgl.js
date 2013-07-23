@@ -12,7 +12,7 @@ function frameURL(idx) {
       newURL = imageObject.webPath[idx];
     }
   } else {
-    newURL = imageObject.baseName + "/" + Math.floor(idx/imageObject.numFrames) + "/" + idx % imageObject.numFrames;
+    newURL = imageObject.baseName + "/" + Math.floor(idx/(imageObject.numFrames/imageObject.channels.length)) + "/" + idx % (imageObject.numFrames/imageObject.channels.length);
     //newURL = imageObject.relPath[idx];
   }
   return newURL;
