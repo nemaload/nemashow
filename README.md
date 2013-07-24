@@ -15,7 +15,7 @@ Aside from Meteor itself (`$ curl https://install.meteor.com | sh`) and a WebGL-
 The application expects to find data in `meteor/data` (absent from this repository). The actual dataset is many gigabytes; while we are currently working to make it publicly available, for now just contact us if you're interested.
 
 ###Usage
-To run the website, run the `mtr` command from the `meteor` directory and point your browser at `http://localhost:3000/`.
+To run the website, run the `mrt` command from the `meteor` directory and point your browser at `http://localhost:3000/`.
 To access lightsheet images data, you also need to run the `./simple-hdf-server.py ../data` command, where `../data` is the directory holding HDF5 lightsheet data files.
 To access lightsheet bounding box plotting functionality, also run the `./computation-server.py ../data` command.
 
