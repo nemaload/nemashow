@@ -240,11 +240,12 @@ LightFieldRenderer.prototype.render_image = function(canvas, gl) {
 	gl.useProgram(program);
 
 	// set(up) parameters
-	var zoom = Math.pow(10, parseFloat(Session.get("currentImageZoom")));
 	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
-	gl.uniform2f(canvSizeLocation, canvas.width / zoom, canvas.height / zoom);
+	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
 	gl.uniform2f(gammaGainLocation, parseFloat(Session.get("currentImageGamma")), Math.pow(10, parseFloat(Session.get("currentImageGain"))));
+	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
+	gl.uniform1f(zoomLocation, Math.pow(10, parseFloat(Session.get("currentImageZoom"))));
 
 	var texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
@@ -279,6 +280,8 @@ LightFieldRenderer.prototype.render_lightfield_pinhole = function(canvas, gl) {
 	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
 	gl.uniform2f(gammaGainLocation, parseFloat(Session.get("currentImageGamma")), Math.pow(10, parseFloat(Session.get("currentImageGain"))));
+	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
+	gl.uniform1f(zoomLocation, 1);
 
 	var gridSizeLocation = gl.getUniformLocation(program, "u_gridSize");
 	gl.uniform2f(gridSizeLocation, gridSize.width, gridSize.height);
@@ -341,9 +344,10 @@ LightFieldRenderer.prototype.render_grid = function(canvas, gl) {
 	gl.enableVertexAttribArray(canvCoordLocation);
 	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
-	var zoom = Math.pow(10, parseFloat(Session.get("currentImageZoom")));
 	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
-	gl.uniform2f(canvSizeLocation, canvas.width / zoom, canvas.height / zoom);
+	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
+	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
+	gl.uniform1f(zoomLocation, Math.pow(10, parseFloat(Session.get("currentImageZoom"))));
 
 	gl.drawArrays(gl.LINES, 0, lineList.length / 2);
 }

@@ -289,6 +289,8 @@ GroupImage.prototype.render_slice = function(canvas, gl) {
 	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
 	gl.uniform2f(gammaGainLocation, parseFloat(Session.get('currentImageGamma')), Math.pow(10, parseFloat(Session.get('currentImageGain'))));
+	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
+	gl.uniform1f(zoomLocation, 1);
 	var zSlicesLocation = gl.getUniformLocation(program, "u_zSlices");
 	gl.uniform2f(zSlicesLocation, z_slice, n_slices);
 	var z0z1z2Location = gl.getUniformLocation(program, "u_z0z1z2");
@@ -331,6 +333,8 @@ GroupImage.prototype.render_lightsheet = function(canvas, gl) {
 	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
 	gl.uniform2f(gammaGainLocation, parseFloat(Session.get('currentImageGamma')), Math.pow(10, parseFloat(Session.get('currentImageGain'))));
+	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
+	gl.uniform1f(zoomLocation, 1);
 	var zSlicesLocation = gl.getUniformLocation(program, "u_zSlices");
 	gl.uniform2f(zSlicesLocation, 0 /* TODO */, n_slices);
 
