@@ -346,8 +346,8 @@ LightFieldRenderer.prototype.render_grid = function(canvas, gl) {
 	gl.enableVertexAttribArray(canvCoordLocation);
 	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
-	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
-	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
+	var imageSizeLocation = gl.getUniformLocation(program, "u_imageSize");
+	gl.uniform2f(imageSizeLocation, this.image.width, this.image.height);
 	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
 	gl.uniform1f(zoomLocation, Math.pow(10, parseFloat(Session.get("currentImageZoom"))));
 
