@@ -5,7 +5,6 @@ Nemashow is a web application which will enable the public to access interactive
 
 ##Setup
 ####NOTE: This material is currently out of date and is in the process of being rewritten.
-####If you're interested in setting this up, please [contact us](mailto://michaelschmatz@gmail.com).
 ###Dependencies
 Aside from Meteor itself (`$ curl https://install.meteor.com | sh`) and a WebGL-capable browser (we use the latest [Chrome](https://www.google.com/intl/en/chrome/browser/) builds; you can test your browser [here](http://www.doesmybrowsersupportwebgl.com/)), you'll also need:
 * [Meteorite](https://github.com/oortcloud/meteorite): `$ npm install -g meteorite`
