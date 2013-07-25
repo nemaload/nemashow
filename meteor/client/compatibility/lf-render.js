@@ -191,6 +191,8 @@ LightFieldRenderer.prototype.lenslets_offset2corner = function() {
 LightFieldRenderer.prototype.render = function(is_new_image) {
 	//grabs the canvas element
 	var canvas = document.getElementById("canvas-" + mode);
+	canvas.height = canvas.width * this.image.height / this.image.width;
+
 	//gets the WebGL context
 	var gl = getWebGLContext(canvas);
 	//checks if system is WebGL compatible

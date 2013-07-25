@@ -190,6 +190,8 @@ GroupImage.prototype.setupZ = function() {
 GroupImage.prototype.render = function(is_new_image) {
 	//grabs the canvas element
 	var canvas = document.getElementById("canvas-" + mode);
+	canvas.height = canvas.width * this.images[0].height / this.images[0].width;
+
 	//gets the WebGL context
 	var gl = getWebGLContext(canvas);
 	//checks if system is WebGL compatible
