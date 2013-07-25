@@ -138,6 +138,12 @@ Template.webgl.setupSliders = function() {
     Session.set("currentImageGamma", this.value);
     render_if_ready(0);
   }).change();
+  $("#zoomSlider").val(Session.get('currentImageZoom')).off('change').change(function() {
+    console.log('zoomSlider ' + this.value);
+    $('#zoom_current').html(parseFloat(this.value).toFixed(2));
+    Session.set("currentImageZoom", this.value);
+    render_if_ready(0);
+  }).change();
 }
 
 Template.webgl.rendered = function() {

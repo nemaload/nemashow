@@ -49,7 +49,6 @@
           </select>
         </div>
       </div>
-      <button type="button" class="btn" id="grid">Grid</button>
       <p id="perspective-p"><input type="checkbox" id="perspective" value="1" checked="1" />&nbsp;Perspective</p>
     </div>
     <div id="controls-3d" class="controlbox">
@@ -73,6 +72,13 @@
       <input type="button" value="Reset UV" onClick="setUV(0, 0);">
       </td></tr>
       </table>
+    </div>
+    <div id="controls-lightfield-image" class="controlbox" class="span3">
+      <p><button type="button" class="btn" id="grid">Grid</button></p>
+      <p>
+      Zoom: <span id="zoom_current" style="width: 5em"> </span><br />
+      <input type="range" id="zoomSlider" min="-1" max="1" step="0.05" />
+      </p>
     </div>
     <p id="controls-lightsheet-image" class="controlbox">
       <input type="button" value="Z-" onClick="ls.updateZ(-ls.view3d.ofs_Z_step);">

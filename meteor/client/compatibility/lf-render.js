@@ -165,12 +165,17 @@ LightFieldRenderer.prototype.lenslets_offset2corner = function() {
 	var changed;
 	do {
 		changed = false;
+		if (corner[1] > corner[0] && corner[0] > lenslets.down[0] && corner[1] > lenslets.down[1]) {
+			corner[0] -= lenslets.down[0];
+			corner[1] -= lenslets.down[1];
+			changed = true;
+		}
 		if (corner[0] > lenslets.right[0] && corner[1] > lenslets.right[1]) {
 			corner[0] -= lenslets.right[0];
 			corner[1] -= lenslets.right[1];
 			changed = true;
 		}
-		if (corner[0] > lenslets.down[0] && corner[1] > lenslets.down[1]) {
+		if (corner[1] > corner[0] && corner[0] > lenslets.down[0] && corner[1] > lenslets.down[1]) {
 			corner[0] -= lenslets.down[0];
 			corner[1] -= lenslets.down[1];
 			changed = true;
@@ -237,8 +242,9 @@ LightFieldRenderer.prototype.render_image = function(canvas, gl) {
 	gl.useProgram(program);
 
 	// set(up) parameters
+	var zoom = Math.pow(10, parseFloat(Session.get("currentImageZoom")));
 	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
-	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
+	gl.uniform2f(canvSizeLocation, canvas.width / zoom, canvas.height / zoom);
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
 	gl.uniform2f(gammaGainLocation, parseFloat(Session.get("currentImageGamma")), Math.pow(10, parseFloat(Session.get("currentImageGain"))));
 
@@ -315,6 +321,7 @@ LightFieldRenderer.prototype.render_grid = function(canvas, gl) {
 		"width": Math.ceil(this.image.width / this.lenslets.right[0]),
 		"height": Math.ceil(this.image.height / this.lenslets.down[1])
 	};
+	console.log("grid corner " + gridCorner + " size " + gridSize);
 	var lineList = new Array;
 	for (var x = 0; x <= gridSize.width; x++) {
 		lineList.push(gridCorner[0] + x * this.lenslets.right[0]);
@@ -336,8 +343,9 @@ LightFieldRenderer.prototype.render_grid = function(canvas, gl) {
 	gl.enableVertexAttribArray(canvCoordLocation);
 	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
+	var zoom = Math.pow(10, parseFloat(Session.get("currentImageZoom")));
 	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
-	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
+	gl.uniform2f(canvSizeLocation, canvas.width / zoom, canvas.height / zoom);
 
 	gl.drawArrays(gl.LINES, 0, lineList.length / 2);
 }
