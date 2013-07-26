@@ -1,15 +1,50 @@
 [![Nemaload Logo](http://nemaload.davidad.org/png/nemaload)](http://nemaload.davidad.org)
-_presents_
-#Nemashow
-Nemashow is a web application which will enable the public to access interactive visualizations of data produced by the [NEMALOAD](http://nemaload.davidad.org) project. Nemashow is built on the [Meteor](http://meteor.com/) framework, and uses [WebGL](http://webgl.org) for visualizations.
+<div align="center">_presents_
+#NEMASHOW
+</div>
+Nemashow is a web application which enables the public to access interactive visualizations of data produced by the [NEMALOAD](http://nemaload.davidad.org) project. Nemashow is built on the [Meteor](http://meteor.com/) framework, and uses [WebGL](http://webgl.org) for visualizations.
 
 ##Setup
-####NOTE: This material is currently out of date and is in the process of being rewritten.
-####If you're interested in setting this up, please [contact us](mailto://michaelschmatz@gmail.com).
+###Overview
+The process of getting a working copy of NEMASHOW can be grouped into several broad steps:
+	
+1. Ensuring your setup meets the necessary requirements and has the necessary dependencies
+2. Downloading the repositories and, optionally, the project dataset
+3. Running setup scripts
+
+###Requirements
+####Browser
+A WebGL capable browser is necessary to view the visualizations(we use the latest [Chrome](https://www.google.com/intl/en/chrome/browser/) builds; you can test your browser [here](http://www.doesmybrowsersupportwebgl.com/).) Support for other browsers is not guaranteed.
+
+####Operating System
+#####Running NEMASHOW
+In production, NEMASHOW runs on servers running Ubuntu 13.04. However, development takes place on other Linux distributions, as well as Mac OS X.
+
+#####Viewing NEMASHOW
+Usually, if a WebGL capable browser can be successfully installed and tested, NEMASHOW will work.
+
+One notable exception is light-sheet visualizations with the prerelease version of Mac OSX 10.9, due to a strange bug involving Cross Origin Resource Sharing. However, this OS version can be used when the light-sheet images and web app are hosted on the same server.
+
+####Storage Space
+If you'd like to store the raw dataset, ~30GB of space is necessary. To store the PNG renderings of the files, ~7GB is necessary. 
+
 ###Dependencies
-Aside from Meteor itself (`$ curl https://install.meteor.com | sh`) and a WebGL-capable browser (we use the latest [Chrome](https://www.google.com/intl/en/chrome/browser/) builds; you can test your browser [here](http://www.doesmybrowsersupportwebgl.com/)), you'll also need:
-* [Meteorite](https://github.com/oortcloud/meteorite): `$ npm install -g meteorite`
-* [MongoDB](http://www.mongodb.org/downloads) command-line tools
+####Meteor
+The easiest way to install [Meteor](http://www.meteor.com/) is to run the command `$ curl https://install.meteor.com | sh` on a [supported platform.](https://github.com/meteor/meteor/wiki/Supported-Platforms)
+
+####Meteorite
+We use several Meteorite packages in the NEMASHOW application. This package is best installed with [npm](http://nodejs.org/download/) using the command `npm install -g meteorite`.
+
+####MongoDB
+The [MongoDB command line tools](http://www.mongodb.org/downloads) are necessary to run some setup scripts.
+
+####Python Libraries
+If you choose to run the HDF server or computation server, several Python libraries are required as well as their various dependencies, including:
+
+	* Tables
+	* MatplotLib
+	* SciPy
+
 
 ###Data
 The application expects to find data in `meteor/data` (absent from this repository). The actual dataset is many gigabytes; while we are currently working to make it publicly available, for now just contact us if you're interested.
