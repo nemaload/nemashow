@@ -1,7 +1,7 @@
 [![Nemaload Logo](http://nemaload.davidad.org/png/nemaload)](http://nemaload.davidad.org)
-<div align="center">_presents_
+
 #NEMASHOW
-</div>
+
 Nemashow is a web application which enables the public to access interactive visualizations of data produced by the [NEMALOAD](http://nemaload.davidad.org) project. Nemashow is built on the [Meteor](http://meteor.com/) framework, and uses [WebGL](http://webgl.org) for visualizations.
 
 ##Setup
@@ -41,9 +41,9 @@ The [MongoDB command line tools](http://www.mongodb.org/downloads) are necessary
 ####Python Libraries
 If you choose to run the HDF server or computation server, several Python libraries are required as well as their various dependencies, including:
 
-	* Tables
-	* MatplotLib
-	* SciPy
+* Tables
+* MatplotLib
+* SciPy
 
 
 ###Data
