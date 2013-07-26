@@ -1,7 +1,6 @@
 [![Nemaload Logo](http://nemaload.davidad.org/png/nemaload)](http://nemaload.davidad.org)
-<div align="center">_presents_
+_presents_
 #NEMASHOW
-</div>
 NEMASHOW is a web application which enables the public to access interactive visualizations of data produced by the [NEMALOAD](http://nemaload.davidad.org) project. Nemashow is built on the [Meteor](http://meteor.com/) framework, and uses [WebGL](http://webgl.org) for visualizations.
 
 ##Setup
