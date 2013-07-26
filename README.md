@@ -1,5 +1,4 @@
 [![Nemaload Logo](http://nemaload.davidad.org/png/nemaload)](http://nemaload.davidad.org)
-_presents_
 #NEMASHOW
 NEMASHOW is a web application which enables the public to access interactive visualizations of data produced by the [NEMALOAD](http://nemaload.davidad.org) project. Nemashow is built on the [Meteor](http://meteor.com/) framework, and uses [WebGL](http://webgl.org) for visualizations.
 
@@ -40,14 +39,14 @@ The [MongoDB command line tools](http://www.mongodb.org/downloads) are necessary
 ####Python Libraries
 If you choose to run the HDF server or computation server, several Python libraries are required as well as their various dependencies, including:
 
-	* Tables
-	* MatplotLib
-	* SciPy
+* Tables
+* MatplotLib
+* SciPy
 
 
 ###Data
 ####Database
-Meteor will automatically generate the necessary collections the first time it runs. However, to import the information about our dataset, you can use the [monogorestore](http://docs.mongodb.org/manual/reference/program/mongorestore/) command on the database dump in /meteor/dump/.
+Meteor will automatically generate the necessary collections the first time it runs. However, to import the information about our dataset, you can use the [monogorestore](http://docs.mongodb.org/manual/reference/program/mongorestore/) command on the database dump in `/meteor/dump/`.
 
 ####Dataset
 The application expects to find data in `meteor/data` (absent from this repository). The actual dataset is many gigabytes; please contact us if you'd like a copy.
