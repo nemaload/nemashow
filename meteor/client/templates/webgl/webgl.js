@@ -120,7 +120,9 @@ Template.webgl.setupSliders = function() {
   }
 
   $("#rendermode").val(Session.get("currentWebGLMode"));
-  $("#grid").button();
+  var gridbtn = $("#grid").button();
+  if (Session.get("showGrid"))
+    gridbtn.addClass("active");
   $('.btn-group').button();
   $("#bbplot").button();
 
@@ -203,7 +205,8 @@ Template.webgl.events = {
   },
 
   'click #grid': function() {
-    $("#grid").toggleClass('active');
+    var gridbtn = $("#grid").toggleClass('active');
+    Session.set("showGrid", gridbtn.hasClass('active'));
     render_if_ready(0);
   },
 

@@ -230,7 +230,7 @@ LightFieldRenderer.prototype.render = function(is_new_image) {
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 	//if (mode == "image" && $('#grid').prop('checked'))
-	if (mode == "image" && $('#grid').hasClass('active'))
+	if (mode == "image" && Session.get('showGrid'))
 		this.render_grid(canvas, gl);
 }
 
