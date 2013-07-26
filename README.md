@@ -2,7 +2,7 @@
 <div align="center">_presents_
 #NEMASHOW
 </div>
-Nemashow is a web application which enables the public to access interactive visualizations of data produced by the [NEMALOAD](http://nemaload.davidad.org) project. Nemashow is built on the [Meteor](http://meteor.com/) framework, and uses [WebGL](http://webgl.org) for visualizations.
+NEMASHOW is a web application which enables the public to access interactive visualizations of data produced by the [NEMALOAD](http://nemaload.davidad.org) project. Nemashow is built on the [Meteor](http://meteor.com/) framework, and uses [WebGL](http://webgl.org) for visualizations.
 
 ##Setup
 ###Overview
@@ -47,9 +47,14 @@ If you choose to run the HDF server or computation server, several Python librar
 
 
 ###Data
-The application expects to find data in `meteor/data` (absent from this repository). The actual dataset is many gigabytes; while we are currently working to make it publicly available, for now just contact us if you're interested.
+####Database
+Meteor will automatically generate the necessary collections the first time it runs. However, to import the information about our dataset, you can use the [monogorestore](http://docs.mongodb.org/manual/reference/program/mongorestore/) command on the database dump in /meteor/dump/.
+
+####Dataset
+The application expects to find data in `meteor/data` (absent from this repository). The actual dataset is many gigabytes; please contact us if you'd like a copy.
 
 ###Usage
+
 To run the website, run the `mrt` command from the `meteor` directory and point your browser at `http://localhost:3000/`.
 To access lightsheet images data, you also need to run the `./simple-hdf-server.py ../data` command, where `../data` is the directory holding HDF5 lightsheet data files.
 To access lightsheet bounding box plotting functionality, also run the `./computation-server.py ../data` command.
@@ -58,7 +63,7 @@ To access lightsheet bounding box plotting functionality, also run the `./comput
 To make a user an administrator, direct database access is required. In the `db.users` collection, simply set a user's `admin` field to `"admin"`.
 
 ##Roadmap
-Nemashow's support for light-field visualizations is nearly complete. Our goals for the short term include integrating light-sheet visualizations, improving reusability of workflow utilities, and making the application scalable for public deployment. 
+NEMASHOW will continue to grow as the project does. As the project continues in its analysis of and signal extraction from the datasets, additional features will be added to the visualization to reflect this progress.
 
 ## License
 This program is free software: you can redistribute it and/or modify it under the terms of the [GNU General Public License](http://www.gnu.org/licenses/gpl.html) as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
