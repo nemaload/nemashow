@@ -320,6 +320,11 @@ LightFieldRenderer.prototype.render_grid = function(canvas, gl) {
 	gl.useProgram(program);
 
 	var gridCorner = this.lenslets_offset2corner();
+	if (Session.get('showGridUV')) {
+		gridCorner[0] += this.view3d.ofs_U;
+		gridCorner[1] += this.view3d.ofs_V;
+	}
+
 	var gridSize = {
 		"width": Math.ceil(this.image.width / this.lenslets.right[0]),
 		"height": Math.ceil(this.image.height / this.lenslets.down[1])
