@@ -6,6 +6,15 @@ function LightFieldRenderer() {
 	this.loaded = {}; // indexed by variable name
 	this.texture = {}; // GL texture cache; indexed by mode name
 
+	this.view2d = {
+		'mouseSensitivity': 50.0,
+
+		'center_X': 0.0,
+		'center_Y': 0.0,
+
+		'mousedrag_X': undefined,
+		'mousedrag_Y': undefined
+	};
 	this.view3d = {
 		'mouseSensitivity': 4.0,
 
@@ -15,7 +24,7 @@ function LightFieldRenderer() {
 
 		'mousedrag_X': undefined,
 		'mousedrag_Y': undefined
-	}
+	};
 };
 
 LightFieldRenderer.prototype.loadimage = function(imagepath) {
@@ -127,17 +136,46 @@ LightFieldRenderer.prototype.updateUV_display = function() {
 	cuvpos.fill();
 }
 
+LightFieldRenderer.prototype.updateCenter = function(delta_X, delta_Y) {
+	var newcenter_X = this.view2d.center_X + delta_X;
+	var newcenter_Y = this.view2d.center_Y + delta_Y;
+
+	if (newcenter_X >= 1. || newcenter_X <= -1. || newcenter_Y >= 1. || newcenter_Y <= -1.) {
+		console.log("out of bounds ", newcenter_X, newcenter_Y);
+		return;
+	}
+
+	this.view2d.center_X = newcenter_X;
+	this.view2d.center_Y = newcenter_Y;
+	this.render(0);
+}
+
 LightFieldRenderer.prototype.mousedrag_set = function(new_X, new_Y) {
-	this.view3d.mousedrag_X = new_X;
-	this.view3d.mousedrag_Y = new_Y;
+	if (mode == "image") {
+		this.view2d.mousedrag_X = new_X;
+		this.view2d.mousedrag_Y = new_Y;
+	} else {
+		this.view3d.mousedrag_X = new_X;
+		this.view3d.mousedrag_Y = new_Y;
+	}
 }
 LightFieldRenderer.prototype.mousedrag = function(new_X, new_Y) {
-	if (this.view3d.mousedrag_X) {
-		this.updateUV((new_X - this.view3d.mousedrag_X) / this.view3d.mouseSensitivity,
-			      -(new_Y - this.view3d.mousedrag_Y) / this.view3d.mouseSensitivity);
+	if (mode == "image") {
+		if (this.view2d.mousedrag_X) {
+			var canvas = document.getElementById("canvas-image");
+			this.updateCenter(-(new_X - this.view2d.mousedrag_X) / canvas.width,
+			                  (new_Y - this.view2d.mousedrag_Y) / canvas.height);
+		}
+		this.view2d.mousedrag_X = new_X;
+		this.view2d.mousedrag_Y = new_Y;
+	} else {
+		if (this.view3d.mousedrag_X) {
+			this.updateUV((new_X - this.view3d.mousedrag_X) / this.view3d.mouseSensitivity,
+				      -(new_Y - this.view3d.mousedrag_Y) / this.view3d.mouseSensitivity);
+		}
+		this.view3d.mousedrag_X = new_X;
+		this.view3d.mousedrag_Y = new_Y;
 	}
-	this.view3d.mousedrag_X = new_X;
-	this.view3d.mousedrag_Y = new_Y;
 }
 
 LightFieldRenderer.prototype.maxNormalizedSlope = function() {
@@ -247,7 +285,8 @@ LightFieldRenderer.prototype.render_image = function(canvas, gl) {
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
 	gl.uniform2f(gammaGainLocation, parseFloat(Session.get("currentImageGamma")), Math.pow(10, parseFloat(Session.get("currentImageGain"))));
 	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
-	gl.uniform1f(zoomLocation, Math.pow(10, parseFloat(Session.get("currentImageZoom"))));
+	gl.uniform3f(zoomLocation, this.view2d.center_X, this.view2d.center_Y,
+			Math.pow(10, parseFloat(Session.get("currentImageZoom"))));
 
 	var texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
@@ -283,7 +322,7 @@ LightFieldRenderer.prototype.render_lightfield_pinhole = function(canvas, gl) {
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
 	gl.uniform2f(gammaGainLocation, parseFloat(Session.get("currentImageGamma")), Math.pow(10, parseFloat(Session.get("currentImageGain"))));
 	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
-	gl.uniform1f(zoomLocation, 1);
+	gl.uniform3f(zoomLocation, 0., 0., 1.);
 
 	var gridSizeLocation = gl.getUniformLocation(program, "u_gridSize");
 	gl.uniform2f(gridSizeLocation, gridSize.width, gridSize.height);
@@ -354,7 +393,8 @@ LightFieldRenderer.prototype.render_grid = function(canvas, gl) {
 	var imageSizeLocation = gl.getUniformLocation(program, "u_imageSize");
 	gl.uniform2f(imageSizeLocation, this.image.width, this.image.height);
 	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
-	gl.uniform1f(zoomLocation, Math.pow(10, parseFloat(Session.get("currentImageZoom"))));
+	gl.uniform3f(zoomLocation, this.view2d.center_X, this.view2d.center_Y,
+			Math.pow(10, parseFloat(Session.get("currentImageZoom"))));
 
 	gl.drawArrays(gl.LINES, 0, lineList.length / 2);
 }

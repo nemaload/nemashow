@@ -196,7 +196,7 @@ Template.webgl.events = {
     render(1);
   },
 
-  'mousedown #canvas-3d': function(e) {
+  'mousedown #canvas-3d, mousedown #canvas-image': function(e) {
     mousedrag_set(e.pageX, e.pageY);
     $(window).mousemove(function() {
       mousedrag(event.pageX, event.pageY);
