@@ -122,7 +122,12 @@ Template.webgl.setupSliders = function() {
   }
 
   $("#rendermode").val(Session.get("currentWebGLMode"));
-  $("#grid").button();
+  var gridbtn = $("#grid").button();
+  if (Session.get("showGrid"))
+    gridbtn.addClass("active");
+  gridbtn = $("#griduv").button();
+  if (Session.get("showGridUV"))
+    gridbtn.addClass("active");
   $('.btn-group').button();
   $("#bbplot").button();
 
@@ -193,7 +198,7 @@ Template.webgl.events = {
     render(1);
   },
 
-  'mousedown #canvas-3d': function(e) {
+  'mousedown #canvas-3d, mousedown #canvas-image': function(e) {
     mousedrag_set(e.pageX, e.pageY);
     $(window).mousemove(function() {
       mousedrag(event.pageX, event.pageY);
@@ -205,7 +210,14 @@ Template.webgl.events = {
   },
 
   'click #grid': function() {
-    $("#grid").toggleClass('active');
+    var gridbtn = $("#grid").toggleClass('active');
+    Session.set("showGrid", gridbtn.hasClass('active'));
+    render_if_ready(0);
+  },
+
+  'click #griduv': function() {
+    var gridbtn = $("#griduv").toggleClass('active');
+    Session.set("showGridUV", gridbtn.hasClass('active'));
     render_if_ready(0);
   },
 

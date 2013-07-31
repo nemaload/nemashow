@@ -83,10 +83,14 @@ LightSheetRenderer.prototype.updateUV = function(delta_U, delta_V) {
 }
 
 LightSheetRenderer.prototype.mousedrag_set = function(new_X, new_Y) {
+	if (mode == "image")
+		return;
 	this.view3d.mousedrag_X = new_X;
 	this.view3d.mousedrag_Y = new_Y;
 }
 LightSheetRenderer.prototype.mousedrag = function(new_X, new_Y) {
+	if (mode == "image")
+		return;
 	if (this.view3d.mousedrag_X) {
 		this.updateUV((new_X - this.view3d.mousedrag_X) / this.view3d.mouseSensitivity,
 			      -(new_Y - this.view3d.mousedrag_Y) / this.view3d.mouseSensitivity);
@@ -190,6 +194,8 @@ GroupImage.prototype.setupZ = function() {
 GroupImage.prototype.render = function(is_new_image) {
 	//grabs the canvas element
 	var canvas = document.getElementById("canvas-" + mode);
+	canvas.height = canvas.width * this.images[0].height / this.images[0].width;
+
 	//gets the WebGL context
 	var gl = getWebGLContext(canvas);
 	//checks if system is WebGL compatible
@@ -289,6 +295,8 @@ GroupImage.prototype.render_slice = function(canvas, gl) {
 	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
 	gl.uniform2f(gammaGainLocation, parseFloat(Session.get('currentImageGamma')), Math.pow(10, parseFloat(Session.get('currentImageGain'))));
+	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
+	gl.uniform3f(zoomLocation, 0., 0., 1.);
 	var zSlicesLocation = gl.getUniformLocation(program, "u_zSlices");
 	gl.uniform2f(zSlicesLocation, z_slice, n_slices);
 	var z0z1z2Location = gl.getUniformLocation(program, "u_z0z1z2");
@@ -331,6 +339,8 @@ GroupImage.prototype.render_lightsheet = function(canvas, gl) {
 	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
 	gl.uniform2f(gammaGainLocation, parseFloat(Session.get('currentImageGamma')), Math.pow(10, parseFloat(Session.get('currentImageGain'))));
+	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
+	gl.uniform3f(zoomLocation, 0., 0., 1.);
 	var zSlicesLocation = gl.getUniformLocation(program, "u_zSlices");
 	gl.uniform2f(zSlicesLocation, 0 /* TODO */, n_slices);
 

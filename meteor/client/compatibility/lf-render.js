@@ -6,6 +6,15 @@ function LightFieldRenderer() {
 	this.loaded = {}; // indexed by variable name
 	this.texture = {}; // GL texture cache; indexed by mode name
 
+	this.view2d = {
+		'mouseSensitivity': 50.0,
+
+		'center_X': 0.0,
+		'center_Y': 0.0,
+
+		'mousedrag_X': undefined,
+		'mousedrag_Y': undefined
+	};
 	this.view3d = {
 		'mouseSensitivity': 4.0,
 
@@ -15,7 +24,7 @@ function LightFieldRenderer() {
 
 		'mousedrag_X': undefined,
 		'mousedrag_Y': undefined
-	}
+	};
 };
 
 var lf_baseurl = "http://nemaload.cachefly.net/";
@@ -129,17 +138,46 @@ LightFieldRenderer.prototype.updateUV_display = function() {
 	cuvpos.fill();
 }
 
+LightFieldRenderer.prototype.updateCenter = function(delta_X, delta_Y) {
+	var newcenter_X = this.view2d.center_X + delta_X;
+	var newcenter_Y = this.view2d.center_Y + delta_Y;
+
+	if (newcenter_X >= 1. || newcenter_X <= -1. || newcenter_Y >= 1. || newcenter_Y <= -1.) {
+		console.log("out of bounds ", newcenter_X, newcenter_Y);
+		return;
+	}
+
+	this.view2d.center_X = newcenter_X;
+	this.view2d.center_Y = newcenter_Y;
+	this.render(0);
+}
+
 LightFieldRenderer.prototype.mousedrag_set = function(new_X, new_Y) {
-	this.view3d.mousedrag_X = new_X;
-	this.view3d.mousedrag_Y = new_Y;
+	if (mode == "image") {
+		this.view2d.mousedrag_X = new_X;
+		this.view2d.mousedrag_Y = new_Y;
+	} else {
+		this.view3d.mousedrag_X = new_X;
+		this.view3d.mousedrag_Y = new_Y;
+	}
 }
 LightFieldRenderer.prototype.mousedrag = function(new_X, new_Y) {
-	if (this.view3d.mousedrag_X) {
-		this.updateUV((new_X - this.view3d.mousedrag_X) / this.view3d.mouseSensitivity,
-			      -(new_Y - this.view3d.mousedrag_Y) / this.view3d.mouseSensitivity);
+	if (mode == "image") {
+		if (this.view2d.mousedrag_X) {
+			var canvas = document.getElementById("canvas-image");
+			this.updateCenter(-(new_X - this.view2d.mousedrag_X) / canvas.width,
+			                  (new_Y - this.view2d.mousedrag_Y) / canvas.height);
+		}
+		this.view2d.mousedrag_X = new_X;
+		this.view2d.mousedrag_Y = new_Y;
+	} else {
+		if (this.view3d.mousedrag_X) {
+			this.updateUV((new_X - this.view3d.mousedrag_X) / this.view3d.mouseSensitivity,
+				      -(new_Y - this.view3d.mousedrag_Y) / this.view3d.mouseSensitivity);
+		}
+		this.view3d.mousedrag_X = new_X;
+		this.view3d.mousedrag_Y = new_Y;
 	}
-	this.view3d.mousedrag_X = new_X;
-	this.view3d.mousedrag_Y = new_Y;
 }
 
 LightFieldRenderer.prototype.maxNormalizedSlope = function() {
@@ -193,6 +231,8 @@ LightFieldRenderer.prototype.lenslets_offset2corner = function() {
 LightFieldRenderer.prototype.render = function(is_new_image) {
 	//grabs the canvas element
 	var canvas = document.getElementById("canvas-" + mode);
+	canvas.height = canvas.width * this.image.height / this.image.width;
+
 	//gets the WebGL context
 	var gl = getWebGLContext(canvas);
 	//checks if system is WebGL compatible
@@ -230,7 +270,7 @@ LightFieldRenderer.prototype.render = function(is_new_image) {
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 	//if (mode == "image" && $('#grid').prop('checked'))
-	if (mode == "image" && $('#grid').hasClass('active'))
+	if (mode == "image" && Session.get('showGrid'))
 		this.render_grid(canvas, gl);
 }
 
@@ -242,11 +282,13 @@ LightFieldRenderer.prototype.render_image = function(canvas, gl) {
 	gl.useProgram(program);
 
 	// set(up) parameters
-	var zoom = Math.pow(10, parseFloat(Session.get("currentImageZoom")));
 	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
-	gl.uniform2f(canvSizeLocation, canvas.width / zoom, canvas.height / zoom);
+	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
 	gl.uniform2f(gammaGainLocation, parseFloat(Session.get("currentImageGamma")), Math.pow(10, parseFloat(Session.get("currentImageGain"))));
+	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
+	gl.uniform3f(zoomLocation, this.view2d.center_X, this.view2d.center_Y,
+			Math.pow(10, parseFloat(Session.get("currentImageZoom"))));
 
 	var texCoordBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
@@ -281,6 +323,8 @@ LightFieldRenderer.prototype.render_lightfield_pinhole = function(canvas, gl) {
 	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
 	var gammaGainLocation = gl.getUniformLocation(program, "u_gammaGain");
 	gl.uniform2f(gammaGainLocation, parseFloat(Session.get("currentImageGamma")), Math.pow(10, parseFloat(Session.get("currentImageGain"))));
+	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
+	gl.uniform3f(zoomLocation, 0., 0., 1.);
 
 	var gridSizeLocation = gl.getUniformLocation(program, "u_gridSize");
 	gl.uniform2f(gridSizeLocation, gridSize.width, gridSize.height);
@@ -317,6 +361,11 @@ LightFieldRenderer.prototype.render_grid = function(canvas, gl) {
 	gl.useProgram(program);
 
 	var gridCorner = this.lenslets_offset2corner();
+	if (Session.get('showGridUV')) {
+		gridCorner[0] += this.view3d.ofs_U;
+		gridCorner[1] += this.view3d.ofs_V;
+	}
+
 	var gridSize = {
 		"width": Math.ceil(this.image.width / this.lenslets.right[0]),
 		"height": Math.ceil(this.image.height / this.lenslets.down[1])
@@ -343,9 +392,11 @@ LightFieldRenderer.prototype.render_grid = function(canvas, gl) {
 	gl.enableVertexAttribArray(canvCoordLocation);
 	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
-	var zoom = Math.pow(10, parseFloat(Session.get("currentImageZoom")));
-	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
-	gl.uniform2f(canvSizeLocation, canvas.width / zoom, canvas.height / zoom);
+	var imageSizeLocation = gl.getUniformLocation(program, "u_imageSize");
+	gl.uniform2f(imageSizeLocation, this.image.width, this.image.height);
+	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
+	gl.uniform3f(zoomLocation, this.view2d.center_X, this.view2d.center_Y,
+			Math.pow(10, parseFloat(Session.get("currentImageZoom"))));
 
 	gl.drawArrays(gl.LINES, 0, lineList.length / 2);
 }
