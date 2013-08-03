@@ -70,6 +70,10 @@ Template.fileView.setImageSessionVars = function() {
     numFrames = imageObject.numFrames;
 
     //optics
+    if (imageObject.op_maxu)
+      Session.set("op_maxu", imageObject.op_maxu);
+    else
+      Session.set("op_maxu", 0);
     Session.set("op_pitch", imageObject.op_pitch);
     Session.set("op_flen", imageObject.op_flen);
     Session.set("op_mag", imageObject.op_mag);

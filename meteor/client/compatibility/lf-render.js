@@ -58,6 +58,7 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 	};*/
 	this.image.src = imagepath;
 	this.optics = {
+		"maxu": Session.get("op_maxu"),
 		"pitch": Session.get("op_pitch"),
 		"flen": Session.get("op_flen"),
 		"mag": Session.get("op_mag"),
@@ -180,6 +181,11 @@ LightFieldRenderer.prototype.mousedrag = function(new_X, new_Y) {
 
 LightFieldRenderer.prototype.maxNormalizedSlope = function() {
 	/* Return the maximum slope afforded by the optical system */
+
+	if (Session.get("op_maxu") > 0)
+		this.optics.maxu = Session.get("op_maxu"); // update
+	if (this.optics.maxu > 0)
+		return this.optics.maxu; // override
 
 	// ???
 	var image_na = this.optics.na / this.optics.mag;

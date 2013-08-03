@@ -112,6 +112,14 @@
         <option value="chnorm" selected>by the other ch.</option>
        </select></label>
     </p></form>
+    <div id="maxu-lightfield-image" class="controlbox">
+      <p>
+      Max. tangens: <span id="maxu_current" style="width: 5em"> </span><br />
+      <input type="range" id="maxuSlider" min="0" max="1" step="0.01" /><br />
+      Reset <button type="button" class="btn" id="maxuResetDefault">to default</button>
+      <button type="button" class="btn" id="maxuResetOptics">by optics</button>
+      </p>
+    </div>
   </div>
 </template>
 <template name="webglCanvas">

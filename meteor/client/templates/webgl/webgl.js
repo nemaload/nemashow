@@ -147,6 +147,16 @@ Template.webgl.setupSliders = function() {
     Session.set("currentImageZoom", this.value);
     render_if_ready(0);
   }).change();
+
+  var maxu = Session.get('op_maxu') > 0 ? Session.get('op_maxu') : lf.maxNormalizedSlope();
+  console.log('maxu ', maxu);
+  $("#maxuSlider").val(maxu).off('change').change(function() {
+    console.log('maxuSlider ' + this.value);
+    $('#maxu_current').html(parseFloat(this.value).toFixed(2));
+    Session.set("op_maxu", this.value);
+    render_if_ready(0);
+  }); // do not fire .change() as we don't want to explicitly set op_maxu unconditionally
+  $('#maxu_current').html(parseFloat(maxu).toFixed(2));
 }
 
 Template.webgl.rendered = function() {
@@ -262,6 +272,27 @@ Template.webgl.events = {
         alert(result);
       }
     });
+  },
+
+  'click #maxuResetDefault': function(e) {
+    e.preventDefault();
+    Session.set("op_maxu", Images.findOne(Session.get("currentImageId")).op_maxu);
+    if (!(Session.get('op_maxu') > 0)) {
+      delete lf.optics.maxu;
+    }
+    var maxu = parseFloat(lf.maxNormalizedSlope());
+    $('#maxu_current').html(maxu.toFixed(2));
+    $('#maxuSlider').val(maxu);
+    render_if_ready(0);
+  },
+  'click #maxuResetOptics': function(e) {
+    e.preventDefault();
+    Session.set("op_maxu", 0);
+    delete lf.optics.maxu;
+    var maxu = parseFloat(lf.maxNormalizedSlope());
+    $('#maxu_current').html(maxu.toFixed(2));
+    $('#maxuSlider').val(maxu);
+    render_if_ready(0);
   },
 
   'change #box': function(ev) {

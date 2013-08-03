@@ -13,6 +13,7 @@ function newmode(newmode) {
 	document.getElementById("controls-lightsheet-image").style.display = mode == "image" && Session.get('currentImageType') == "ls" ? 'block' : 'none';
 	document.getElementById("info-lightsheet-image").style.display = mode == "image" && Session.get('currentImageType') == "ls" ? 'block' : 'none';
 	document.getElementById("box-lightsheet-3d").style.display = mode == "3d" && Session.get('currentImageType') == "ls" ? 'block' : 'none';
+	document.getElementById("maxu-lightfield-image").style.display = mode == "image" && Session.get('currentImageType') == "lf" ? 'block' : 'none';
 }
 
 var loading_count = 0;
