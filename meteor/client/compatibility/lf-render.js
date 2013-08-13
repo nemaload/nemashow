@@ -2,6 +2,7 @@ function LightFieldRenderer() {
 	this.image = null;
 	this.optics = {};
 	this.lenslets = {};
+	this.backbone = {};
 
 	this.loaded = {}; // indexed by variable name
 	this.texture = {}; // GL texture cache; indexed by mode name
@@ -29,14 +30,19 @@ function LightFieldRenderer() {
 
 LightFieldRenderer.prototype.loadimage = function(imagepath) {
 	var obj = this;
+	if (imagepath == null)
+		return;
+	console.log("loadimage " + imagepath);
 
 	// This method of asynchronous loading may be problematic if there
 	// is still an outstanding request from previous loadimage(); FIXME
 	this.loaded = {
 		"image": 0,
 		"optics": 0,
-		"lenslets": 0
+		"lenslets": 0,
+		"backbone": 0
 	};
+
 	$("#imageLoading" + Session.get("currentFrameIndex")).removeClass("notLoaded").addClass("loading");
 	this.image = new Image();
 	this.image.crossOrigin = "anonymous";
@@ -57,6 +63,20 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 		alert("Loading ended!");
 	};*/
 	this.image.src = imagepath;
+
+	this.backbone = {};
+	var backbonepath = imagepath.replace(/\.png$/, "-backbone.json");
+	$.getJSON(backbonepath)
+		.done(function(data) {
+			console.log('got backbone');
+			obj.backbone = data;
+		})
+		.always(function(data) {
+			console.log('backbone solved');
+			obj.loaded.backbone = 1;
+			obj.render_if_ready(1);
+		});
+
 	this.optics = {
 		"maxu": Session.get("op_maxu"),
 		"pitch": Session.get("op_pitch"),
@@ -77,8 +97,8 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 }
 
 LightFieldRenderer.prototype.render_if_ready = function(is_new_image) {
-	console.log("loadimage " + this.loaded.image + " " + this.loaded.optics + " " + this.loaded.lenslets);
-	if (!this.loaded.image || !this.loaded.optics || !this.loaded.lenslets)
+	console.log("loadimage " + this.loaded.image + " " + this.loaded.backbone + " " + this.loaded.optics + " " + this.loaded.lenslets);
+	if (!this.loaded.image || !this.loaded.backbone || !this.loaded.optics || !this.loaded.lenslets)
 		return;
 	this.render(is_new_image);
 }
@@ -278,6 +298,10 @@ LightFieldRenderer.prototype.render = function(is_new_image) {
 		this.render_grid(canvas, gl);
 		this.render_lens_circle(canvas, gl);
 	}
+	console.log(this.backbone);
+	if (mode == "3d" && this.backbone.bbpoints) {
+		this.render_backbone(canvas, gl);
+	}
 }
 
 LightFieldRenderer.prototype.render_image = function(canvas, gl) {
@@ -438,4 +462,39 @@ LightFieldRenderer.prototype.render_lens_circle = function(canvas, gl) {
 			Math.pow(10, parseFloat(Session.get("currentImageZoom"))));
 
 	gl.drawArrays(gl.LINE_LOOP, 0, lineList.length / 2);
+}
+
+LightFieldRenderer.prototype.render_backbone = function(canvas, gl) {
+	var vertexShader = createShaderFromScriptElement(gl, "lf-grid-vertex-shader");
+	var fragmentShader = createShaderFromScriptElement(gl, "lf-backbone-fragment-shader");
+	var program = createProgram(gl, [vertexShader, fragmentShader]);
+	gl.useProgram(program);
+
+	var gridSize = {
+		"width": Math.ceil(this.image.width / this.lenslets.right[0]),
+		"height": Math.ceil(this.image.height / this.lenslets.down[1])
+	};
+
+	var lineList = new Array;
+	for (var i = 0; i < this.backbone.bbpoints.length; i++) {
+		var point = this.backbone.bbpoints[i];
+		if (i > 0)
+			lineList.push(point[0], gridSize.height-1 - point[1]);
+		if (i < this.backbone.bbpoints.length - 1)
+			lineList.push(point[0], gridSize.height-1 - point[1]);
+	}
+
+	var bbLinesBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, bbLinesBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lineList), gl.STATIC_DRAW);
+	var canvCoordLocation = gl.getAttribLocation(program, "a_canvCoord");
+	gl.enableVertexAttribArray(canvCoordLocation);
+	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+	var imageSizeLocation = gl.getUniformLocation(program, "u_imageSize");
+	gl.uniform2f(imageSizeLocation, gridSize.width, gridSize.height);
+	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
+	gl.uniform3f(zoomLocation, 0.0, 0.0, 1.0);
+
+	gl.drawArrays(gl.LINES, 0, lineList.length / 2);
 }
