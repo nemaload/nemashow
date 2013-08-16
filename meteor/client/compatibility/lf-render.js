@@ -64,10 +64,9 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 	this.image.onloadend = function () {
 		alert("Loading ended!");
 	};*/
-<<<<<<< HEAD
+	
 	this.image.src = lf_baseurl + imagepath + "-" + Session.get("currentFrameIndex") + ".png";
-=======
-	this.image.src = imagepath;
+	//this.image.src = imagepath;
 
 	this.backbone = {};
 	var backbonepath = imagepath.replace(/\.png$/, "-backbone.json");
@@ -82,7 +81,6 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 			obj.render_if_ready(1);
 		});
 
->>>>>>> master
 	this.optics = {
 		"maxu": Session.get("op_maxu"),
 		"pitch": Session.get("op_pitch"),
