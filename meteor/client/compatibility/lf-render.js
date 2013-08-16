@@ -2,6 +2,7 @@ function LightFieldRenderer() {
 	this.image = null;
 	this.optics = {};
 	this.lenslets = {};
+	this.backbone = {};
 
 	this.loaded = {}; // indexed by variable name
 	this.texture = {}; // GL texture cache; indexed by mode name
@@ -31,14 +32,19 @@ var lf_baseurl = "http://nemaload.cachefly.net/";
 
 LightFieldRenderer.prototype.loadimage = function(imagepath) {
 	var obj = this;
+	if (imagepath == null)
+		return;
+	console.log("loadimage " + imagepath);
 
 	// This method of asynchronous loading may be problematic if there
 	// is still an outstanding request from previous loadimage(); FIXME
 	this.loaded = {
 		"image": 0,
 		"optics": 0,
-		"lenslets": 0
+		"lenslets": 0,
+		"backbone": 0
 	};
+
 	$("#imageLoading" + Session.get("currentFrameIndex")).removeClass("notLoaded").addClass("loading");
 	this.image = new Image();
 	this.image.crossOrigin = "anonymous";
@@ -58,8 +64,27 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 	this.image.onloadend = function () {
 		alert("Loading ended!");
 	};*/
+<<<<<<< HEAD
 	this.image.src = lf_baseurl + imagepath + "-" + Session.get("currentFrameIndex") + ".png";
+=======
+	this.image.src = imagepath;
+
+	this.backbone = {};
+	var backbonepath = imagepath.replace(/\.png$/, "-backbone.json");
+	$.getJSON(backbonepath)
+		.done(function(data) {
+			console.log('got backbone');
+			obj.backbone = data;
+		})
+		.always(function(data) {
+			console.log('backbone solved');
+			obj.loaded.backbone = 1;
+			obj.render_if_ready(1);
+		});
+
+>>>>>>> master
 	this.optics = {
+		"maxu": Session.get("op_maxu"),
 		"pitch": Session.get("op_pitch"),
 		"flen": Session.get("op_flen"),
 		"mag": Session.get("op_mag"),
@@ -78,8 +103,8 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 }
 
 LightFieldRenderer.prototype.render_if_ready = function(is_new_image) {
-	console.log("loadimage " + this.loaded.image + " " + this.loaded.optics + " " + this.loaded.lenslets);
-	if (!this.loaded.image || !this.loaded.optics || !this.loaded.lenslets)
+	console.log("loadimage " + this.loaded.image + " " + this.loaded.backbone + " " + this.loaded.optics + " " + this.loaded.lenslets);
+	if (!this.loaded.image || !this.loaded.backbone || !this.loaded.optics || !this.loaded.lenslets)
 		return;
 	this.render(is_new_image);
 }
@@ -183,6 +208,11 @@ LightFieldRenderer.prototype.mousedrag = function(new_X, new_Y) {
 LightFieldRenderer.prototype.maxNormalizedSlope = function() {
 	/* Return the maximum slope afforded by the optical system */
 
+	if (Session.get("op_maxu") > 0)
+		this.optics.maxu = Session.get("op_maxu"); // update
+	if (this.optics.maxu > 0)
+		return this.optics.maxu; // override
+
 	// ???
 	var image_na = this.optics.na / this.optics.mag;
 	if (image_na >= 1.0) return 0.0;
@@ -270,8 +300,14 @@ LightFieldRenderer.prototype.render = function(is_new_image) {
 	gl.drawArrays(gl.TRIANGLES, 0, 6);
 
 	//if (mode == "image" && $('#grid').prop('checked'))
-	if (mode == "image" && Session.get('showGrid'))
+	if (mode == "image" && Session.get('showGrid')) {
 		this.render_grid(canvas, gl);
+		this.render_lens_circle(canvas, gl);
+	}
+	console.log(this.backbone);
+	if (mode == "3d" && this.backbone.bbpoints) {
+		this.render_backbone(canvas, gl);
+	}
 }
 
 LightFieldRenderer.prototype.render_image = function(canvas, gl) {
@@ -397,6 +433,74 @@ LightFieldRenderer.prototype.render_grid = function(canvas, gl) {
 	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
 	gl.uniform3f(zoomLocation, this.view2d.center_X, this.view2d.center_Y,
 			Math.pow(10, parseFloat(Session.get("currentImageZoom"))));
+
+	gl.drawArrays(gl.LINES, 0, lineList.length / 2);
+}
+
+LightFieldRenderer.prototype.render_lens_circle = function(canvas, gl) {
+	var vertexShader = createShaderFromScriptElement(gl, "lf-grid-vertex-shader");
+	var fragmentShader = createShaderFromScriptElement(gl, "lf-circle-fragment-shader");
+	var program = createProgram(gl, [vertexShader, fragmentShader]);
+	gl.useProgram(program);
+
+	var center = this.lenslets.offset;
+	var radius_x = this.maxNormalizedSlope() * this.lenslets.right[0];
+	var radius_y = this.maxNormalizedSlope() * this.lenslets.down[1];
+	console.log('lens circle center ', center, ' radius ', radius_x, radius_y);
+	var segments = 64.;
+	var lineList = new Array;
+	for (var i = 0; i < segments; i++) {
+		lineList.push(center[0] + Math.cos(2.0*Math.PI * i/segments) * radius_x,
+		              center[1] + Math.sin(2.0*Math.PI * i/segments) * radius_y);
+	}
+
+	var circleLinesBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, circleLinesBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lineList), gl.STATIC_DRAW);
+	var canvCoordLocation = gl.getAttribLocation(program, "a_canvCoord");
+	gl.enableVertexAttribArray(canvCoordLocation);
+	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+	var imageSizeLocation = gl.getUniformLocation(program, "u_imageSize");
+	gl.uniform2f(imageSizeLocation, this.image.width, this.image.height);
+	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
+	gl.uniform3f(zoomLocation, this.view2d.center_X, this.view2d.center_Y,
+			Math.pow(10, parseFloat(Session.get("currentImageZoom"))));
+
+	gl.drawArrays(gl.LINE_LOOP, 0, lineList.length / 2);
+}
+
+LightFieldRenderer.prototype.render_backbone = function(canvas, gl) {
+	var vertexShader = createShaderFromScriptElement(gl, "lf-grid-vertex-shader");
+	var fragmentShader = createShaderFromScriptElement(gl, "lf-backbone-fragment-shader");
+	var program = createProgram(gl, [vertexShader, fragmentShader]);
+	gl.useProgram(program);
+
+	var gridSize = {
+		"width": Math.ceil(this.image.width / this.lenslets.right[0]),
+		"height": Math.ceil(this.image.height / this.lenslets.down[1])
+	};
+
+	var lineList = new Array;
+	for (var i = 0; i < this.backbone.bbpoints.length; i++) {
+		var point = this.backbone.bbpoints[i];
+		if (i > 0)
+			lineList.push(point[0], gridSize.height-1 - point[1]);
+		if (i < this.backbone.bbpoints.length - 1)
+			lineList.push(point[0], gridSize.height-1 - point[1]);
+	}
+
+	var bbLinesBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, bbLinesBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lineList), gl.STATIC_DRAW);
+	var canvCoordLocation = gl.getAttribLocation(program, "a_canvCoord");
+	gl.enableVertexAttribArray(canvCoordLocation);
+	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+	var imageSizeLocation = gl.getUniformLocation(program, "u_imageSize");
+	gl.uniform2f(imageSizeLocation, gridSize.width, gridSize.height);
+	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
+	gl.uniform3f(zoomLocation, 0.0, 0.0, 1.0);
 
 	gl.drawArrays(gl.LINES, 0, lineList.length / 2);
 }

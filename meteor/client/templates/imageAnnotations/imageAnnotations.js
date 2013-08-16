@@ -35,7 +35,19 @@
   }
 
   Template.imageAnnotations.creator = function(userId) {
-    return Meteor.users.findOne(userId).emails[0].address;
+    var userObject = Meteor.users.findOne(userId);
+    if ("services" in userObject) {
+      if ("github" in userObject.services) {
+        return userObject.services.github.email;
+      } else if ("google" in userObject.services) {
+        return userObject.services.google.email;
+      }
+    }
+     else if ("emails" in userObject) {
+      return userObject.emails[0].address;
+    } else {
+      return "Database Error.";
+    }
   }
 
   Template.imageAnnotations.currentEndFrame = function() {
