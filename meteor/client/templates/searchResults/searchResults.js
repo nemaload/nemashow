@@ -22,7 +22,20 @@ Template.searchResults.searchResults = function() {
   var returnObject = [];
   for (var i = 0; i < searchObject.length; i++) {
     var id = searchObject[i]._id;
-    var userName = Meteor.users.findOne(searchObject[i].userId).emails[0].address;
+    var userObject = Meteor.users.findOne(searchObject[i].userId);
+    if ("services" in userObject) {
+      if ("github" in userObject.services) {
+        var userName = userObject.services.github.email;
+      } else if ("google" in userObject.services) {
+        var userName = userObject.services.google.email;
+      }
+    }
+     else if ("emails" in userObject) {
+      var userName = userObject.emails[0].address;
+    } else {
+      var userName = "Database Error.";
+    }
+    //var userName = Meteor.users.findOne(searchObject[i].userId).emails[0].address;
     var comment = searchObject[i].comment;
     var imageName = Images.findOne(searchObject[i].imageId).baseName;
     if (typeof(imageName) == "undefined") {
