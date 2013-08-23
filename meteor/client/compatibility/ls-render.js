@@ -67,6 +67,24 @@ LightSheetRenderer.prototype.updateZ = function(delta_Z) {
 	this.group.render(0);
 }
 
+LightSheetRenderer.prototype.updateI = function(delta_I) {
+	var z_slice = this.group.current_slice();
+	/* XXX: We will never be able to select the last slice this way
+	 * as we have hardcoded interpolation between the current and
+	 * next slice. */
+	var new_z_slice = z_slice + delta_I;
+	if (new_z_slice < 0 || new_z_slice >= this.group.metadata.framedata.length - 1)
+		return;
+
+	var newofs_Z = this.group.metadata.framedata[new_z_slice].z;
+	console.log("new_z_slice " + new_z_slice + " newofs_Z " + newofs_Z);
+
+	this.view3d.ofs_Z = newofs_Z;
+	$('#Z_current').html(parseFloat(this.view3d.ofs_Z).toFixed(2));
+
+	this.group.render(0);
+}
+
 LightSheetRenderer.prototype.setUV = function(U, V) {
 	var newofs_U = U;
 	var newofs_V = V;
@@ -191,6 +209,19 @@ GroupImage.prototype.setupZ = function() {
 	$('#Z_current').html(parseFloat(this.ls.view3d.ofs_Z).toFixed(2));
 };
 
+GroupImage.prototype.current_slice = function() {
+	var n_slices = this.metadata.framedata.length;
+	for (var i = 1; i < n_slices; i++) {
+		if (this.metadata.framedata[i].z > this.ls.view3d.ofs_Z) {
+			return i - 1;
+		}
+	}
+	/* XXX: current_slice() will never return the *last* slice
+	 * but just second-to-last - this is the consequence of fact
+	 * that we always interpolate between current and next slice. */
+	return n_slices - 2;
+}
+
 GroupImage.prototype.render = function(is_new_image) {
 	//grabs the canvas element
 	var canvas = document.getElementById("canvas-" + mode);
@@ -281,13 +312,7 @@ GroupImage.prototype.render_slice = function(canvas, gl) {
 
 	var n_slices = this.metadata.framedata.length;
 	// find the slices corresponding to our z-coord
-	var z_slice = 0;
-	for (var i = 1; i < n_slices; i++) {
-		if (this.metadata.framedata[i].z > this.ls.view3d.ofs_Z) {
-			z_slice = i - 1;
-			break;
-		}
-	}
+	var z_slice = this.current_slice();
 	var frame0 = this.metadata.framedata[z_slice], frame2 = this.metadata.framedata[z_slice + 1];
 
 	// set(up) parameters
