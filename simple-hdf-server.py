@@ -96,6 +96,9 @@ class HDFHTTPRequestHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             return (None, None)
 
         (o, ctype, reply_size, last_modified) = handler.head_info(path, head_only)
+        if o is None:
+            self.send_error(404, "Resource not found")
+            return (None, None)
 
         self.send_response(200)
         self.send_header("Content-Type", ctype)
@@ -154,6 +157,7 @@ class LightsheetRequestHandler(BackendRequestHandler):
     def head_info(path, head_only):
         words = path.split('/')
         words = filter(None, words)
+        o = None
         if len(words) == 1:
             (o, ctype) = LightsheetRequestHandler.lightsheet_index()
         if len(words) == 2:
@@ -162,6 +166,8 @@ class LightsheetRequestHandler(BackendRequestHandler):
             (o, ctype) = LightsheetRequestHandler.lightsheet_subgroup_metadata(words[1], words[2], words[3], head_only)
         if len(words) == 5 and words[4] == "png":
             (o, ctype) = LightsheetRequestHandler.lightsheet_subgroup_png(words[1], words[2], words[3], head_only)
+        if o is None:
+            return (None, None, None, None)
         if o[0] == "string":
             reply_size = str(len(o[1]))
         else: # "file"
