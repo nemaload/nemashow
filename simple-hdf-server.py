@@ -17,6 +17,8 @@
 #   z-sweeps).
 # * /lightsheet/<filename>/<channel>/<group>/json returns z-sweep frames metadata
 # * /lightsheet/<filename>/<channel>/<group>/png returns z-sweep frames imgdata PNG
+# * /lightsheet/<filename>/<channel>/<group>/backbone.json returns backbone
+#   metadata as stored in file `<filename>-<group>-backbone.json`.
 
 
 ### Settings
@@ -36,6 +38,7 @@ http_port = 8001
 
 ### Code
 
+import os
 import sys
 
 import BaseHTTPServer
@@ -166,6 +169,8 @@ class LightsheetRequestHandler(BackendRequestHandler):
             (o, ctype) = LightsheetRequestHandler.lightsheet_subgroup_metadata(words[1], words[2], words[3], head_only)
         if len(words) == 5 and words[4] == "png":
             (o, ctype) = LightsheetRequestHandler.lightsheet_subgroup_png(words[1], words[2], words[3], head_only)
+        if len(words) == 5 and words[4] == "backbone.json":
+            (o, ctype) = LightsheetRequestHandler.backbone_file(words[1], words[2], words[3], head_only)
         if o is None:
             return (None, None, None, None)
         if o[0] == "string":
@@ -227,6 +232,15 @@ class LightsheetRequestHandler(BackendRequestHandler):
         os.unlink("/tmp/rawls.png")
 
         return (("file", f), "image/png")
+
+    @staticmethod
+    def backbone_file(filename, channel, group, head_only):
+        try:
+            f = open(lightsheet_dir + "/" + os.path.splitext(filename)[0] + "-" + group + "-backbone.json", "r")
+        except IOError:
+            return (None, None)
+
+        return (("file", f), "application/json")
 
     lsfile_cache = {}
 
