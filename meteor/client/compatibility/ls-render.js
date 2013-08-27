@@ -125,6 +125,7 @@ function GroupImage(ls, paths) {
 	// Loaded asynchronously
 	this.images = [null, null]
 	this.metadata = null
+	this.backbone = {};
 
 	if (paths[0])
 		this.load(paths);
@@ -159,7 +160,6 @@ GroupImage.prototype.loadDo = function(paths) {
 		}; })(i);
 	}
 	
-
 	// we assume metadata is the same for both channels
 	var metadatapath = ls_baseurl + paths[0] + "/json";
 	$.getJSON(metadatapath, function(data) {
@@ -171,6 +171,17 @@ GroupImage.prototype.loadDo = function(paths) {
 
 		g.render_if_ready(1);
 	});
+
+	var backbonepath = ls_baseurl + paths[0] + "/backbone.json";
+	$.getJSON(backbonepath)
+		.done(function(data) {
+			console.log('got backbone');
+			g.backbone = data;
+		})
+		.always(function(data) {
+			console.log('backbone solved');
+			g.render_if_ready(1);
+		});
 };
 
 GroupImage.prototype.render_if_ready = function(is_new_image) {
@@ -189,6 +200,7 @@ GroupImage.prototype.render_if_ready = function(is_new_image) {
 GroupImage.prototype.loaded = function() {
 	console.log('loaded ' + this.images[0] + ' ' + this.images[1] + ' ' + this.metadata);
 	$("#imageLoading" + Session.get("currentFrameIndex")).removeClass("notLoaded").removeClass("loading").addClass("loaded");
+	/* We ignore backbone status, non-essential for rendering. */
 	return this.images[0] && this.images[1] && this.metadata;
 }
 GroupImage.prototype.cancel_queued_load = function() {
@@ -235,6 +247,12 @@ GroupImage.prototype.render = function(is_new_image) {
 		return;
 	}
 
+	var z_max = this.metadata.framedata[this.metadata.framedata.length - 1].z;
+	var z_focal = (this.metadata.framedata[0].z + z_max) / 2;
+	var z_data = new Array;
+	for (var i = 0; i < this.metadata.framedata.length; i++)
+		z_data[i] = -(this.metadata.framedata[i].z - z_focal) / z_max;
+
 	gl.getExtension("OES_texture_float");
 	gl.blendFunc(gl.SRC_ALPHA, gl.ONE);
 	gl.enable(gl.BLEND);
@@ -266,12 +284,6 @@ GroupImage.prototype.render = function(is_new_image) {
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.images[i]);
 		}
 
-		var z_max = this.metadata.framedata[this.metadata.framedata.length - 1].z;
-		var z_focal = (this.metadata.framedata[0].z + z_max) / 2;
-		var z_data = new Array;
-		for (var i = 0; i < this.metadata.framedata.length; i++)
-			z_data[i] = -(this.metadata.framedata[i].z - z_focal) / z_max;
-
 		/* Alas, TEXTURE_1D is not supported by WebGL. */
 		if (this.ls.zTexture[mode]) {
 			gl.deleteTexture(this.ls.zTexture[mode]);
@@ -301,6 +313,8 @@ GroupImage.prototype.render = function(is_new_image) {
 
 	if (mode == "3d" && $('#box').prop('checked'))
 		this.render_box(canvas, gl);
+	if (mode == "3d" && this.backbone && this.backbone.bbpoints)
+		this.render_backbone(canvas, gl, z_data);
 }
 
 GroupImage.prototype.render_slice = function(canvas, gl) {
@@ -392,8 +406,6 @@ GroupImage.prototype.render_lightsheet = function(canvas, gl) {
 }
 
 GroupImage.prototype.render_box = function(canvas, gl) {
-	console.log("box render");
-
 	var vertexShader = createShaderFromScriptElement(gl, "ls-box-vertex-shader");
 	var fragmentShader = createShaderFromScriptElement(gl, "ls-box-fragment-shader");
 	var program = createProgram(gl, [vertexShader, fragmentShader]);
@@ -457,6 +469,45 @@ GroupImage.prototype.render_box = function(canvas, gl) {
 
 	var boxLinesBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, boxLinesBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lineList), gl.STATIC_DRAW);
+	var lineCoordLocation = gl.getAttribLocation(program, "a_lineCoord");
+	gl.enableVertexAttribArray(lineCoordLocation);
+	gl.vertexAttribPointer(lineCoordLocation, 3, gl.FLOAT, false, 0, 0);
+
+	var UVOCoordLocation = gl.getUniformLocation(program, "u_UVOCoord");
+	gl.uniform3f(UVOCoordLocation, this.ls.view3d.ofs_U, this.ls.view3d.ofs_V, this.ls.view3d.observerDistance);
+	var perspectiveLocation = gl.getUniformLocation(program, "u_perspective");
+	gl.uniform1f(perspectiveLocation, $('#perspective').prop('checked') ? 1.0 : 0.0);
+
+	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
+	gl.uniform2f(canvSizeLocation, canvas.width, canvas.height);
+
+	gl.drawArrays(gl.LINES, 0, lineList.length / 3);
+}
+
+GroupImage.prototype.render_backbone = function(canvas, gl, z_data) {
+	var vertexShader = createShaderFromScriptElement(gl, "ls-box-vertex-shader");
+	var fragmentShader = createShaderFromScriptElement(gl, "ls-backbone-fragment-shader");
+	var program = createProgram(gl, [vertexShader, fragmentShader]);
+	gl.useProgram(program);
+
+	var n_slices = this.metadata.framedata.length;
+	var n_cols = 8, n_rows = Math.ceil(n_slices / n_cols);
+
+	var lineList = new Array;
+	for (var i = 0; i < this.backbone.bbpoints.length; i++) {
+		var point = this.backbone.bbpoints[i].slice();
+		point[0] = point[0] / (this.images[0].width / n_cols);
+		point[1] = 1. - point[1] / (this.images[0].height / n_rows);
+		point[2] = z_data[Math.round(point[2])];
+		if (i > 0)
+			lineList.push(point[0], point[1], point[2]);
+		if (i < this.backbone.bbpoints.length - 1)
+			lineList.push(point[0], point[1], point[2]);
+	}
+
+	var bbLinesBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, bbLinesBuffer);
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lineList), gl.STATIC_DRAW);
 	var lineCoordLocation = gl.getAttribLocation(program, "a_lineCoord");
 	gl.enableVertexAttribArray(lineCoordLocation);
