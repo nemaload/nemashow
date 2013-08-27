@@ -1,94 +1,95 @@
 <body>
 <script id="ls-slice-fragment-shader" type="x-shader/x-fragment">
-precision mediump float;
+  precision mediump float;
 
-// our texture
-uniform sampler2D u_image0, u_image1;
-uniform sampler2D u_zdata;
+  // our texture
+  uniform sampler2D u_image0, u_image1;
+  uniform sampler2D u_zdata;
 
-// the texCoords passed in from the vertex shader.
-varying vec2 v_texCoord;
+  // the texCoords passed in from the vertex shader.
+  varying vec2 v_texCoord;
 
-uniform vec2 u_gammaGain; // display parameters
-uniform vec2 u_zSlices; // slicing parameters
-uniform vec3 u_z0z1z2; // Z-coords of (slice0, ourpos, slice2)
+  uniform vec2 u_gammaGain; // display parameters
+  uniform vec2 u_zSlices; // slicing parameters
+  uniform vec3 u_z0z1z2; // Z-coords of (slice0, ourpos, slice2)
 
-void main() {
-	vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, u_gammaGain.x);
-	vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, u_gammaGain.y);
+  void main() {
+    vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, u_gammaGain.x);
+    vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, u_gammaGain.y);
 
-	// derive the texCoord of the pair of appropriate Z-coord slices
-	float z = u_zSlices[0];
-	float sliceColStep = 1.0 / 8.; // XXX: hardcoded value
-	float sliceRowStep = 1.0 / ceil(u_zSlices[1] / 8.);
-	vec2 texCoord0 = vec2(
-		sliceColStep * (mod(z, 8.) + v_texCoord[0]),
-		sliceRowStep * (floor(z / 8.) + v_texCoord[1]));
-	vec2 texCoord2 = vec2(
-		sliceColStep * (mod((z + 1.0), 8.) + v_texCoord[0]),
-		sliceRowStep * (floor((z + 1.0) / 8.) + v_texCoord[1]));
+    // derive the texCoord of the pair of appropriate Z-coord slices
+    float z = u_zSlices[0];
+    float sliceColStep = 1.0 / 8.; // XXX: hardcoded value
+    float sliceRowStep = 1.0 / ceil(u_zSlices[1] / 8.);
+    vec2 texCoord0 = vec2(
+      sliceColStep * (mod(z, 8.) + v_texCoord[0]),
+      sliceRowStep * (floor(z / 8.) + v_texCoord[1]));
+    vec2 texCoord2 = vec2(
+      sliceColStep * (mod((z + 1.0), 8.) + v_texCoord[0]),
+      sliceRowStep * (floor((z + 1.0) / 8.) + v_texCoord[1]));
 
-	// interpolation coefficient
-	float beta = (u_z0z1z2[1] - u_z0z1z2[0]) / (u_z0z1z2[2] - u_z0z1z2[0]);
+    // interpolation coefficient
+    float beta = (u_z0z1z2[1] - u_z0z1z2[0]) / (u_z0z1z2[2] - u_z0z1z2[0]);
 
-	// interpolate
-	vec4 color0 = texture2D(u_image0, texCoord0);
-	vec4 color2 = texture2D(u_image0, texCoord2);
-	vec4 color_i0 = (1.0 - beta) * color0 + beta * color2;
-	     color0 = texture2D(u_image1, texCoord0);
-	     color2 = texture2D(u_image1, texCoord2);
-	vec4 color_i1 = (1.0 - beta) * color0 + beta * color2;
+    // interpolate
+    vec4 color0 = texture2D(u_image0, texCoord0);
+    vec4 color2 = texture2D(u_image0, texCoord2);
+    vec4 color_i0 = (1.0 - beta) * color0 + beta * color2;
+    color0 = texture2D(u_image1, texCoord0);
+    color2 = texture2D(u_image1, texCoord2);
+    vec4 color_i1 = (1.0 - beta) * color0 + beta * color2;
 
-	gl_FragColor = pow(vec4(color_i1.x, color_i0.x, 0.0000001, 1.) * gain, gamma);
-}
+    gl_FragColor = pow(vec4(color_i1.x, color_i0.x, 0.0000001, 1.) * gain, gamma);
+  }
 </script>
 
 <script id="ls-3d-fragment-shader" type="x-shader/x-fragment">
-precision mediump float;
+  precision mediump float;
 
-// our texture
-uniform sampler2D u_image0, u_image1;
-uniform sampler2D u_zdata;
+  // our texture
+  uniform sampler2D u_image0, u_image1;
+  uniform sampler2D u_zdata;
 
-// the texCoords passed in from the vertex shader
-varying vec2 v_texCoord;
-// the camera coordinate
-uniform vec3 u_UVOCoord;
-uniform float u_perspective;
+  // the texCoords passed in from the vertex shader
+  varying vec2 v_texCoord;
+  // the camera coordinate
+  uniform vec3 u_UVOCoord;
+  uniform float u_perspective;
 
-uniform vec2 u_gammaGain; // display parameters
-uniform vec2 u_zSlices; // slicing parameters
+  uniform vec2 u_gammaGain; // display parameters
+  uniform vec2 u_zSlices; // slicing parameters
 
-void main() {
-	vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, u_gammaGain.x);
-	vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, u_gammaGain.y);
-	vec4 color_i0 = vec4(0.0, 0.0, 0.0, 1.0);
-	vec4 color_i1 = vec4(0.0, 0.0, 0.0, 1.0);
+  void main() {
+    vec4 gamma = vec4(u_gammaGain.x, u_gammaGain.x, u_gammaGain.x, u_gammaGain.x);
+    vec4 gain = vec4(u_gammaGain.y, u_gammaGain.y, u_gammaGain.y, u_gammaGain.y);
+    vec4 color_i0 = vec4(0.0, 0.0, 0.0, 1.0);
+    vec4 color_i1 = vec4(0.0, 0.0, 0.0, 1.0);
 
-	float n_slices = u_zSlices[1];
-	float sliceColStep = 1.0 / 8.; // XXX: hardcoded value
-	float sliceRowStep = 1.0 / ceil(n_slices / 8.);
+    float n_slices = u_zSlices[1];
+    float sliceColStep = 1.0 / 8.; // XXX: hardcoded value
+    float sliceRowStep = 1.0 / ceil(n_slices / 8.);
 
-	for (float z = 0.0; z < 1000.0; z++) {
-		if (z >= n_slices)
-			break;
+    for (float z = 0.0; z < 1000.0; z++) {
+      if (z >= n_slices)
+        break;
 
-		// compute angle-slope to the z=0 plane based on U,V coordinates
-		vec2 UV_slope = vec2((u_UVOCoord[0] - u_perspective * (v_texCoord[0] - 0.5)) / u_UVOCoord[2],
-				     (u_UVOCoord[1] - u_perspective * (v_texCoord[1] - 0.5)) / u_UVOCoord[2]);
+      // compute angle-slope to the z=0 plane based on U,V coordinates
+      vec2 UV_slope = vec2(
+        (u_UVOCoord[0] - u_perspective * (v_texCoord[0] - 0.5)) / u_UVOCoord[2],
+        (u_UVOCoord[1] - u_perspective * (v_texCoord[1] - 0.5)) / u_UVOCoord[2]);
 
-		float zOffset = texture2D(u_zdata, vec2(z / n_slices, 0))[0];
-		vec2 planeCoord = v_texCoord + UV_slope * vec2(zOffset, zOffset);
-		if (!any(bvec4(lessThan(planeCoord, vec2(0.0, 0.0)), lessThan(vec2(1.0, 1.0), planeCoord)))) {
-			vec2 texCoord = vec2(
-				sliceColStep * (mod(z, 8.) + planeCoord[0]),
-				sliceRowStep * (floor(z / 8.) + planeCoord[1]));
-			color_i0 = color_i0 + texture2D(u_image0, texCoord) / n_slices;
-			color_i1 = color_i1 + texture2D(u_image1, texCoord) / n_slices;
-		}
-	}
+      float zOffset = texture2D(u_zdata, vec2(z / n_slices, 0))[0];
+      vec2 planeCoord = v_texCoord + UV_slope * vec2(zOffset, zOffset);
+      if (!any(bvec4(lessThan(planeCoord, vec2(0.0, 0.0)), lessThan(vec2(1.0, 1.0), planeCoord)))) {
+        vec2 texCoord = vec2(
+          sliceColStep * (mod(z, 8.) + planeCoord[0]),
+          sliceRowStep * (floor(z / 8.) + planeCoord[1]));
+        color_i0 = color_i0 + texture2D(u_image0, texCoord) / n_slices;
+        color_i1 = color_i1 + texture2D(u_image1, texCoord) / n_slices;
+      }
+    }
 
-	gl_FragColor = pow(vec4(color_i1.x, color_i0.x, 0.0000001, 1.) * gain, gamma);
-}
+    gl_FragColor = pow(vec4(color_i1.x, color_i0.x, 0.0000001, 1.) * gain, gamma);
+  }
 </script>
 </body>
