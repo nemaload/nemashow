@@ -348,6 +348,8 @@ LightFieldRenderer.prototype.render = function(is_new_image) {
 	//if (mode == "image" && $('#grid').prop('checked'))
 	if (mode == "image" && Session.get('showGrid')) {
 		this.render_grid(canvas, gl);
+		if (this.loaded.cropwindow)
+			this.render_cropwindow(canvas, gl);
 		this.render_lens_circle(canvas, gl);
 	}
 	console.log(this.backbone);
@@ -468,6 +470,37 @@ LightFieldRenderer.prototype.render_grid = function(canvas, gl) {
 			Math.pow(10, parseFloat(Session.get("currentImageZoom"))));
 
 	gl.drawArrays(gl.LINES, 0, lineList.length / 2);
+}
+
+LightFieldRenderer.prototype.render_cropwindow = function(canvas, gl) {
+	var vertexShader = createShaderFromScriptElement(gl, "lf-grid-vertex-shader");
+	var fragmentShader = createShaderFromScriptElement(gl, "lf-cropwindow-fragment-shader");
+	var program = createProgram(gl, [vertexShader, fragmentShader]);
+	gl.useProgram(program);
+
+	var ul = [this.cropwindow.ul[1], this.cropwindow.ul[0]];
+	var br = [this.cropwindow.br[1], this.cropwindow.br[0]];
+
+	var lineList = new Array;
+	lineList.push(ul[0]); lineList.push(ul[1]);
+	lineList.push(br[0]); lineList.push(ul[1]);
+	lineList.push(br[0]); lineList.push(br[1]);
+	lineList.push(ul[0]); lineList.push(br[1]);
+
+	var gridLinesBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, gridLinesBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lineList), gl.STATIC_DRAW);
+	var canvCoordLocation = gl.getAttribLocation(program, "a_canvCoord");
+	gl.enableVertexAttribArray(canvCoordLocation);
+	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+	var imageSizeLocation = gl.getUniformLocation(program, "u_imageSize");
+	gl.uniform2f(imageSizeLocation, this.image.width, this.image.height);
+	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
+	gl.uniform3f(zoomLocation, this.view2d.center_X, this.view2d.center_Y,
+			Math.pow(10, parseFloat(Session.get("currentImageZoom"))));
+
+	gl.drawArrays(gl.LINE_LOOP, 0, lineList.length / 2);
 }
 
 LightFieldRenderer.prototype.render_lens_circle = function(canvas, gl) {
