@@ -273,8 +273,8 @@ LightFieldRenderer.prototype.grid_params = function() {
 		console.log(ul, br);
 
 		cropImageSize = {
-			"width": br[0] - ul[0],
-			"height": br[1] - ul[1]
+			"width": br[0] - ul[0] + 1,
+			"height": br[1] - ul[1] + 1
 		};
 		// by temporarily subtracting ul, we make that the point of origin for the grid
 		gridCorner[0] -= ul[0];
