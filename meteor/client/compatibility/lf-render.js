@@ -409,7 +409,7 @@ LightFieldRenderer.prototype.render_lightfield_pinhole = function(canvas, gl) {
 	var gridSizeLocation = gl.getUniformLocation(program, "u_gridSize");
 	gl.uniform2f(gridSizeLocation, grid.size.width, grid.size.height);
 	var rectOffsetLocation = gl.getUniformLocation(program, "u_rectOffset");
-	gl.uniform2f(rectOffsetLocation, grid.corner[0] / this.image.width, -grid.corner[1] / this.image.height);
+	gl.uniform2f(rectOffsetLocation, grid.corner[0] / this.image.width, grid.corner[1] / this.image.height);
 	var rectLinearLocation = gl.getUniformLocation(program, "u_rectLinear");
 	gl.uniformMatrix2fv(rectLinearLocation, false,
 			[this.lenslets.right[0] / this.image.width,
