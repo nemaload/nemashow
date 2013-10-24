@@ -4,9 +4,12 @@ function LightFieldRenderer() {
 	this.lenslets = {};
 	this.cropwindow = {};
 	this.backbone = {};
+	this.neurons = [];
 
 	this.loaded = {}; // indexed by variable name
 	this.texture = {}; // GL texture cache; indexed by mode name
+
+	this.textdivs = []; // list of textdivs shown on top of canvas
 
 	this.view2d = {
 		'mouseSensitivity': 50.0,
@@ -42,7 +45,8 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 		"optics": 0,
 		"lenslets": 0,
 		"cropwindow": 0,
-		"backbone": 0
+		"backbone": 0,
+		"neurons": 0,
 	};
 
 	$("#imageLoading" + Session.get("currentFrameIndex")).removeClass("notLoaded").addClass("loading");
@@ -79,6 +83,9 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 			obj.render_if_ready(1);
 		});
 
+	this.neurons = [];
+	this.loadneurons("6.0,-2160,0"); // XXX hardcoded poseinfo
+
 	this.optics = {
 		"maxu": Session.get("op_maxu"),
 		"pitch": Session.get("op_pitch"),
@@ -105,9 +112,28 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 	this.render_if_ready(1);
 }
 
+LightFieldRenderer.prototype.loadneurons = function(poseInfo) {
+	var obj = this;
+	var baseName = Images.findOne(Session.get("currentImageId")).baseName;
+	var frameNo = Session.get("currentFrameIndex");
+	var poseInfo = "6.0,-2160,0"; // XXX hardcoded
+	var neuronspath = baseName + "/neuron-positions/" + frameNo + "/" + poseInfo;
+	var neuronsurl = 'http://localhost:8002/' + neuronspath;
+	$.getJSON(neuronsurl)
+		.done(function(data) {
+			console.log('got backbone');
+			obj.neurons = data.neurons;
+		})
+		.always(function(data) {
+			console.log('backbone solved');
+			obj.loaded.neurons = 1;
+			obj.render_if_ready(1);
+		});
+}
+
 LightFieldRenderer.prototype.render_if_ready = function(is_new_image) {
-	console.log("render_if_ready " + this.loaded.image + " " + this.loaded.backbone + " " + this.loaded.optics + " " + this.loaded.lenslets);
-	if (!this.loaded.image || !this.loaded.backbone || !this.loaded.optics || !this.loaded.lenslets)
+	console.log("render_if_ready " + this.loaded.image + " " + this.loaded.backbone + " " + this.loaded.optics + " " + this.loaded.lenslets + " " + this.loaded.neurons);
+	if (!this.loaded.image || !this.loaded.backbone || !this.loaded.optics || !this.loaded.lenslets || !this.loaded.neurons)
 		return;
 	this.render(is_new_image);
 }
@@ -309,6 +335,12 @@ LightFieldRenderer.prototype.render = function(is_new_image) {
 	var canvas = document.getElementById("canvas-" + mode);
 	canvas.height = canvas.width * this.image.height / this.image.width;
 
+	// reset textdivs
+	var d;
+	while (d = this.textdivs.pop()) {
+		d.remove();
+	}
+
 	//gets the WebGL context
 	var gl = getWebGLContext(canvas);
 	//checks if system is WebGL compatible
@@ -352,9 +384,14 @@ LightFieldRenderer.prototype.render = function(is_new_image) {
 			this.render_cropwindow(canvas, gl);
 		this.render_lens_circle(canvas, gl);
 	}
+
 	console.log(this.backbone);
 	if (mode == "3d" && this.backbone.bbpoints) {
 		this.render_backbone(canvas, gl);
+	}
+
+	if (mode == "3d" && this.neurons) {
+		this.render_neurons(canvas, gl);
 	}
 }
 
@@ -571,4 +608,27 @@ LightFieldRenderer.prototype.render_backbone = function(canvas, gl) {
 	gl.uniform3f(zoomLocation, 0.0, 0.0, 1.0);
 
 	gl.drawArrays(gl.LINES, 0, lineList.length / 2);
+}
+
+LightFieldRenderer.prototype.render_neuron = function(canvas, name, pos) {
+	var textdiv = document.createElement('div');
+	textdiv.appendChild(document.createTextNode(name));
+	textdiv.className = 'neuronlabel';
+	textdiv.style.left = (canvas.offsetLeft + pos[0]) + 'px';
+	textdiv.style.top = (canvas.offsetTop + pos[1]) + 'px';
+	document.getElementById("canvas-3d-container").appendChild(textdiv);
+	this.textdivs.push(textdiv);
+}
+
+LightFieldRenderer.prototype.render_neurons = function(canvas, gl) {
+	var grid = this.grid_params();
+
+	for (var i = 0; i < this.neurons.length; i++) {
+		// rescale pos
+		pos = this.neurons[i].pos.slice(0);
+		pos[0] = pos[0] / grid.size.width * canvas.width;
+		pos[1] = pos[1] / grid.size.height * canvas.height;
+
+		this.render_neuron(canvas, this.neurons[i].name, pos);
+	}
 }

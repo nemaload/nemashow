@@ -83,6 +83,9 @@ canvas, .controls {
     clear: both;
     margin: auto auto;
 }
+#canvas-3d-container {
+    position: relative;
+}
 
 .folderLi {
     cursor: pointer;
@@ -161,4 +164,14 @@ input[type='range'] {
 }
 #loader.loaded {
 	background: none;
+}
+
+.neuronlabel {
+	z-index: 0;
+	display: inline-block;
+	color: #44ff44;
+	position: absolute;
+	border-left: 1pt solid #44dd44;
+	border-bottom: 1pt solid #44dd44;
+	padding: 0ex 0.25em;
 }
