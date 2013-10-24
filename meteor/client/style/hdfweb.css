@@ -85,6 +85,7 @@ canvas, .controls {
 }
 #canvas-3d-container {
     position: relative;
+    clear: both;
 }
 
 .folderLi {
