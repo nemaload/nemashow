@@ -10,6 +10,7 @@ function newmode(newmode) {
 	document.getElementById("div-uvpos").style.display = mode == "3d" && Session.get('currentImageType') == "lf" ? 'block' : 'none';
 	document.getElementById("perspective-p").style.display = mode == "3d" && Session.get('currentImageType') == "ls" ? 'block' : 'none';
 	document.getElementById("controls-lightfield-image").style.display = mode == "image" && Session.get('currentImageType') == "lf" ? 'block' : 'none';
+	document.getElementById("poseinfo-lightfield-3d").style.display = mode == "3d" && Session.get('currentImageType') == "lf" ? 'block' : 'none';
 	document.getElementById("controls-lightsheet-image").style.display = mode == "image" && Session.get('currentImageType') == "ls" ? 'block' : 'none';
 	document.getElementById("info-lightsheet-image").style.display = mode == "image" && Session.get('currentImageType') == "ls" ? 'block' : 'none';
 	document.getElementById("box-lightsheet-3d").style.display = mode == "3d" && Session.get('currentImageType') == "ls" ? 'block' : 'none';

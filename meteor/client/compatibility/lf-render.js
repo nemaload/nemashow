@@ -84,7 +84,7 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 		});
 
 	this.neurons = [];
-	this.loadneurons("6.0,-2160,0"); // XXX hardcoded poseinfo
+	this.loadneurons();
 
 	this.optics = {
 		"maxu": Session.get("op_maxu"),
@@ -112,11 +112,11 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 	this.render_if_ready(1);
 }
 
-LightFieldRenderer.prototype.loadneurons = function(poseInfo) {
+LightFieldRenderer.prototype.loadneurons = function() {
 	var obj = this;
 	var baseName = Images.findOne(Session.get("currentImageId")).baseName;
 	var frameNo = Session.get("currentFrameIndex");
-	var poseInfo = "6.0,-2160,0"; // XXX hardcoded
+	var poseInfo = Session.get("currentPoseZoom") + ',' + Session.get("currentPoseShift") + ',' + Session.get("currentPoseAngle");
 	var neuronspath = baseName + "/neuron-positions/" + frameNo + "/" + poseInfo;
 	var neuronsurl = 'http://localhost:8002/' + neuronspath;
 	$.getJSON(neuronsurl)

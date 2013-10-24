@@ -101,6 +101,12 @@ Template.webglControls.shouldShowSlider = function() {
   return (Session.get("currentImageNumFrames") > 1);
 }
 
+function updatePoseShift(val) {
+  $('#pose_shift_current').html(parseFloat(val).toFixed(2));
+  Session.set("currentPoseShift", val);
+  render_if_ready(0);
+}
+
 Template.webgl.setupSliders = function() {
   console.log("setupSliders");
   if (Session.get("currentImageNumFrames") > 1) {
@@ -145,6 +151,27 @@ Template.webgl.setupSliders = function() {
     console.log('zoomSlider ' + this.value);
     $('#zoom_current').html(parseFloat(this.value).toFixed(2));
     Session.set("currentImageZoom", this.value);
+    render_if_ready(0);
+  }).change();
+  $("#poseZoomSlider").val(Session.get('currentPoseZoom')).off('change').change(function() {
+    $('#pose_zoom_current').html(parseFloat(this.value).toFixed(2));
+    Session.set("currentPoseZoom", this.value);
+    render_if_ready(0);
+  }).change();
+  $("#poseShiftSlider").val(Session.get('currentPoseShift')).off('change').change(function() {
+    updatePoseShift(this.value);
+  }).change();
+  $("#poseShiftMinus").off('click').click(function() {
+    var val = Session.get('currentPoseShift') - 1.0;
+    updatePoseShift(val);
+  });
+  $("#poseShiftPlus").off('click').click(function() {
+    var val = Session.get('currentPoseShift') + 1.0;
+    updatePoseShift(val);
+  });
+  $("#poseAngleSlider").val(Session.get('currentPoseAngle')).off('change').change(function() {
+    $('#pose_angle_current').html(parseFloat(this.value).toFixed(2));
+    Session.set("currentPoseAngle", this.value);
     render_if_ready(0);
   }).change();
 
