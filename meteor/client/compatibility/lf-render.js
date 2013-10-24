@@ -547,18 +547,15 @@ LightFieldRenderer.prototype.render_backbone = function(canvas, gl) {
 	var program = createProgram(gl, [vertexShader, fragmentShader]);
 	gl.useProgram(program);
 
-	var gridSize = {
-		"width": Math.ceil(this.image.width / this.lenslets.right[0]),
-		"height": Math.ceil(this.image.height / this.lenslets.down[1])
-	};
+	var grid = this.grid_params();
 
 	var lineList = new Array;
 	for (var i = 0; i < this.backbone.bbpoints.length; i++) {
 		var point = this.backbone.bbpoints[i];
 		if (i > 0)
-			lineList.push(point[0], gridSize.height-1 - point[1]);
+			lineList.push(point[0], grid.size.height-1 - point[1]);
 		if (i < this.backbone.bbpoints.length - 1)
-			lineList.push(point[0], gridSize.height-1 - point[1]);
+			lineList.push(point[0], grid.size.height-1 - point[1]);
 	}
 
 	var bbLinesBuffer = gl.createBuffer();
@@ -569,7 +566,7 @@ LightFieldRenderer.prototype.render_backbone = function(canvas, gl) {
 	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
 	var imageSizeLocation = gl.getUniformLocation(program, "u_imageSize");
-	gl.uniform2f(imageSizeLocation, gridSize.width, gridSize.height);
+	gl.uniform2f(imageSizeLocation, grid.size.width, grid.size.height);
 	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
 	gl.uniform3f(zoomLocation, 0.0, 0.0, 1.0);
 
