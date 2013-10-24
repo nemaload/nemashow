@@ -442,6 +442,11 @@ LightFieldRenderer.prototype.render_grid = function(canvas, gl) {
 
 	var grid = this.grid_params();
 	console.log("grid ", grid);
+	if (Session.get('showGridUV')) {
+		grid.corner[0] += this.view3d.ofs_U;
+		grid.corner[1] += this.view3d.ofs_V;
+	}
+
 	var lineList = new Array;
 	for (var x = 0; x <= grid.size.width; x++) {
 		lineList.push(grid.corner[0] + x * this.lenslets.right[0]);
