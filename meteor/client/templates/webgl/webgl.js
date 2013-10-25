@@ -162,11 +162,11 @@ Template.webgl.setupSliders = function() {
     updatePoseShift(this.value);
   }).change();
   $("#poseShiftMinus").off('click').click(function() {
-    var val = Session.get('currentPoseShift') - 1.0;
+    var val = parseFloat(Session.get('currentPoseShift')) - 1.0;
     updatePoseShift(val);
   });
   $("#poseShiftPlus").off('click').click(function() {
-    var val = Session.get('currentPoseShift') + 1.0;
+    var val = parseFloat(Session.get('currentPoseShift')) + 1.0;
     updatePoseShift(val);
   });
   $("#poseAngleSlider").val(Session.get('currentPoseAngle')).off('change').change(function() {
