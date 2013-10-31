@@ -32,3 +32,6 @@ Session.setDefault("currentPoseAngle", 0);
 
 //How to change to local rendering mode
 Session.setDefault("useAmazonData",true);
+
+Session.setDefault("hdfServerUrl", "http://localhost:8001/");
+Session.setDefault("computationServerUrl", "http://localhost:8002/");

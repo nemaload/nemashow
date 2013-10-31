@@ -31,7 +31,7 @@ function LightSheetRenderer() {
 	};
 };
 
-var ls_baseurl = 'http://localhost:8001/lightsheet/';
+var ls_baseurl = Session.get("hdfServerUrl") + '/lightsheet/';
 
 LightSheetRenderer.prototype.loadimage = function(paths) {
 	if (this.last_group && !this.last_group.loaded())

@@ -118,7 +118,7 @@ LightFieldRenderer.prototype.loadneurons = function() {
 	var frameNo = Session.get("currentFrameIndex");
 	var poseInfo = Session.get("currentPoseZoom") + ',' + Session.get("currentPoseShift") + ',' + Session.get("currentPoseAngle");
 	var neuronspath = baseName + "/neuron-positions/" + frameNo + "/" + poseInfo;
-	var neuronsurl = 'http://localhost:8002/' + neuronspath;
+	var neuronsurl = Session.get("computationServerUrl") + neuronspath;
 	$.getJSON(neuronsurl)
 		.done(function(data) {
 			console.log('got backbone');

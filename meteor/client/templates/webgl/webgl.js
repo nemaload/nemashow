@@ -281,7 +281,7 @@ Template.webgl.events = {
       var channelNum = document.getElementById("bbplot-chan").value;
       var normStr = document.getElementById("bbplot-norm").value;
       var metadatapath = baseName + "/box-intensity/" + channelNum + "/" + boxCoords + (normStr ? "?" + normStr : "");
-      var metadataurl = 'http://localhost:8002/' + metadatapath;
+      var metadataurl = Session.get("computationServerUrl") + metadatapath;
       if (intensitiesCache[metadatapath]) {
         intensitiesPlot(intensitiesCache[metadatapath]);
       } else {
