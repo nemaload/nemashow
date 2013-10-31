@@ -26,8 +26,8 @@ Session.setDefault("showGrid", false);
 Session.setDefault("showGridUV", false);
 //worm pose information
 // XXX hardcoded defaults; should be stored near backbone in .json, or in mongodb
-Session.setDefault("currentPoseZoom", 6.0);
-Session.setDefault("currentPoseShift", -2160);
+Session.setDefault("currentPoseZoom", 1.4);
+Session.setDefault("currentPoseShift", -457);
 Session.setDefault("currentPoseAngle", 0);
 
 //How to change to local rendering mode
