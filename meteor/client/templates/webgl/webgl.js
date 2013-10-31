@@ -106,6 +106,11 @@ function updatePoseShift(val) {
   Session.set("currentPoseShift", val);
   render_if_ready(0);
 }
+function updatePoseAngle(val) {
+  $('#pose_angle_current').html(parseFloat(val).toFixed(2));
+  Session.set("currentPoseAngle", val);
+  render_if_ready(0);
+}
 
 Template.webgl.setupSliders = function() {
   console.log("setupSliders");
@@ -170,10 +175,16 @@ Template.webgl.setupSliders = function() {
     updatePoseShift(val);
   });
   $("#poseAngleSlider").val(Session.get('currentPoseAngle')).off('change').change(function() {
-    $('#pose_angle_current').html(parseFloat(this.value).toFixed(2));
-    Session.set("currentPoseAngle", this.value);
-    render_if_ready(0);
+    updatePoseAngle(this.value);
   }).change();
+  $("#poseAngleMinus").off('click').click(function() {
+    var val = parseFloat(Session.get('currentPoseAngle')) - 1.0;
+    updatePoseAngle(val);
+  });
+  $("#poseAnglePlus").off('click').click(function() {
+    var val = parseFloat(Session.get('currentPoseAngle')) + 1.0;
+    updatePoseAngle(val);
+  });
 
   var maxu = Session.get('op_maxu') > 0 ? Session.get('op_maxu') : lf.maxNormalizedSlope();
   console.log('maxu ', maxu);
