@@ -45,16 +45,16 @@
     // The interesting in-lens pixel
     coord0 = floor(coord) + u_UVCoord.xy;
     // Examine the four nearest lens, interpolating the final color
-    coord1 = u_rectOffset + coord0 * u_rectLinear;
-    coord2 = u_rectOffset + (coord0 + vec2(0.0, 1.0)) * u_rectLinear;
-    coord3 = u_rectOffset + (coord0 + vec2(1.0, 1.0)) * u_rectLinear;
-    coord4 = u_rectOffset + (coord0 + vec2(1.0, 0.0)) * u_rectLinear;
+    coord1 = u_rectOffset + u_rectLinear * coord0;
+    coord2 = u_rectOffset + u_rectLinear * (coord0 + vec2(0.0, 1.0));
+    coord3 = u_rectOffset + u_rectLinear * (coord0 + vec2(1.0, 0.0));
+    coord4 = u_rectOffset + u_rectLinear * (coord0 + vec2(1.0, 1.0));
     // Interpolation color based on the surrounding lens distance
     fracts = vec4(coord - floor(coord), floor(coord) + vec2(1.0, 1.0) - coord);
     color =   fracts.z * (  fracts.w * texture2D(u_image, coord1)
                           + fracts.y * texture2D(u_image, coord2))
-            + fracts.x * (  fracts.y * texture2D(u_image, coord3)
-                          + fracts.w * texture2D(u_image, coord4));
+            + fracts.x * (  fracts.w * texture2D(u_image, coord3)
+                          + fracts.y * texture2D(u_image, coord4));
 
     gl_FragColor = pow(vec4(color.rgb, color.a) * gain, gamma);
   }

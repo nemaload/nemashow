@@ -103,6 +103,17 @@ Template.webglControls.shouldShowSlider = function() {
   return (Session.get("currentImageNumFrames") > 1);
 }
 
+function updatePoseShift(val) {
+  $('#pose_shift_current').html(parseFloat(val).toFixed(2));
+  Session.set("currentPoseShift", val);
+  render_if_ready(0);
+}
+function updatePoseAngle(val) {
+  $('#pose_angle_current').html(parseFloat(val).toFixed(2));
+  Session.set("currentPoseAngle", val);
+  render_if_ready(0);
+}
+
 Template.webgl.setupSliders = function() {
   console.log("setupSliders");
   if (Session.get("currentImageNumFrames") > 1) {
@@ -149,6 +160,33 @@ Template.webgl.setupSliders = function() {
     Session.set("currentImageZoom", this.value);
     render_if_ready(0);
   }).change();
+  $("#poseZoomSlider").val(Session.get('currentPoseZoom')).off('change').change(function() {
+    $('#pose_zoom_current').html(parseFloat(this.value).toFixed(2));
+    Session.set("currentPoseZoom", this.value);
+    render_if_ready(0);
+  }).change();
+  $("#poseShiftSlider").val(Session.get('currentPoseShift')).off('change').change(function() {
+    updatePoseShift(this.value);
+  }).change();
+  $("#poseShiftMinus").off('click').click(function() {
+    var val = parseFloat(Session.get('currentPoseShift')) - 1.0;
+    updatePoseShift(val);
+  });
+  $("#poseShiftPlus").off('click').click(function() {
+    var val = parseFloat(Session.get('currentPoseShift')) + 1.0;
+    updatePoseShift(val);
+  });
+  $("#poseAngleSlider").val(Session.get('currentPoseAngle')).off('change').change(function() {
+    updatePoseAngle(this.value);
+  }).change();
+  $("#poseAngleMinus").off('click').click(function() {
+    var val = parseFloat(Session.get('currentPoseAngle')) - 1.0;
+    updatePoseAngle(val);
+  });
+  $("#poseAnglePlus").off('click').click(function() {
+    var val = parseFloat(Session.get('currentPoseAngle')) + 1.0;
+    updatePoseAngle(val);
+  });
 
   var maxu = Session.get('op_maxu') > 0 ? Session.get('op_maxu') : lf.maxNormalizedSlope();
   console.log('maxu ', maxu);
@@ -245,7 +283,7 @@ Template.webgl.events = {
       var channelNum = document.getElementById("bbplot-chan").value;
       var normStr = document.getElementById("bbplot-norm").value;
       var metadatapath = baseName + "/box-intensity/" + channelNum + "/" + boxCoords + (normStr ? "?" + normStr : "");
-      var metadataurl = 'http://' + window.location.host.split(":")[0] + ":8002/" + metadatapath;
+      var metadataurl = computationUrl + metadatapath;
       if (intensitiesCache[metadatapath]) {
         intensitiesPlot(intensitiesCache[metadatapath]);
       } else {

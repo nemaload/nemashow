@@ -2,10 +2,14 @@ function LightFieldRenderer() {
 	this.image = null;
 	this.optics = {};
 	this.lenslets = {};
+	this.cropwindow = {};
 	this.backbone = {};
+	this.neurons = [];
 
 	this.loaded = {}; // indexed by variable name
 	this.texture = {}; // GL texture cache; indexed by mode name
+
+	this.textdivs = []; // list of textdivs shown on top of canvas
 
 	this.view2d = {
 		'mouseSensitivity': 50.0,
@@ -42,7 +46,9 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 		"image": 0,
 		"optics": 0,
 		"lenslets": 0,
-		"backbone": 0
+		"cropwindow": 0,
+		"backbone": 0,
+		"neurons": 0,
 	};
 
 	$("#imageLoading" + Session.get("currentFrameIndex")).removeClass("notLoaded").addClass("loading");
@@ -81,6 +87,9 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 			obj.render_if_ready(1);
 		});
 
+	this.neurons = [];
+	this.loadneurons();
+
 	this.optics = {
 		"maxu": Session.get("op_maxu"),
 		"pitch": Session.get("op_pitch"),
@@ -97,12 +106,38 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 		"down": [Session.get("op_down_dx"), Session.get("op_down_dy")]
 	};
 	this.loaded.lenslets = 1;
+	if (Session.get("cw_is_set")) {
+		this.cropwindow = {
+			"ul": [Session.get("cw_x0"), Session.get("cw_y0")],
+			"br": [Session.get("cw_x1"), Session.get("cw_y1")],
+		};
+		this.loaded.cropwindow = 1;
+	}
 	this.render_if_ready(1);
 }
 
+LightFieldRenderer.prototype.loadneurons = function() {
+	var obj = this;
+	var baseName = Images.findOne(Session.get("currentImageId")).baseName;
+	var frameNo = Session.get("currentFrameIndex");
+	var poseInfo = Session.get("currentPoseZoom") + ',' + Session.get("currentPoseShift") + ',' + Session.get("currentPoseAngle");
+	var neuronspath = baseName + "/neuron-positions/" + frameNo + "/" + poseInfo;
+	var neuronsurl = computationUrl + neuronspath;
+	$.getJSON(neuronsurl)
+		.done(function(data) {
+			console.log('got backbone');
+			obj.neurons = data.neurons;
+		})
+		.always(function(data) {
+			console.log('backbone solved');
+			obj.loaded.neurons = 1;
+			obj.render_if_ready(1);
+		});
+}
+
 LightFieldRenderer.prototype.render_if_ready = function(is_new_image) {
-	console.log("loadimage " + this.loaded.image + " " + this.loaded.backbone + " " + this.loaded.optics + " " + this.loaded.lenslets);
-	if (!this.loaded.image || !this.loaded.backbone || !this.loaded.optics || !this.loaded.lenslets)
+	console.log("render_if_ready " + this.loaded.image + " " + this.loaded.backbone + " " + this.loaded.optics + " " + this.loaded.lenslets + " " + this.loaded.neurons);
+	if (!this.loaded.image || !this.loaded.backbone || !this.loaded.optics || !this.loaded.lenslets || !this.loaded.neurons)
 		return;
 	this.render(is_new_image);
 }
@@ -144,7 +179,8 @@ LightFieldRenderer.prototype.updateUV_display = function() {
 	cuvpos.stroke();
 
 	var pos_x, pos_y;
-	if (this.optics != null && this.lenslets != null) {
+	if (this.loaded.optics && this.loaded.lenslets) {
+		console.log(this.lenslets);
 		var rel_U = this.view3d.ofs_U / this.lenslets.right[0];
 		var rel_V = this.view3d.ofs_V / this.lenslets.down[1];
 		var max_slope = this.maxNormalizedSlope();
@@ -222,12 +258,11 @@ LightFieldRenderer.prototype.maxNormalizedSlope = function() {
 	return na_slope / ulens_slope;
 }
 
-LightFieldRenderer.prototype.lenslets_offset2corner = function() {
+LightFieldRenderer.prototype.lenslets_offset2corner = function(corner) {
 	/* Walk from the lenslets.offset point to the point of the grid
 	 * nearest to the top left corner. */
 
 	var lenslets = this.lenslets;
-	var corner = lenslets.offset.slice();
 	var changed;
 	do {
 		changed = false;
@@ -255,11 +290,60 @@ LightFieldRenderer.prototype.lenslets_offset2corner = function() {
 	return corner;
 }
 
+LightFieldRenderer.prototype.grid_params = function() {
+	var gridCorner = this.lenslets.offset.slice();
+	var cropImageSize;
+
+	if (this.loaded.cropwindow) {
+		// adjust for cropping
+
+		// ul and br are rotated by 90 degrees here
+		var ul = [this.cropwindow.ul[1], this.cropwindow.ul[0]];
+		var br = [this.cropwindow.br[1], this.cropwindow.br[0]];
+		console.log(ul, br);
+
+		cropImageSize = {
+			"width": br[0] - ul[0] + 1,
+			"height": br[1] - ul[1] + 1
+		};
+		// by temporarily subtracting ul, we make that the point of origin for the grid
+		gridCorner[0] -= ul[0];
+		gridCorner[1] -= ul[1];
+		gridCorner = this.lenslets_offset2corner(gridCorner);
+		gridCorner[0] += ul[0];
+		gridCorner[1] += ul[1];
+
+	} else {
+		// no cropping, be straightforward
+		cropImageSize = {
+			"width": this.image.width,
+			"height": this.image.height
+		};
+		gridCorner = this.lenslets_offset2corner(gridCorner);
+	}
+
+	var gridSize = {
+		"width": Math.floor(cropImageSize.width / this.lenslets.right[0]),
+		"height": Math.floor(cropImageSize.height / this.lenslets.down[1])
+	};
+
+	return {
+		"corner": gridCorner,
+		"size": gridSize
+	};
+}
+
 
 LightFieldRenderer.prototype.render = function(is_new_image) {
 	//grabs the canvas element
 	var canvas = document.getElementById("canvas-" + mode);
 	canvas.height = canvas.width * this.image.height / this.image.width;
+
+	// reset textdivs
+	var d;
+	while (d = this.textdivs.pop()) {
+		d.remove();
+	}
 
 	//gets the WebGL context
 	var gl = getWebGLContext(canvas);
@@ -287,8 +371,8 @@ LightFieldRenderer.prototype.render = function(is_new_image) {
 		gl.bindTexture(gl.TEXTURE_2D, this.texture[mode]);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
 		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 		gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 		gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.image);
 	} else {
@@ -300,11 +384,18 @@ LightFieldRenderer.prototype.render = function(is_new_image) {
 	//if (mode == "image" && $('#grid').prop('checked'))
 	if (mode == "image" && Session.get('showGrid')) {
 		this.render_grid(canvas, gl);
+		if (this.loaded.cropwindow)
+			this.render_cropwindow(canvas, gl);
 		this.render_lens_circle(canvas, gl);
 	}
+
 	console.log(this.backbone);
 	if (mode == "3d" && this.backbone.bbpoints) {
 		this.render_backbone(canvas, gl);
+	}
+
+	if (mode == "3d" && this.neurons) {
+		this.render_neurons(canvas, gl);
 	}
 }
 
@@ -346,11 +437,7 @@ LightFieldRenderer.prototype.render_lightfield_pinhole = function(canvas, gl) {
 	program = createProgram(gl, [vertexShader, fragmentShader]);
 	gl.useProgram(program);
 
-	var gridCorner = this.lenslets_offset2corner();
-	var gridSize = {
-		"width": Math.ceil(this.image.width / this.lenslets.right[0]),
-		"height": Math.ceil(this.image.height / this.lenslets.down[1])
-	};
+	var grid = this.grid_params();
 
 	// set(up) parameters
 	var canvSizeLocation = gl.getUniformLocation(program, "u_canvSize");
@@ -361,9 +448,9 @@ LightFieldRenderer.prototype.render_lightfield_pinhole = function(canvas, gl) {
 	gl.uniform3f(zoomLocation, 0., 0., 1.);
 
 	var gridSizeLocation = gl.getUniformLocation(program, "u_gridSize");
-	gl.uniform2f(gridSizeLocation, gridSize.width, gridSize.height);
+	gl.uniform2f(gridSizeLocation, grid.size.width, grid.size.height);
 	var rectOffsetLocation = gl.getUniformLocation(program, "u_rectOffset");
-	gl.uniform2f(rectOffsetLocation, gridCorner[0] / this.image.width, -gridCorner[1] / this.image.height);
+	gl.uniform2f(rectOffsetLocation, grid.corner[0] / this.image.width, grid.corner[1] / this.image.height);
 	var rectLinearLocation = gl.getUniformLocation(program, "u_rectLinear");
 	gl.uniformMatrix2fv(rectLinearLocation, false,
 			[this.lenslets.right[0] / this.image.width,
@@ -394,29 +481,25 @@ LightFieldRenderer.prototype.render_grid = function(canvas, gl) {
 	var program = createProgram(gl, [vertexShader, fragmentShader]);
 	gl.useProgram(program);
 
-	var gridCorner = this.lenslets_offset2corner();
+	var grid = this.grid_params();
+	console.log("grid ", grid);
 	if (Session.get('showGridUV')) {
-		gridCorner[0] += this.view3d.ofs_U;
-		gridCorner[1] += this.view3d.ofs_V;
+		grid.corner[0] += this.view3d.ofs_U;
+		grid.corner[1] += this.view3d.ofs_V;
 	}
 
-	var gridSize = {
-		"width": Math.ceil(this.image.width / this.lenslets.right[0]),
-		"height": Math.ceil(this.image.height / this.lenslets.down[1])
-	};
-	console.log("grid corner " + gridCorner + " size " + gridSize);
 	var lineList = new Array;
-	for (var x = 0; x <= gridSize.width; x++) {
-		lineList.push(gridCorner[0] + x * this.lenslets.right[0]);
-		lineList.push(gridCorner[1] + x * this.lenslets.right[1]);
-		lineList.push(gridCorner[0] + x * this.lenslets.right[0] + gridSize.height * this.lenslets.down[0]);
-		lineList.push(gridCorner[1] + x * this.lenslets.right[1] + gridSize.height * this.lenslets.down[1]);
+	for (var x = 0; x <= grid.size.width; x++) {
+		lineList.push(grid.corner[0] + x * this.lenslets.right[0]);
+		lineList.push(grid.corner[1] + x * this.lenslets.right[1]);
+		lineList.push(grid.corner[0] + x * this.lenslets.right[0] + grid.size.height * this.lenslets.down[0]);
+		lineList.push(grid.corner[1] + x * this.lenslets.right[1] + grid.size.height * this.lenslets.down[1]);
 	}
-	for (var y = 0; y <= gridSize.height; y++) {
-		lineList.push(gridCorner[0] + y * this.lenslets.down[0]);
-		lineList.push(gridCorner[1] + y * this.lenslets.down[1]);
-		lineList.push(gridCorner[0] + y * this.lenslets.down[0] + gridSize.width * this.lenslets.right[0]);
-		lineList.push(gridCorner[1] + y * this.lenslets.down[1] + gridSize.width * this.lenslets.right[1]);
+	for (var y = 0; y <= grid.size.height; y++) {
+		lineList.push(grid.corner[0] + y * this.lenslets.down[0]);
+		lineList.push(grid.corner[1] + y * this.lenslets.down[1]);
+		lineList.push(grid.corner[0] + y * this.lenslets.down[0] + grid.size.width * this.lenslets.right[0]);
+		lineList.push(grid.corner[1] + y * this.lenslets.down[1] + grid.size.width * this.lenslets.right[1]);
 	}
 
 	var gridLinesBuffer = gl.createBuffer();
@@ -433,6 +516,37 @@ LightFieldRenderer.prototype.render_grid = function(canvas, gl) {
 			Math.pow(10, parseFloat(Session.get("currentImageZoom"))));
 
 	gl.drawArrays(gl.LINES, 0, lineList.length / 2);
+}
+
+LightFieldRenderer.prototype.render_cropwindow = function(canvas, gl) {
+	var vertexShader = createShaderFromScriptElement(gl, "lf-grid-vertex-shader");
+	var fragmentShader = createShaderFromScriptElement(gl, "lf-cropwindow-fragment-shader");
+	var program = createProgram(gl, [vertexShader, fragmentShader]);
+	gl.useProgram(program);
+
+	var ul = [this.cropwindow.ul[1], this.cropwindow.ul[0]];
+	var br = [this.cropwindow.br[1], this.cropwindow.br[0]];
+
+	var lineList = new Array;
+	lineList.push(ul[0]); lineList.push(ul[1]);
+	lineList.push(br[0]); lineList.push(ul[1]);
+	lineList.push(br[0]); lineList.push(br[1]);
+	lineList.push(ul[0]); lineList.push(br[1]);
+
+	var gridLinesBuffer = gl.createBuffer();
+	gl.bindBuffer(gl.ARRAY_BUFFER, gridLinesBuffer);
+	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(lineList), gl.STATIC_DRAW);
+	var canvCoordLocation = gl.getAttribLocation(program, "a_canvCoord");
+	gl.enableVertexAttribArray(canvCoordLocation);
+	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+	var imageSizeLocation = gl.getUniformLocation(program, "u_imageSize");
+	gl.uniform2f(imageSizeLocation, this.image.width, this.image.height);
+	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
+	gl.uniform3f(zoomLocation, this.view2d.center_X, this.view2d.center_Y,
+			Math.pow(10, parseFloat(Session.get("currentImageZoom"))));
+
+	gl.drawArrays(gl.LINE_LOOP, 0, lineList.length / 2);
 }
 
 LightFieldRenderer.prototype.render_lens_circle = function(canvas, gl) {
@@ -474,18 +588,15 @@ LightFieldRenderer.prototype.render_backbone = function(canvas, gl) {
 	var program = createProgram(gl, [vertexShader, fragmentShader]);
 	gl.useProgram(program);
 
-	var gridSize = {
-		"width": Math.ceil(this.image.width / this.lenslets.right[0]),
-		"height": Math.ceil(this.image.height / this.lenslets.down[1])
-	};
+	var grid = this.grid_params();
 
 	var lineList = new Array;
 	for (var i = 0; i < this.backbone.bbpoints.length; i++) {
 		var point = this.backbone.bbpoints[i];
 		if (i > 0)
-			lineList.push(point[0], gridSize.height-1 - point[1]);
+			lineList.push(point[0], grid.size.height-1 - point[1]);
 		if (i < this.backbone.bbpoints.length - 1)
-			lineList.push(point[0], gridSize.height-1 - point[1]);
+			lineList.push(point[0], grid.size.height-1 - point[1]);
 	}
 
 	var bbLinesBuffer = gl.createBuffer();
@@ -496,9 +607,32 @@ LightFieldRenderer.prototype.render_backbone = function(canvas, gl) {
 	gl.vertexAttribPointer(canvCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
 	var imageSizeLocation = gl.getUniformLocation(program, "u_imageSize");
-	gl.uniform2f(imageSizeLocation, gridSize.width, gridSize.height);
+	gl.uniform2f(imageSizeLocation, grid.size.width, grid.size.height);
 	var zoomLocation = gl.getUniformLocation(program, "u_zoom");
 	gl.uniform3f(zoomLocation, 0.0, 0.0, 1.0);
 
 	gl.drawArrays(gl.LINES, 0, lineList.length / 2);
+}
+
+LightFieldRenderer.prototype.render_neuron = function(canvas, name, pos) {
+	var textdiv = document.createElement('div');
+	textdiv.appendChild(document.createTextNode(name));
+	textdiv.className = 'neuronlabel';
+	textdiv.style.left = (canvas.offsetLeft + pos[0]) + 'px';
+	textdiv.style.top = (canvas.offsetTop + pos[1]) + 'px';
+	document.getElementById("canvas-3d-container").appendChild(textdiv);
+	this.textdivs.push(textdiv);
+}
+
+LightFieldRenderer.prototype.render_neurons = function(canvas, gl) {
+	var grid = this.grid_params();
+
+	for (var i = 0; i < this.neurons.length; i++) {
+		// rescale pos
+		pos = this.neurons[i].pos.slice(0);
+		pos[0] = pos[0] / grid.size.width * canvas.width;
+		pos[1] = pos[1] / grid.size.height * canvas.height;
+
+		this.render_neuron(canvas, this.neurons[i].name, pos);
+	}
 }

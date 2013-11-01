@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # This is a simple HTTP server that provides an API for various computations
-# on the HDF5 data files.
+# performed on the server side.
 #
 # Usage:
 # ./computation-server.py ../lightsheet/
@@ -18,6 +18,11 @@
 # This is directory with the HDF5 files to be served in the /lightsheet/
 # HTTP path.
 lightsheet_dir = "../lightsheet/"
+
+# Directory with JSON backbone data
+backbone_data_dir = "meteor/data/"
+# Neuron position data - either .json file or a directory with .nml files
+neurons_data = "meteor/data/neurons.json"
 
 http_port = 8002
 
@@ -81,6 +86,34 @@ class BoxIntensity:
         return values
 
 
+import poselib
+import nmllib
+
+class NeuronPositions:
+    """
+    List of neuron positions corresponding to a given worm pose and backbone.
+    """
+    def __init__(self, hdf5file, frameno):
+        bbfilename = backbone_data_dir + hdf5file + '-' + str(frameno) + '-backbone.json'
+        (points, edgedists) = poselib.bbLoad(bbfilename)
+        (spline, bblength) = poselib.bbToSpline(points)
+        self.bbpoints = poselib.bbTraceSpline(spline, bblength)
+
+    def neurons_by_pose(self, poseinfo):
+        pneurons = []
+        for n in self.neurons:
+            pn_pos = poselib.projTranslateByBb(poselib.projCoord(n["pos"], poseinfo), self.bbpoints, n["name"], poseinfo)
+            if pn_pos is None:
+                continue
+            pn = n.copy()
+            pn["pos"] = pn_pos
+            pn["diameter"] = poselib.projDiameter(n["diameter"], poseinfo)
+            pneurons.append(pn)
+        return pneurons
+
+    neurons = nmllib.load_neurons(neurons_data)
+
+
 from flask import *
 from functools import update_wrapper
 app = Flask(__name__)
@@ -135,6 +168,13 @@ def box_intensity(filename, channel, boxcoords):
             wholenorm = request.args.has_key('wholenorm'),
             chnorm = request.args.has_key('chnorm')
         )})
+
+@app.route('/<string:filename>/neuron-positions/<int:frameno>/<string:poseinfo_s>')
+@crossdomain(origin='*')
+def neuron_positions(filename, frameno, poseinfo_s):
+    npos = NeuronPositions(filename, frameno)
+    poseinfo = dict(zip(["zoom", "shift", "angle"], [float(f) for f in poseinfo_s.split(',')]))
+    return nmllib.jsondump_neurons(npos.neurons_by_pose(poseinfo))
 
 if __name__ == '__main__':
     # app.run(port = http_port)

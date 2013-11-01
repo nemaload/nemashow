@@ -92,6 +92,17 @@ Template.fileView.setImageSessionVars = function() {
     Session.set("op_down_dx", imageObject.op_down_dx);
     Session.set("op_down_dy", imageObject.op_down_dy);
 
+    //crop window
+    if (imageObject.cw_x0) {
+      Session.set("cw_is_set", 1);
+      Session.set("cw_x0", imageObject.cw_x0);
+      Session.set("cw_x1", imageObject.cw_y0);
+      Session.set("cw_y0", imageObject.cw_x1);
+      Session.set("cw_y1", imageObject.cw_y1);
+    } else {
+      Session.set("cw_is_set", 0);
+    }
+
   } else if (imageObject.type == 'ls') {
     // our metadata is a list of per-frame information that we don't store
     // in the database for now and couldn't put in session even if we did
