@@ -56,3 +56,8 @@ function updateUV(delta_U, delta_V) {
 		? ls.updateUV(delta_U * ls.view3d.ofs_UV_step, delta_V * ls.view3d.ofs_UV_step)
 		: lf.updateUV(delta_U, delta_V);
 }
+
+// URL helpers
+baseUrl = 'http://' + window.location.host.split(":")[0];
+hdfUrl = baseUrl + ':8001/';
+computationUrl = baseUrl + ':8002/';
