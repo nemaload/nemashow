@@ -31,8 +31,6 @@ function LightSheetRenderer() {
 	};
 };
 
-var ls_baseurl = 'http://nemaload.cachefly.net/lightsheet/';
-
 LightSheetRenderer.prototype.loadimage = function(paths) {
 	if (this.last_group && !this.last_group.loaded())
 		this.last_group.cancel_queued_load();
@@ -144,6 +142,8 @@ GroupImage.prototype.loadDo = function(paths) {
 	var g = this;
 
 	var image_loading = new Array;
+
+	var ls_baseurl = hdfUrl + 'lightsheet/';
 	
 	for (var i = 0; i < 2; i++) {
 		image_loading[i] = new Image();
