@@ -143,7 +143,13 @@ GroupImage.prototype.loadDo = function(paths) {
 
 	var image_loading = new Array;
 
-	var ls_baseurl = hdfUrl + 'lightsheet/';
+	var ls_baseurl_amazon = "http://nemaload.cachefly.net/lightsheet/";
+	var ls_baseurl_local = hdfUrl + 'lightsheet/';
+	if (Session.get("useAmazonData")) {
+		ls_baseurl = ls_baseurl_amazon;
+	} else {
+		ls_baseurl = ls_baseurl_local;
+	}
 	
 	for (var i = 0; i < 2; i++) {
 		image_loading[i] = new Image();
