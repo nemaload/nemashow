@@ -32,8 +32,6 @@ function LightFieldRenderer() {
 	};
 };
 
-var lf_baseurl = "http://nemaload.cachefly.net/";
-
 LightFieldRenderer.prototype.loadimage = function(imagepath) {
 	var obj = this;
 	if (imagepath == null)
