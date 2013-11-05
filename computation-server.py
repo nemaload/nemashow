@@ -177,5 +177,4 @@ def neuron_positions(filename, frameno, poseinfo_s):
     return nmllib.jsondump_neurons(npos.neurons_by_pose(poseinfo))
 
 if __name__ == '__main__':
-    # app.run(port = http_port)
-    app.run(port = http_port, debug = True)
+    app.run(port = http_port, host='0.0.0.0')
