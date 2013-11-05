@@ -38,6 +38,16 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 		return;
 	console.log("loadimage " + imagepath);
 
+	var lf_baseurl_amazon = "http://nemaload.cachefly.net/";
+	var lf_baseurl_local = "/data/";
+
+	var imageurl;
+	if (Session.get("useAmazonData")) {
+		imageurl = lf_baseurl_amazon + imagepath;
+	} else {
+		imageurl = lf_baseurl_local + imagepath;
+	}
+
 	// This method of asynchronous loading may be problematic if there
 	// is still an outstanding request from previous loadimage(); FIXME
 	this.loaded = {
@@ -68,10 +78,10 @@ LightFieldRenderer.prototype.loadimage = function(imagepath) {
 	this.image.onloadend = function () {
 		alert("Loading ended!");
 	};*/
-	this.image.src = imagepath;
+	this.image.src = imageurl + ".png";
 
 	this.backbone = {};
-	var backbonepath = imagepath.replace(/\.png$/, "-backbone.json");
+	var backbonepath = imageurl + "-backbone.json";
 	$.getJSON(backbonepath)
 		.done(function(data) {
 			console.log('got backbone');

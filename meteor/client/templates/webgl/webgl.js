@@ -5,6 +5,7 @@ function frameURL(idx) {
   if (imageObject == null) // XXX: sometimes this just happens even though followup calls will succeed :(
     return null;
   var newURL;
+  /** If we were to depend on *Path attributes of MongoDB:
   if (Session.get('currentImageType') == 'lf') {
     if (Session.get("useAmazonData")) {
       newURL = imageObject.amazonPath[idx];
@@ -13,6 +14,12 @@ function frameURL(idx) {
     }
   } else {
     newURL = imageObject.relPath[idx];
+  } */
+  if (Session.get('currentImageType') == 'lf') {
+    newURL = imageObject.baseName + "-" + idx;
+  } else {
+    var framesPerChannel = (imageObject.numFrames/imageObject.channels.length);
+    newURL = imageObject.baseName + "/" + Math.floor(idx / framesPerChannel) + "/" + idx % framesPerChannel;
   }
   return newURL;
 }
