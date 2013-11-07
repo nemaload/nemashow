@@ -4,7 +4,7 @@
   <head>
     <meta charset='utf-8' />
     <meta http-equiv="X-UA-Compatible" content="chrome=1" />
-    <meta name="description" content="HDFWeb : A browser-based HDF5 image viewer" />
+    <meta name="description" content="NEMASHOW : A browser-based HDF5 image viewer" />
 
     <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
 
@@ -31,37 +31,104 @@
     <!-- MAIN CONTENT -->
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
-        <p><a href="http://nemaload.davidad.org"><img src="http://nemaload.davidad.org/png/nemaload" alt="Nemaload Logo"></a>
-<em>presents</em></p>
+        <p><a href="http://nemaload.davidad.org"><img src="http://nemaload.davidad.org/png/nemaload" alt="Nemaload Logo"></a></p>
 
 <h1>
-<a name="nemashow" class="anchor" href="#nemashow"><span class="octicon octicon-link"></span></a>Nemashow</h1>
+<a name="nemashow" class="anchor" href="#nemashow"><span class="octicon octicon-link"></span></a>NEMASHOW</h1>
 
-<p>Nemashow is a web application which will enable the public to access interactive visualizations of data produced by the <a href="http://nemaload.davidad.org">NEMALOAD</a> project. Nemashow is built on the <a href="http://meteor.com/">Meteor</a> framework, and uses <a href="http://webgl.org">WebGL</a> for visualizations.</p>
+<p>NEMASHOW is a web application which enables the public to access interactive visualizations of data produced by the <a href="http://nemaload.davidad.org">NEMALOAD</a> project. Nemashow is built on the <a href="http://meteor.com/">Meteor</a> framework, and uses <a href="http://webgl.org">WebGL</a> for visualizations.</p>
 
 <h2>
-<a name="setup" class="anchor" href="#setup"><span class="octicon octicon-link"></span></a>Setup</h2>
+<a name="datasets" class="anchor" href="#datasets"><span class="octicon octicon-link"></span></a>Datasets</h2>
+
+<p>NEMASHOW allows you to explore snapshots and videos capturing c. elegans specimen on microscopic scale. But 2D images are not enough for us - we are looking for ways to achieve a 3D capture of the worm's neuronal activity. We offer two kinds of data - "light field" data that uses clever optics to capture the worm's body from multiple angles simultaneously and "light field" data (still experimental) that uses laser scanning to capture a fully 3D model.</p>
+
+<p>For the light field data, we also already offer some very simple data visualization. This is still a work in progress though, so please consider the visualized data (neuron positions etc.) as just a demo.</p>
+
+<h2>
+<a name="technical-setup" class="anchor" href="#technical-setup"><span class="octicon octicon-link"></span></a>Technical Setup</h2>
+
+<h3>
+<a name="overview" class="anchor" href="#overview"><span class="octicon octicon-link"></span></a>Overview</h3>
+
+<p>The process of getting a working copy of NEMASHOW can be grouped into several broad steps:</p>
+
+<ol>
+<li>Ensuring your setup meets the necessary requirements and has the necessary dependencies</li>
+<li>Downloading the repositories and, optionally, the project dataset</li>
+<li>Running setup scripts</li>
+</ol><h3>
+<a name="requirements" class="anchor" href="#requirements"><span class="octicon octicon-link"></span></a>Requirements</h3>
+
+<h4>
+<a name="browser" class="anchor" href="#browser"><span class="octicon octicon-link"></span></a>Browser</h4>
+
+<p>A WebGL capable browser is necessary to view the visualizations(we use the latest <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a> builds; you can test your browser <a href="http://www.doesmybrowsersupportwebgl.com/">here</a>.) Support for other browsers is not guaranteed.</p>
+
+<h4>
+<a name="operating-system" class="anchor" href="#operating-system"><span class="octicon octicon-link"></span></a>Operating System</h4>
+
+<h5>
+<a name="running-nemashow" class="anchor" href="#running-nemashow"><span class="octicon octicon-link"></span></a>Running NEMASHOW</h5>
+
+<p>In production, NEMASHOW runs on servers running Ubuntu 13.04. However, development takes place on other Linux distributions, as well as Mac OS X.</p>
+
+<h5>
+<a name="viewing-nemashow" class="anchor" href="#viewing-nemashow"><span class="octicon octicon-link"></span></a>Viewing NEMASHOW</h5>
+
+<p>Usually, if a WebGL capable browser can be successfully installed and tested, NEMASHOW will work.</p>
+
+<p>One notable exception is light-sheet visualizations with the prerelease version of Mac OSX 10.9, due to a strange bug involving Cross Origin Resource Sharing. However, this OS version can be used when the light-sheet images and web app are hosted on the same server.</p>
+
+<h4>
+<a name="storage-space" class="anchor" href="#storage-space"><span class="octicon octicon-link"></span></a>Storage Space</h4>
+
+<p>If you'd like to store the raw dataset, ~30GB of space is necessary. To store the PNG renderings of the files, ~7GB is necessary. </p>
 
 <h3>
 <a name="dependencies" class="anchor" href="#dependencies"><span class="octicon octicon-link"></span></a>Dependencies</h3>
 
-<p>Aside from Meteor itself (<code>$ curl https://install.meteor.com | sh</code>) and a WebGL-capable browser (we use the latest <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a> builds; you can test your browser <a href="http://www.doesmybrowsersupportwebgl.com/">here</a>), you'll also need:</p>
+<h4>
+<a name="meteor" class="anchor" href="#meteor"><span class="octicon octicon-link"></span></a>Meteor</h4>
+
+<p>The easiest way to install <a href="http://www.meteor.com/">Meteor</a> is to run the command <code>$ curl https://install.meteor.com | sh</code> on a <a href="https://github.com/meteor/meteor/wiki/Supported-Platforms">supported platform.</a></p>
+
+<h4>
+<a name="meteorite" class="anchor" href="#meteorite"><span class="octicon octicon-link"></span></a>Meteorite</h4>
+
+<p>We use several Meteorite packages in the NEMASHOW application. This package is best installed with <a href="http://nodejs.org/download/">npm</a> using the command <code>npm install -g meteorite</code>.</p>
+
+<h4>
+<a name="mongodb" class="anchor" href="#mongodb"><span class="octicon octicon-link"></span></a>MongoDB</h4>
+
+<p>The <a href="http://www.mongodb.org/downloads">MongoDB command line tools</a> are necessary to run some setup scripts.</p>
+
+<h4>
+<a name="python-libraries" class="anchor" href="#python-libraries"><span class="octicon octicon-link"></span></a>Python Libraries</h4>
+
+<p>If you choose to run the HDF server or computation server, several Python libraries are required as well as their various dependencies, including:</p>
 
 <ul>
-<li>
-<a href="https://github.com/oortcloud/meteorite">Meteorite</a>: <code>$ npm install -g meteorite</code>
-</li>
-<li>
-<a href="http://www.mongodb.org/downloads">MongoDB</a> command-line tools</li>
+<li>Tables</li>
+<li>MatplotLib</li>
+<li>SciPy</li>
 </ul><h3>
 <a name="data" class="anchor" href="#data"><span class="octicon octicon-link"></span></a>Data</h3>
 
-<p>The application expects to find data in <code>meteor/data</code> (absent from this repository). The actual dataset is many gigabytes; while we are currently working to make it publicly available, for now just contact us if you're interested.</p>
+<h4>
+<a name="database" class="anchor" href="#database"><span class="octicon octicon-link"></span></a>Database</h4>
+
+<p>Meteor will automatically generate the necessary collections the first time it runs. However, to import the information about our dataset, you can use the <a href="http://docs.mongodb.org/manual/reference/program/mongorestore/">monogorestore</a> command on the database dump in <code>/meteor/dump/</code>.</p>
+
+<h4>
+<a name="dataset" class="anchor" href="#dataset"><span class="octicon octicon-link"></span></a>Dataset</h4>
+
+<p>The application expects to find data in <code>meteor/data</code> (absent from this repository). The actual dataset is many gigabytes; please contact us if you'd like a copy.</p>
 
 <h3>
 <a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h3>
 
-<p>To run the website, run the <code>mtr</code> command from the <code>meteor</code> directory and point your browser at <code>http://localhost:3000/</code>.
+<p>To run the website, run the <code>mrt</code> command from the <code>meteor</code> directory and point your browser at <code>http://localhost:3000/</code>.
 To access lightsheet images data, you also need to run the <code>./simple-hdf-server.py ../data</code> command, where <code>../data</code> is the directory holding HDF5 lightsheet data files.
 To access lightsheet bounding box plotting functionality, also run the <code>./computation-server.py ../data</code> command.</p>
 
@@ -73,7 +140,7 @@ To access lightsheet bounding box plotting functionality, also run the <code>./c
 <h2>
 <a name="roadmap" class="anchor" href="#roadmap"><span class="octicon octicon-link"></span></a>Roadmap</h2>
 
-<p>Nemashow's support for light-field visualizations is nearly complete. Our goals for the short term include integrating light-sheet visualizations, improving reusability of workflow utilities, and making the application scalable for public deployment. </p>
+<p>NEMASHOW will continue to grow as the project does. As the project continues in its analysis of and signal extraction from the datasets, additional features will be added to the visualization to reflect this progress.</p>
 
 <h2>
 <a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
@@ -87,7 +154,7 @@ To access lightsheet bounding box plotting functionality, also run the <code>./c
     <!-- FOOTER  -->
     <div id="footer_wrap" class="outer">
       <footer class="inner">
-        <p class="copyright">HDFWeb maintained by <a href="https://github.com/nemaload">nemaload</a></p>
+        <p class="copyright">NEMASHOW maintained by <a href="https://github.com/nemaload">nemaload</a></p>
         <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
       </footer>
     </div>
