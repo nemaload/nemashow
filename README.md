@@ -2,7 +2,12 @@
 #NEMASHOW
 NEMASHOW is a web application which enables the public to access interactive visualizations of data produced by the [NEMALOAD](http://nemaload.davidad.org) project. Nemashow is built on the [Meteor](http://meteor.com/) framework, and uses [WebGL](http://webgl.org) for visualizations.
 
-##Setup
+##Datasets
+NEMASHOW allows you to explore snapshots and videos capturing c. elegans specimen on microscopic scale. But 2D images are not enough for us - we are looking for ways to achieve a 3D capture of the worm's neuronal activity. We offer two kinds of data - "light field" data that uses clever optics to capture the worm's body from multiple angles simultaneously and "light field" data (still experimental) that uses laser scanning to capture a fully 3D model.
+
+For the light field data, we also already offer some very simple data visualization. This is still a work in progress though, so please consider the visualized data (neuron positions etc.) as just a demo.
+
+##Technical Setup
 ###Overview
 The process of getting a working copy of NEMASHOW can be grouped into several broad steps:
 	
