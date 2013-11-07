@@ -304,8 +304,8 @@ LightFieldRenderer.prototype.grid_params = function() {
 		// adjust for cropping
 
 		// ul and br are rotated by 90 degrees here
-		var ul = [this.cropwindow.ul[1], this.cropwindow.ul[0]];
-		var br = [this.cropwindow.br[1], this.cropwindow.br[0]];
+		var ul = [this.cropwindow.br[0], this.cropwindow.ul[0]];
+		var br = [this.cropwindow.br[1], this.cropwindow.ul[1]];
 		console.log(ul, br);
 
 		cropImageSize = {
@@ -530,8 +530,8 @@ LightFieldRenderer.prototype.render_cropwindow = function(canvas, gl) {
 	var program = createProgram(gl, [vertexShader, fragmentShader]);
 	gl.useProgram(program);
 
-	var ul = [this.cropwindow.ul[1], this.cropwindow.ul[0]];
-	var br = [this.cropwindow.br[1], this.cropwindow.br[0]];
+	var ul = [this.cropwindow.br[0], this.cropwindow.ul[0]];
+	var br = [this.cropwindow.br[1], this.cropwindow.ul[1]];
 
 	var lineList = new Array;
 	lineList.push(ul[0]); lineList.push(ul[1]);
