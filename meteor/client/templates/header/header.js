@@ -1,12 +1,12 @@
 Template.header.events = {
   'click #triggerAbout': function() {
-    Session.set("currentView", "viewingAbout");
+    urlrouter.about();
   },
   'click #triggerHelp': function() {
-    Session.set("currentView", "viewingHelp");
+    urlrouter.help();
   },
   'click #triggerFirstScreen': function() {
-    Session.set("currentView", "viewingFirstScreen");
+    urlrouter.main();
   },
   'change #useAmazonData': function(ev) {
     Session.set("useAmazonData", ev.currentTarget.checked);
@@ -32,8 +32,7 @@ Template.header.rendered = function() {
     items: 10,
     minLength: 2,
     updater: function(item) {
-      Session.set("currentView", "searchResults");
-      Session.set("currentSearchTerm", item);
+      urlrouter.search(item);
       $("body").animate({
         scrollTop: 0
       }, "slow");

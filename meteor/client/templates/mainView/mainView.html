@@ -1,5 +1,5 @@
 <template name="mainView">
-  <div class="hero-unit" style="height:300px;" overflow="auto">
+  <div class="hero-unit" overflow="auto">
     {{#if isViewing "viewingAbout"}}
     <p>
       See <a href="http://nemaload.github.io/nemashow/"> this page for more details.</a> 
@@ -12,14 +12,25 @@
     {{#if isViewing "fileListing"}} {{> fileView}} {{/if}} {{#if isViewing "searchResults"}}
     {{> searchResults}} {{/if}}
     {{#if isViewing "viewingFirstScreen"}}
-    <h1>
+    <h1 style="margin-bottom: 2ex">
       Welcome to NEMASHOW
     </h1>
-    NEMASHOW allows both NEMALOAD researchers and the public to interactively view the
-    project data.
     <p>
-      <a href="http://nemaload.github.io/nemashow/" class="btn btn-primary btn-large">Learn more &raquo;</a>
+    NEMASHOW allows both NEMALOAD researchers and the public to interactively view the
+    data of our project to capture neuron activity of <em>c. elegans</em> specimen.
+      <a href="http://nemaload.github.io/nemashow/">(learn more)</a>
     </p>
+    <h2>Get Started!</h2>
+    <p>
+    To get started, click on one of the video links below.
+    So far, these are the nicest pieces of our dataset to explore:
+    </p>
+    <ul>
+	    <li><a href="/view/j2g8EKMpeqMtJXyMX/punc31_gCAMP5_td_video24_global_gfpfilter_tail.hdf5" onClick="urlrouter.viewFileByName('j2g8EKMpeqMtJXyMX', 'punc31_gCAMP5_td_video24_global_gfpfilter_tail.hdf5')">Light-field video no. 24</a></li>
+	    <li><a href="/view/j2g8EKMpeqMtJXyMX/punc31_gCAMP5_td_video25_global_gfpfilter.hdf5#6" onClick="urlrouter.viewFileByName('j2g8EKMpeqMtJXyMX', 'punc31_gCAMP5_td_video25_global_gfpfilter.hdf5')">Light-field video no. 25</a></li>
+	    <li><a href="/view/j2g8EKMpeqMtJXyMX/punc31_gCAMP5_td_video26_global_gfpfilter.hdf5#5" onClick="urlrouter.viewFileByName('j2g8EKMpeqMtJXyMX', 'punc31_gCAMP5_td_video26_global_gfpfilter.hdf5')">Light-field video no. 26</a></li>
+	    <li><a href="/view/j2g8EKMpeqMtJXyMX/punc31_gCAMP5_td_video32_global_gfpfilter.hdf5#27" onClick="urlrouter.viewFileByName('j2g8EKMpeqMtJXyMX', 'punc31_gCAMP5_td_video32_global_gfpfilter.hdf5')">Light-field video no. 32</a></li>
+    </ul>
     {{/if}}
   </div>
 </template>
