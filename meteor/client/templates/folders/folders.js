@@ -12,8 +12,7 @@ Template.folders.isCurrentFolder = function(folder) {
 Template.folders.events = {
   'click .folderLi': function(e) {
     e.preventDefault();
-    Session.set("currentFolderId", $(e.target).attr("id"));
-    Session.set("currentView", "fileListing");
+    urlrouter.viewFolder($(e.target).attr("id"));
   },
   'dragover .folderLi': function(e, t) {
     e.preventDefault();

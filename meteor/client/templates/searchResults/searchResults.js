@@ -60,9 +60,7 @@ Template.searchResults.events = {
   'click .fileViewRow': function(e) {
     var image = Images.findOne(Annotations.findOne($(e.target).parent().attr("annotationId")).imageId)._id;
     console.log(image);
-    Session.set("currentImageId", image);
-    Template.fileView.setImageSessionVars();
-    Session.set("currentImageView", "viewingImage");
+    urlrouter.viewFileById(Session.get("currentFolderId"), image);
     Session.set("viewingAnnotation", false);
     $("body").animate({
       scrollTop: $(document).height()

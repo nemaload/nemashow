@@ -43,7 +43,7 @@ Template.fileView.removeFolder = function() {
       } else if (result !== "Success") {
         alert(result);
       } else {
-        Session.set("currentView", "viewingFirstScreen");
+	urlrouter.main();
       }
     });
 
@@ -129,11 +129,7 @@ Template.fileView.events = {
     $(e.target).children().removeClass("fileViewRowActive");
   },
   'click .fileViewRow': function(e) {
-    Session.set("currentImageId", $(e.target).parent().attr("fileid"));
-    Template.fileView.setImageSessionVars();
-    Session.set("currentImageView", "viewingImage");
-    Session.set("currentWebGLMode", "image");
-    $("#rendermode").val("image");
+    urlrouter.viewFileById(Session.get("currentFolderId"), $(e.target).parent().attr("fileid"));
   },
   'dragstart .fileViewRow': function(e) {
     e.dataTransfer.effectAllowed = 'move';
