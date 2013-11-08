@@ -6,7 +6,9 @@ var Router = Backbone.Router.extend({
     "search/:searchTerm": "search",
     "view/:folder": "viewFolder",
     "view/:folder/:filename": "viewFileByName",
-    "viewid/:folder/:fileid": "viewFileById"
+    "view/:folder/:filename/:frameidx": "viewFileByName",
+    "viewid/:folder/:fileid": "viewFileById",
+    "viewid/:folder/:fileid/:frameidx": "viewFileById"
   },
 
   main: function() {
@@ -41,25 +43,28 @@ var Router = Backbone.Router.extend({
     this.navigate('/view/' + folder);
   },
 
-  viewFile: function(folder, filename, fileid) {
+  viewFile: function(folder, filename, fileid, frameidx) {
     Session.set("currentView", "fileListing");
     Session.set("currentFolderId", folder);
     Session.set("currentImageId", fileid);
     Template.fileView.setImageSessionVars();
+    if (frameidx != null) {
+      Session.set("currentFrameIndex", frameidx);
+    }
     Session.set("currentImageView", "viewingImage");
     Session.set("currentWebGLMode", "image");
     $("#rendermode").val("image");
-    this.navigate('/view/' + folder + '/' + filename);
+    this.navigate('/view/' + folder + '/' + filename + (frameidx != null ? '/' + frameidx : ''));
   },
 
-  viewFileById: function(folder, fileid) {
+  viewFileById: function(folder, fileid, frameidx) {
     var filename = Images.findOne(fileid).baseName;
-    this.viewFile(folder, filename, fileid);
+    this.viewFile(folder, filename, fileid, frameidx);
   },
 
-  viewFileByName: function(folder, filename) {
+  viewFileByName: function(folder, filename, frameidx) {
     var fileid = Images.findOne({ baseName: filename })._id;
-    this.viewFile(folder, filename, fileid);
+    this.viewFile(folder, filename, fileid, frameidx);
   }
 });
 
