@@ -345,5 +345,8 @@ Template.webgl.events = {
   },
   'change #perspective': function(ev) {
     render_if_ready(0);
+  },
+  'change #neurons': function(ev) {
+    render_if_ready(0);
   }
 }
