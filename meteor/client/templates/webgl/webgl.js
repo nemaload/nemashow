@@ -81,6 +81,18 @@ Template.webgl.created = function() {
     } else {
       var imagePath = frameURL(Session.get("currentFrameIndex"));
       loadimage([imagePath, imagePath]);
+
+      var baseName = Images.findOne(Session.get("currentImageId")).baseName;
+      if (baseName == "punc31_gCAMP5_td_video32_global_gfpfilter.hdf5") {
+	// XXX: video-specific defaults hack, TODO make a generic way to do this
+	Session.set("currentPoseZoom", 0.2);
+	Session.set("currentPoseShift", -22);
+	Session.set("currentPoseAngle", 90);
+      } else {
+	Session.set("currentPoseZoom", 0.2);
+	Session.set("currentPoseShift", 0);
+	Session.set("currentPoseAngle", 0);
+      }
     }
   });
 }
