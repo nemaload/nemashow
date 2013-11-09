@@ -108,6 +108,11 @@ Template.webglControls.shouldShowSlider = function() {
   return (Session.get("currentImageNumFrames") > 1);
 }
 
+function updatePoseZoom(val) {
+  $('#pose_zoom_current').html(parseFloat(val).toFixed(2));
+  Session.set("currentPoseZoom", val);
+  render_if_ready(0);
+}
 function updatePoseShift(val) {
   $('#pose_shift_current').html(parseFloat(val).toFixed(2));
   Session.set("currentPoseShift", val);
@@ -166,10 +171,16 @@ Template.webgl.setupSliders = function() {
     render_if_ready(0);
   }).change();
   $("#poseZoomSlider").val(Session.get('currentPoseZoom')).off('change').change(function() {
-    $('#pose_zoom_current').html(parseFloat(this.value).toFixed(2));
-    Session.set("currentPoseZoom", this.value);
-    render_if_ready(0);
+    updatePoseZoom(this.value);
   }).change();
+  $("#poseZoomMinus").off('click').click(function() {
+    var val = parseFloat(Session.get('currentPoseZoom')) - 0.1;
+    updatePoseZoom(val);
+  });
+  $("#poseZoomPlus").off('click').click(function() {
+    var val = parseFloat(Session.get('currentPoseZoom')) + 0.1;
+    updatePoseZoom(val);
+  });
   $("#poseShiftSlider").val(Session.get('currentPoseShift')).off('change').change(function() {
     updatePoseShift(this.value);
   }).change();
