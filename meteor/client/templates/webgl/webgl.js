@@ -81,6 +81,18 @@ Template.webgl.created = function() {
     } else {
       var imagePath = frameURL(Session.get("currentFrameIndex"));
       loadimage([imagePath, imagePath]);
+
+      var baseName = Images.findOne(Session.get("currentImageId")).baseName;
+      if (baseName == "punc31_gCAMP5_td_video32_global_gfpfilter.hdf5") {
+	// XXX: video-specific defaults hack, TODO make a generic way to do this
+	Session.set("currentPoseZoom", 0.2);
+	Session.set("currentPoseShift", -22);
+	Session.set("currentPoseAngle", 90);
+      } else {
+	Session.set("currentPoseZoom", 0.2);
+	Session.set("currentPoseShift", 0);
+	Session.set("currentPoseAngle", 0);
+      }
     }
   });
 }
@@ -108,6 +120,11 @@ Template.webglControls.shouldShowSlider = function() {
   return (Session.get("currentImageNumFrames") > 1);
 }
 
+function updatePoseZoom(val) {
+  $('#pose_zoom_current').html(parseFloat(val).toFixed(2));
+  Session.set("currentPoseZoom", val);
+  render_if_ready(0);
+}
 function updatePoseShift(val) {
   $('#pose_shift_current').html(parseFloat(val).toFixed(2));
   Session.set("currentPoseShift", val);
@@ -166,10 +183,16 @@ Template.webgl.setupSliders = function() {
     render_if_ready(0);
   }).change();
   $("#poseZoomSlider").val(Session.get('currentPoseZoom')).off('change').change(function() {
-    $('#pose_zoom_current').html(parseFloat(this.value).toFixed(2));
-    Session.set("currentPoseZoom", this.value);
-    render_if_ready(0);
+    updatePoseZoom(this.value);
   }).change();
+  $("#poseZoomMinus").off('click').click(function() {
+    var val = parseFloat(Session.get('currentPoseZoom')) - 0.1;
+    updatePoseZoom(val);
+  });
+  $("#poseZoomPlus").off('click').click(function() {
+    var val = parseFloat(Session.get('currentPoseZoom')) + 0.1;
+    updatePoseZoom(val);
+  });
   $("#poseShiftSlider").val(Session.get('currentPoseShift')).off('change').change(function() {
     updatePoseShift(this.value);
   }).change();
@@ -344,6 +367,9 @@ Template.webgl.events = {
     render_if_ready(0);
   },
   'change #perspective': function(ev) {
+    render_if_ready(0);
+  },
+  'change #neurons': function(ev) {
     render_if_ready(0);
   }
 }

@@ -400,7 +400,7 @@ LightFieldRenderer.prototype.render = function(is_new_image) {
 		this.render_backbone(canvas, gl);
 	}
 
-	if (mode == "3d" && this.neurons) {
+	if (mode == "3d" && $('#neurons').prop('checked') && this.neurons) {
 		this.render_neurons(canvas, gl);
 	}
 }
