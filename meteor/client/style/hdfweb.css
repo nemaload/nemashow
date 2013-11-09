@@ -172,7 +172,7 @@ input[type='range'] {
 	display: inline-block;
 	color: #44ff44;
 	position: absolute;
+	border-top: 1pt solid #44dd44;
 	border-left: 1pt solid #44dd44;
-	border-bottom: 1pt solid #44dd44;
 	padding: 0ex 0.25em;
 }
