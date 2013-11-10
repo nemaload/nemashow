@@ -26,7 +26,7 @@ Session.setDefault("showGrid", false);
 Session.setDefault("showGridUV", false);
 //worm pose information
 // XXX hardcoded defaults; should be stored near backbone in .json, or in mongodb
-// XXX always overriden in Template.webgl.created()
+// XXX always overriden in Template.fileView.setImageSessionVars()
 Session.setDefault("currentPoseZoom", 0.2);
 Session.setDefault("currentPoseShift", 0);
 Session.setDefault("currentPoseAngle", 0);
