@@ -29,7 +29,7 @@ function setFrame(idx) {
   Session.set("currentFrameIndex", idx);
 }
 
-var playFrames_delay = 500; // [ms]
+var playFrames_delay = 2000; // [ms]
 var playFrames_timer;
 function playFrames() {
   playFrames_timer = window.setInterval(function() {
